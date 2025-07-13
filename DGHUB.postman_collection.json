@@ -1,0 +1,1270 @@
+{
+	"info": {
+		"_postman_id": "ba29a92f-45a1-45f0-9db4-6543a4f860eb",
+		"name": "DGHUB",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30303931",
+		"_collection_link": "https://client-work.postman.co/workspace/Client-Work~3a430dea-5dea-4152-808f-a5a15ffd749b/collection/30303931-ba29a92f-45a1-45f0-9db4-6543a4f860eb?action=share&source=collection_link&creator=30303931"
+	},
+	"item": [
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "register admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Shanto",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "admin@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f058ea1-452a-4f00-9901-c04b98fbe5e9"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\":\"mdtanvirahamdsanto987@gmail.com\",\r\n    \"password\":\"admin\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update admin",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Shanto",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "admin@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f058ea1-452a-4f00-9901-c04b98fbe5e9"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin/cmcvwk03c0000nwuk3fuprvcr",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin",
+								"cmcvwk03c0000nwuk3fuprvcr"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Shanto",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "admin@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f058ea1-452a-4f00-9901-c04b98fbe5e9"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get single admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "name",
+									"value": "Shanto",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "admin@gmail.com",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "admin",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": "postman-cloud:///1f058ea1-452a-4f00-9901-c04b98fbe5e9"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/admin/cmcvwk03c0000nwuk3fuprvcr",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"admin",
+								"cmcvwk03c0000nwuk3fuprvcr"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "client",
+			"item": [
+				{
+					"name": "create account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/register",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"password\":\"client\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/set-password?token=b00960fc57382190d6f627f13849bd4a9e4aa5341bffa4fbcc1db9b96b4a55f2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"set-password"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "b00960fc57382190d6f627f13849bd4a9e4aa5341bffa4fbcc1db9b96b4a55f2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "login account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"client\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all client by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get single client by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/cmcyc7sdr0000nwow6x8hyci6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"cmcyc7sdr0000nwow6x8hyci6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update client by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/cmcyc7sdr0000nwow6x8hyci6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"cmcyc7sdr0000nwow6x8hyci6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete client by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/cmcyc7sdr0000nwow6x8hyci6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"cmcyc7sdr0000nwow6x8hyci6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update profile Copy",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get profile by client",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update profile by client",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "partner",
+			"item": [
+				{
+					"name": "create partner by admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\",\r\n    \"skillSet\": [\"html\"],\r\n    \"industryExp\":[\"sdfdfsdd\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify partner account set password",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"password\":\"partner\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/set-password?token=ff27a89af159eeafe2fa82df64823a7f96b4ce0a6eccda3d458f61c538cf5b67",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"set-password"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "ff27a89af159eeafe2fa82df64823a7f96b4ce0a6eccda3d458f61c538cf5b67"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all partner by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\",\r\n    \"skillSet\": [\"html\"],\r\n    \"industryExp\":[\"sdfdfsdd\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get single partner by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\",\r\n    \"skillSet\": [\"html\"],\r\n    \"industryExp\":[\"sdfdfsdd\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/cmcygdbt40001nwhgior2ehp6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"cmcygdbt40001nwhgior2ehp6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update partner by admin",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\",\r\n    \"skillSet\": [\"html\"],\r\n    \"industryExp\":[\"sdfdfsdd\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/cmcygdbt40001nwhgior2ehp6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"cmcygdbt40001nwhgior2ehp6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete partner by admin",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\",\r\n    \"skillSet\": [\"html\"],\r\n    \"industryExp\":[\"sdfdfsdd\"]\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/cmcygdbt40001nwhgior2ehp6",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"cmcygdbt40001nwhgior2ehp6"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "partner login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/login",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get profile by partner",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update profile by partner",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"shanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/profile",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all leads",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/leads",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"leads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "send offer to admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"proposedCost\":1000,\r\n    \"timeline\":\"2-month\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/partner/leads/cmcyoguor0004nwgcud6r56a2/submit-offer",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"partner",
+								"leads",
+								"cmcyoguor0004nwgcud6r56a2",
+								"submit-offer"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "lead",
+			"item": [
+				{
+					"name": "create lead by client",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "verify client account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all lead",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get single lead",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update lead by admin",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete lead by admin",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto khan\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"phone\":\"04535512401\",\r\n    \"projectCategory\":\"web\",\r\n    \"porjectTitle\":\"hello\",\r\n    \"description\":\"nttg\",\r\n    \"budgetRange\":\"3000\"\r\n\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "assign lead partner",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"partnerId\":\"cmcygdbt40001nwhgior2ehp6\",\r\n    \"adminId\":\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2/assign-partner",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2",
+								"assign-partner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "lead sent client offer by admin",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"adminMargin\":5000,\r\n    \"includesGST\": true,\r\n    \"timeline\":\"3-month\",\r\n    \"notes\":\"this is admin notes\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2/send-offer-to-client",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2",
+								"send-offer-to-client"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get lead by client",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"client\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/client/my-leads",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"client",
+								"my-leads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "accept-offer by client",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\":\"shanto\",\r\n    \"email\":\"mdtanvirahamedshanto@gmail.com\",\r\n    \"password\":\"shanto\"\r\n}"
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/lead/cmcyoguor0004nwgcud6r56a2/accept-offer",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"lead",
+								"cmcyoguor0004nwgcud6r56a2",
+								"accept-offer"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "milestone",
+			"item": [
+				{
+					"name": "create milestone by partner",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\r\n    \"title\": \"Phase 1: UI/UX Design & Wireframing\",\r\n    \"cost\": 1500.00,\r\n    \"timeline\": 7,\r\n    \"description\": \"Initial design concepts, user flows, and wireframes for the core application.\"\r\n  }]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/milestone/partner/projects/cmcyzlzic0001nw54z09mix8l/milestones",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"milestone",
+								"partner",
+								"projects",
+								"cmcyzlzic0001nw54z09mix8l",
+								"milestones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all milestone by partner",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\r\n    \"title\": \"Phase 1: UI/UX Design & Wireframing\",\r\n    \"cost\": 1500.00,\r\n    \"timeline\": 7,\r\n    \"description\": \"Initial design concepts, user flows, and wireframes for the core application.\"\r\n  }]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/milestone/partner/projects/cmcyzlzic0001nw54z09mix8l/milestones",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"milestone",
+								"partner",
+								"projects",
+								"cmcyzlzic0001nw54z09mix8l",
+								"milestones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all milestone by admin",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[{\r\n    \"title\": \"Phase 1: UI/UX Design & Wireframing\",\r\n    \"cost\": 1500.00,\r\n    \"timeline\": 7,\r\n    \"description\": \"Initial design concepts, user flows, and wireframes for the core application.\"\r\n  }]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/milestone/admin/projects/cmcyzlzic0001nw54z09mix8l/milestones",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"milestone",
+								"admin",
+								"projects",
+								"cmcyzlzic0001nw54z09mix8l",
+								"milestones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "approve milestone by admin",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"clientCost\": 1000.00,\r\n  \"estimatedTimeline\": \"10 working days\",\r\n  \"additionalNotes\": \"Client requested express delivery. Ensure partner is aware.\",\r\n  \"includesGST\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/milestone/admin/milestones/cmd0df6g00001nwkwkzjpd7d0/approve",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"milestone",
+								"admin",
+								"milestones",
+								"cmd0df6g00001nwkwkzjpd7d0",
+								"approve"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all milestone by client",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/milestone/client/projects/cmcyzlzic0001nw54z09mix8l/milestones",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"milestone",
+								"client",
+								"projects",
+								"cmcyzlzic0001nw54z09mix8l",
+								"milestones"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "project",
+			"item": [
+				{
+					"name": "get all project by partner",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/project/partner",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"project",
+								"partner"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtY3lvZ3MyNjAwMDJud2djbG14a3BkZjUiLCJlbWFpbCI6Im1kdGFudmlyYWhhbWVkc2hhbnRvQGdtYWlsLmNvbSIsInJvbGUiOiJjbGllbnQiLCJpYXQiOjE3NTIzMzQ3NzgsImV4cCI6MTc1MjM2MzU3OH0.b53yzBXFnVe0BOGuBe-crbfgwmqPR35GA71Hv05cjQI",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE_URL",
+			"value": "http://localhost:5000/api",
+			"type": "string"
+		}
+	]
+}

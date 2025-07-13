@@ -1,4 +1,4 @@
-export type UserRole = 'ADMIN' | 'PARTNER' | 'CLIENT';
+export type UserRole = 'admin' | 'partner' | 'client';
 
 export interface AuthState {
   isAuthenticated: boolean;

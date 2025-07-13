@@ -66,19 +66,19 @@ const App = () => (
             <Route path="/unauthorized" element={<Unauthorized />} />
 
             {/* PROTECTED ROUTES */}
-            <Route element={<ProtectedRoute allowedRoles={['CLIENT']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['client']} />}>
               <Route path="/client-dashboard" element={<ClientDashboard />} />
               {/* Add other client-specific routes here */}
               {/* <Route path="/client/projects/:id" element={<ClientProjectDetail />} /> */}
             </Route>
 
-            <Route element={<ProtectedRoute allowedRoles={['PARTNER']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['partner']} />}>
               <Route path="/developer-dashboard" element={<DeveloperDashboard />} />
               {/* Add other partner-specific routes here */}
               {/* <Route path="/partner/projects" element={<PartnerProjects />} /> */}
             </Route>
 
-            <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
+            <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
               <Route path="/admin-dashboard" element={<AdminDashboard />} />
               {/* Add other admin-specific routes here */}
               {/* <Route path="/admin/users" element={<AdminUsers />} /> */}

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Handshake, ArrowLeft, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,31 +14,30 @@ const AdminLogin = () => {
   const {
     toast
   } = useToast();
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Admin login attempted with:', {
-      email,
-      password
-    });
-
-    // Demo authentication
-    if (email === 'admin@demo.com' && password === '123456') {
+    try {
+      const response = await axiosInstance.post('/admin/login', {
+        email,
+        password
+      });
+      
+      const { token } = response.data;
+      localStorage.setItem('accessToken', token);
+      
       toast({
         title: "Login Successful",
         description: "Welcome to the admin dashboard!"
       });
+      
       navigate('/admin-dashboard');
-    } else {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please use the demo credentials.",
+        description: error.response?.data?.message || "Invalid credentials",
         variant: "destructive"
       });
     }
-  };
-  const handleUseDemo = () => {
-    setEmail('admin@demo.com');
-    setPassword('123456');
   };
   return <div className="min-h-screen bg-gradient-to-br from-white via-brand-gray-50 to-brand-accent/5">
       {/* Header */}
@@ -94,19 +94,6 @@ const AdminLogin = () => {
                   Access Admin Dashboard
                 </Button>
               </form>
-
-              <div className="mt-4">
-                <Button type="button" variant="outline" onClick={handleUseDemo} className="w-full border-brand-accent text-brand-accent hover:bg-brand-accent hover:text-white h-10 md:h-11 text-sm md:text-base">
-                  Use Demo Credentials
-                </Button>
-              </div>
-              
-              {/* Demo Credentials */}
-              <div className="mt-6 p-4 bg-brand-gray-50 rounded-lg border border-brand-gray-200">
-                <h4 className="font-medium text-brand-gray-900 mb-2 text-sm md:text-base">Demo Credentials:</h4>
-                <p className="text-xs md:text-sm text-brand-gray-600">Email: admin@demo.com</p>
-                <p className="text-xs md:text-sm text-brand-gray-600">Password: 123456</p>
-              </div>
             </CardContent>
           </Card>
         </div>
