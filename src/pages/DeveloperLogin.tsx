@@ -6,36 +6,40 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Handshake, ArrowLeft, Code } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import axiosInstance from '@/api/axios';
 
 const PartnerLogin = () => {
-  const [email, setEmail] = useState('');
+   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Technical Partner login attempted with:', { email, password });
-
-    // Demo authentication
-    if (email === 'developer@demo.com' && password === '123456') {
+    try {
+      const response = await axiosInstance.post('/partner/login', {
+        email,
+        password
+      });
+      
+      const { token } = response.data;
+      await login(token);
+      navigate('/partner-dashboard');
       toast({
         title: "Login Successful",
-        description: "Welcome to your technical partner dashboard!"
+        description: "Welcome to the partner dashboard!"
       });
-      navigate('/partner-dashboard');
-    } else {
+      
+      // Navigation will be handled by AuthContext after successful login
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please use the demo credentials.",
+        description: error.response?.data?.message || "Invalid credentials",
         variant: "destructive"
       });
     }
-  };
-
-  const handleUseDemo = () => {
-    setEmail('developer@demo.com');
-    setPassword('123456');
   };
 
   return (
@@ -114,24 +118,6 @@ const PartnerLogin = () => {
                   Access Technical Partner Dashboard
                 </Button>
               </form>
-
-              <div className="mt-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={handleUseDemo} 
-                  className="w-full border-brand-secondary text-brand-secondary hover:bg-brand-secondary hover:text-white h-10 md:h-11 text-sm md:text-base"
-                >
-                  Use Demo Credentials
-                </Button>
-              </div>
-              
-              {/* Demo Credentials */}
-              <div className="mt-6 p-4 bg-brand-gray-50 rounded-lg border border-brand-gray-200">
-                <h4 className="font-medium text-brand-gray-900 mb-2 text-sm md:text-base">Demo Credentials:</h4>
-                <p className="text-xs md:text-sm text-brand-gray-600">Email: developer@demo.com</p>
-                <p className="text-xs md:text-sm text-brand-gray-600">Password: 123456</p>
-              </div>
             </CardContent>
           </Card>
         </div>
