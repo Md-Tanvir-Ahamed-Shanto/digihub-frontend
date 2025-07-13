@@ -54,7 +54,7 @@ const PartnerDashboard = () => {
       title: "Logged out",
       description: "You have been successfully logged out."
     });
-    navigate('/developer-login');
+    navigate('/partner-login');
   };
 
   const navigationItems = [
