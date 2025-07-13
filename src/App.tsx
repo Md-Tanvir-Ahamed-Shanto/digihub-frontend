@@ -17,12 +17,10 @@ import Contact from "./pages/Contact";
 
 // Login Pages
 import ClientLogin from "./pages/ClientLogin";
-import DeveloperLogin from "./pages/DeveloperLogin"; // This is your Partner Login
 import AdminLogin from "./pages/AdminLogin";
 
 // Dashboard Pages
 import ClientDashboard from "./pages/ClientDashboard";
-import DeveloperDashboard from "./pages/DeveloperDashboard"; // This is your Partner Dashboard
 import AdminDashboard from "./pages/AdminDashboard";
 
 import SubmitProject from "./pages/SubmitProject";
@@ -32,7 +30,8 @@ import Unauthorized from "./pages/Unauthorized"; // New Unauthorized page
 // Auth System Components
 import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
-import { UserRole } from "./types/auth"; // Import UserRole type
+import PartnerDashboard from "./pages/DeveloperDashboard";
+import PartnerLogin from "./pages/DeveloperLogin";
 
 const queryClient = new QueryClient();
 
@@ -59,7 +58,7 @@ const App = () => (
 
             {/* Login Routes (Accessible to anyone, will redirect if already logged in typically) */}
             <Route path="/client-login" element={<ClientLogin />} />
-            <Route path="/developer-login" element={<DeveloperLogin />} />
+            <Route path="/partner-login" element={<PartnerLogin />} />
             <Route path="/admin-login" element={<AdminLogin />} />
 
             {/* Unauthorized Page */}
@@ -73,7 +72,7 @@ const App = () => (
             </Route>
 
             <Route element={<ProtectedRoute allowedRoles={['partner']} />}>
-              <Route path="/developer-dashboard" element={<DeveloperDashboard />} />
+              <Route path="/partner-dashboard" element={<PartnerDashboard />} />
               {/* Add other partner-specific routes here */}
               {/* <Route path="/partner/projects" element={<PartnerProjects />} /> */}
             </Route>

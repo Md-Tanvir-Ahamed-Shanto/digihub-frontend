@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Globe, Handshake, ArrowLeft, Code } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const DeveloperLogin = () => {
+const PartnerLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -23,7 +23,7 @@ const DeveloperLogin = () => {
         title: "Login Successful",
         description: "Welcome to your technical partner dashboard!"
       });
-      navigate('/developer-dashboard');
+      navigate('/partner-dashboard');
     } else {
       toast({
         title: "Login Failed",
@@ -140,4 +140,4 @@ const DeveloperLogin = () => {
   );
 };
 
-export default DeveloperLogin;
+export default PartnerLogin;

@@ -35,7 +35,7 @@ import AddMilestoneModal from '@/components/dashboard/AddMilestoneModal';
 import WithdrawalRequestModal from '@/components/dashboard/WithdrawalRequestModal';
 import DeveloperSettings from '@/components/dashboard/DeveloperSettings';
 
-const DeveloperDashboard = () => {
+const PartnerDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewAssignedProjectsOpen, setViewAssignedProjectsOpen] = useState(false);
@@ -651,4 +651,4 @@ const DeveloperDashboard = () => {
   );
 };
 
-export default DeveloperDashboard;
+export default PartnerDashboard;
