@@ -6,40 +6,42 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Handshake, ArrowLeft, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+
 const ClientLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Client login attempted with:', {
-      email,
-      password
-    });
+  const { toast } = useToast();
 
-    // Demo authentication
-    if (email === 'client@demo.com' && password === '123456') {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const response = await axiosInstance.post('/client/login', {
+        email,
+        password
+      });
+      
+      const { token } = response.data;
+      localStorage.setItem('accessToken', token);
+      
       toast({
         title: "Login Successful",
         description: "Welcome to your client dashboard!"
       });
+      
       navigate('/client-dashboard');
-    } else {
+    } catch (error: any) {
       toast({
         title: "Login Failed",
-        description: "Invalid credentials. Please use the demo credentials.",
+        description: error.response?.data?.message || "Invalid credentials",
         variant: "destructive"
       });
     }
   };
-  const handleUseDemo = () => {
-    setEmail('client@demo.com');
-    setPassword('123456');
-  };
-  return <div className="min-h-screen bg-gradient-to-br from-white via-brand-gray-50 to-brand-primary/5">
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-white via-brand-gray-50 to-brand-primary/5">
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-sm border-b border-brand-gray-200">
         <div className="container mx-auto px-4 py-4">
@@ -95,19 +97,6 @@ const ClientLogin = () => {
                 </Button>
               </form>
 
-              <div className="mt-4">
-                <Button type="button" variant="outline" onClick={handleUseDemo} className="w-full border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white h-10 md:h-11 text-sm md:text-base">
-                  Use Demo Credentials
-                </Button>
-              </div>
-              
-              {/* Demo Credentials */}
-              <div className="mt-6 p-4 bg-brand-gray-50 rounded-lg border border-brand-gray-200">
-                <h4 className="font-medium text-brand-gray-900 mb-2 text-sm md:text-base">Demo Credentials:</h4>
-                <p className="text-xs md:text-sm text-brand-gray-600">Email: client@demo.com</p>
-                <p className="text-xs md:text-sm text-brand-gray-600">Password: 123456</p>
-              </div>
-
               <div className="mt-6 text-center">
                 <p className="text-xs md:text-sm text-brand-gray-600">
                   New client? 
@@ -120,6 +109,8 @@ const ClientLogin = () => {
           </Card>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default ClientLogin;

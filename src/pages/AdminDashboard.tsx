@@ -72,7 +72,6 @@ const AdminDashboard = () => {
       title: "Logged out",
       description: "You have been successfully logged out."
     });
-    navigate('/admin-login');
   };
 
   const navigationItems = [

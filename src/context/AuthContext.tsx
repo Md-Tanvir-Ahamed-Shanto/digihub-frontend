@@ -1,98 +1,186 @@
 import React, {
   createContext,
-  useContext,
   useState,
   useEffect,
   ReactNode,
   useMemo,
+  useCallback,
 } from 'react';
-import { AuthState, AuthContextType, UserRole } from '../types/auth';
 import { jwtDecode } from 'jwt-decode'; 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+import { useNavigate } from 'react-router-dom';
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  role: 'admin' | 'client' | 'partner';
+  createdAt: Date;
+  updatedAt: Date;
+  image?: string;
+  phone?: string;
+  companyName?: string;
+  isActive?: boolean;
+  isEmailVerified?: boolean;
+  skillSet?: string[];
+  industryExp?: string[];
+  country?: string;
+  region?: string;
+  profilePhoto?: string;
+  hourlyRate?: number;
+  portfolioLink?: string;
+  rating?: number;
+  totalEarnings?: number;
+  availableBalance?: number;
+}
+
+interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  accessToken: string | null;
+  loading: boolean;
+}
+
+interface AuthContextType extends AuthState {
+  login: (accessToken: string) => Promise<void>;
+  logout: () => void;
+  isAdmin: boolean;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [authState, setAuthState] = useState<AuthState>({
+  const navigate = useNavigate();
+  const [authState, setAuthState] = useState<AuthState>(() => ({
     isAuthenticated: false,
     user: null,
     accessToken: null,
-    loading: true, // Start as loading
-  });
+    loading: true,
+  }));
 
-  useEffect(() => {
-    const loadUserFromStorage = () => {
-      try {
-        const storedAccessToken = localStorage.getItem('accessToken');
-        if (storedAccessToken) {
-          const decodedUser: { id: string; email: string; role: UserRole; exp: number } = jwtDecode(storedAccessToken);
+  const loadUserFromStorage = useCallback(() => {
+    try {
+      const storedAccessToken = localStorage.getItem('accessToken');
+      if (!storedAccessToken) {
+        setAuthState(prev => ({ ...prev, loading: false }));
+        return null;
+      }
 
-          // Check if token is expired on app load
-          if (decodedUser.exp * 1000 < Date.now()) {
-            console.warn('Auth token expired on load. Logging out.');
-            localStorage.removeItem('accessToken');
-            setAuthState({
-              isAuthenticated: false,
-              user: null,
-              accessToken: null,
-              loading: false,
-            });
-            return;
-          }
+      const decodedToken = jwtDecode<{
+        id: string;
+        email: string;
+        name: string;
+        role: 'admin' | 'client' | 'partner';
+        exp: number;
+        image?: string;
+        phone?: string;
+        companyName?: string;
+        isActive?: boolean;
+        isEmailVerified?: boolean;
+        skillSet?: string[];
+        industryExp?: string[];
+        country?: string;
+        region?: string;
+        profilePhoto?: string;
+        hourlyRate?: number;
+        portfolioLink?: string;
+        rating?: number;
+        totalEarnings?: number;
+        availableBalance?: number;
+      }>(storedAccessToken);
 
-          setAuthState({
-            isAuthenticated: true,
-            user: {
-              id: decodedUser.id,
-              email: decodedUser.email,
-              role: decodedUser.role,
-            },
-            accessToken: storedAccessToken,
-            loading: false,
-          });
-        } else {
-          setAuthState((prev) => ({ ...prev, loading: false }));
-        }
-      } catch (error) {
-        console.error('Failed to decode token or load from storage:', error);
-        localStorage.removeItem('accessToken'); // Clear invalid token
+      if (decodedToken.exp * 1000 < Date.now()) {
+        console.warn('Auth token expired on load. Logging out.');
+        localStorage.removeItem('accessToken');
         setAuthState({
           isAuthenticated: false,
           user: null,
           accessToken: null,
           loading: false,
         });
+        return null;
       }
-    };
 
-    loadUserFromStorage();
-  }, []);
-
-  const login = async (accessToken: string) => { // Only one token
-    try {
-      localStorage.setItem('accessToken', accessToken);
-      const decodedUser: { id: string; email: string; role: UserRole; exp: number } = jwtDecode(accessToken);
+      const user: User = {
+        id: decodedToken.id,
+        email: decodedToken.email,
+        name: decodedToken.name,
+        role: decodedToken.role,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...(decodedToken.image && { image: decodedToken.image }),
+        ...(decodedToken.phone && { phone: decodedToken.phone }),
+        ...(decodedToken.companyName && { companyName: decodedToken.companyName }),
+        ...(decodedToken.isActive !== undefined && { isActive: decodedToken.isActive }),
+        ...(decodedToken.isEmailVerified !== undefined && { isEmailVerified: decodedToken.isEmailVerified }),
+        ...(decodedToken.skillSet && { skillSet: decodedToken.skillSet }),
+        ...(decodedToken.industryExp && { industryExp: decodedToken.industryExp }),
+        ...(decodedToken.country && { country: decodedToken.country }),
+        ...(decodedToken.region && { region: decodedToken.region }),
+        ...(decodedToken.profilePhoto && { profilePhoto: decodedToken.profilePhoto }),
+        ...(decodedToken.hourlyRate && { hourlyRate: decodedToken.hourlyRate }),
+        ...(decodedToken.portfolioLink && { portfolioLink: decodedToken.portfolioLink }),
+        ...(decodedToken.rating !== undefined && { rating: decodedToken.rating }),
+        ...(decodedToken.totalEarnings !== undefined && { totalEarnings: decodedToken.totalEarnings }),
+        ...(decodedToken.availableBalance !== undefined && { availableBalance: decodedToken.availableBalance }),
+      };
 
       setAuthState({
         isAuthenticated: true,
-        user: {
-          id: decodedUser.id,
-          email: decodedUser.email,
-          role: decodedUser.role,
-        },
-        accessToken: accessToken,
+        user,
+        accessToken: storedAccessToken,
         loading: false,
       });
-    } catch (error) {
-      console.error('Login failed (token decoding issue):', error);
-      logout(); // Logout if token is invalid
-      throw new Error('Invalid token provided.');
-    }
-  };
 
-  const logout = () => {
+      return user;
+    } catch (error) {
+      console.error('Failed to decode token or load from storage:', error);
+      localStorage.removeItem('accessToken');
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        accessToken: null,
+        loading: false,
+      });
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const user = loadUserFromStorage();
+    if (user) {
+      const dashboardRoute = user.role === 'admin' ? '/admin-dashboard' :
+                            user.role === 'client' ? '/client-dashboard' :
+                            '/partner-dashboard';
+      navigate(dashboardRoute);
+    }
+  }, [loadUserFromStorage, navigate]);
+
+  const login = useCallback(async (accessToken: string) => {
+    try {
+      localStorage.setItem('accessToken', accessToken);
+      const user = loadUserFromStorage();
+      if (!user) {
+        throw new Error('Failed to load user after login');
+      }
+    } catch (error) {
+      console.error('Login failed:', error);
+      localStorage.removeItem('accessToken');
+      setAuthState({
+        isAuthenticated: false,
+        user: null,
+        accessToken: null,
+        loading: false,
+      });
+      throw error;
+    }
+  }, [loadUserFromStorage]);
+
+  const logout = useCallback(() => {
+    const role = authState.user?.role;
     localStorage.removeItem('accessToken');
     setAuthState({
       isAuthenticated: false,
@@ -100,23 +188,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       accessToken: null,
       loading: false,
     });
-    // Redirect to login page on logout (e.g., if triggered manually)
-    window.location.href = '/client-login'; // Or your preferred generic login route
-  };
+    const loginRoute = role === 'admin' ? '/admin-login' :
+                      role === 'client' ? '/client-login' :
+                      '/partner-login';
+    navigate(loginRoute);
+  }, [authState.user?.role, navigate]);
 
-  const contextValue = useMemo(() => ({ ...authState, login, logout }), [authState, login, logout]);
+  const contextValue = useMemo(
+    () => ({
+      ...authState,
+      login,
+      logout,
+      isAdmin: authState.user?.role === 'admin',
+    }),
+    [authState, login, logout]
+  );
 
   return (
     <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

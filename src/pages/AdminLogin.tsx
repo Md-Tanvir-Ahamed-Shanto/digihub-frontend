@@ -6,14 +6,16 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Handshake, ArrowLeft, Shield } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/api/axios';
+
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
+  const { login } = useAuth();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -23,14 +25,14 @@ const AdminLogin = () => {
       });
       
       const { token } = response.data;
-      localStorage.setItem('accessToken', token);
-      
+      await login(token);
+      navigate('/admin-dashboard');
       toast({
         title: "Login Successful",
         description: "Welcome to the admin dashboard!"
       });
       
-      navigate('/admin-dashboard');
+      // Navigation will be handled by AuthContext after successful login
     } catch (error: any) {
       toast({
         title: "Login Failed",
@@ -39,6 +41,7 @@ const AdminLogin = () => {
       });
     }
   };
+
   return <div className="min-h-screen bg-gradient-to-br from-white via-brand-gray-50 to-brand-accent/5">
       {/* Header */}
       <div className="bg-white/95 backdrop-blur-sm border-b border-brand-gray-200">
@@ -100,4 +103,5 @@ const AdminLogin = () => {
       </div>
     </div>;
 };
+
 export default AdminLogin;
