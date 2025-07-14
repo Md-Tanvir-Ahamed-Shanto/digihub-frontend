@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,6 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Globe, Handshake, ArrowLeft, Send, CheckCircle } from 'lucide-react';
+import axiosInstance from '@/api/axios';
+import { toast } from '@/hooks/use-toast';
+
 const SubmitProject = () => {
   const [formData, setFormData] = useState({
     clientName: '',
@@ -20,6 +23,7 @@ const SubmitProject = () => {
     timeline: '',
     features: ''
   });
+  const navigate = useNavigate();
   const industries = ['Plumbing & Trade Services', 'Real Estate', 'E-commerce', 'Healthcare', 'Automotive', 'Education', 'Professional Services', 'Food & Hospitality', 'Technology', 'Other'];
   const budgetRanges = ['$5,000 - $10,000', '$10,000 - $25,000', '$25,000 - $50,000', '$50,000 - $100,000', '$100,000+'];
   const timelineOptions = ['1-2 months', '2-4 months', '4-6 months', '6+ months'];
@@ -29,11 +33,51 @@ const SubmitProject = () => {
       [field]: value
     }));
   };
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Project submission:', formData);
-    // TODO: Implement actual submission logic
-    alert('Project submitted successfully! We will contact you within 24 hours.');
+    try {
+      const leadData = {
+        name: formData.clientName,
+        email: formData.email,
+        phone: formData.phone,
+        projectCategory: formData.industry,
+        projectTitle: formData.projectTitle,
+        description: formData.projectDescription,
+        budgetRange: formData.budget.replace(/[^0-9]/g, ''),
+        features: formData.features,
+        timeline: formData.timeline,
+        company: formData.company
+      };
+  
+      const response = await axiosInstance.post('/lead/submit', leadData);
+      
+      if (response.data) {
+        toast({
+          title: 'Success!',
+          description: 'Your project has been submitted successfully. We will contact you within 24 hours.',
+        });
+        navigate('/client-login');
+        setFormData({
+          clientName: '',
+          company: '',
+          email: '',
+          phone: '',
+          industry: '',
+          projectTitle: '',
+          projectDescription: '',
+          budget: '',
+          timeline: '',
+          features: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting project:', error);
+      toast({
+        title: 'Error',
+        description: 'There was an error submitting your project. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
   return <div className="min-h-screen bg-gradient-to-br from-white via-brand-gray-50 to-brand-primary/5">
       {/* Header */}

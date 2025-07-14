@@ -32,6 +32,8 @@ import { AuthProvider } from './context/AuthContext'; // Import AuthProvider
 import ProtectedRoute from './components/ProtectedRoute'; // Import ProtectedRoute
 import PartnerDashboard from "./pages/DeveloperDashboard";
 import PartnerLogin from "./pages/DeveloperLogin";
+import SetPassword from "./pages/SetPassword";
+import SetPasswordFailed from './pages/SetPasswordFailed';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,8 @@ const App = () => (
             <Route path="/careers" element={<Careers />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/submit-project" element={<SubmitProject />} />
+            <Route path="/set-password" element={<SetPassword />} />
+            <Route path="/set-password-failed" element={<SetPasswordFailed />} />
 
             {/* Login Routes (Accessible to anyone, will redirect if already logged in typically) */}
             <Route path="/client-login" element={<ClientLogin />} />
