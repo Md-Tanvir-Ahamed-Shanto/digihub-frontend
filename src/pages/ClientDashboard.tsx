@@ -1,15 +1,28 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { 
-  User, 
-  FolderOpen, 
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  User,
+  FolderOpen,
   FileText,
-  DollarSign, 
-  MessageSquare, 
+  DollarSign,
+  MessageSquare,
   Settings,
   Bell,
   LogOut,
@@ -25,36 +38,39 @@ import {
   Clock,
   FileDown,
   Plus,
-  Wrench
-} from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import NewProjectModal from '@/components/dashboard/NewProjectModal';
-import ProjectDetailsModal from '@/components/dashboard/ProjectDetailsModal';
-import PaymentGatewayModal from '@/components/dashboard/PaymentGatewayModal';
-import ManageSubscriptionModal from '@/components/dashboard/ManageSubscriptionModal';
-import RaiseIssueModal from '@/components/dashboard/RaiseIssueModal';
-import SupportTicketModal from '@/components/dashboard/SupportTicketModal';
-import ClientSettings from '@/components/dashboard/ClientSettings';
-import axiosInstance from '@/api/axios';
+  Wrench,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import NewProjectModal from "@/components/dashboard/NewProjectModal";
+import ProjectDetailsModal from "@/components/dashboard/ProjectDetailsModal";
+import PaymentGatewayModal from "@/components/dashboard/PaymentGatewayModal";
+import ManageSubscriptionModal from "@/components/dashboard/ManageSubscriptionModal";
+import RaiseIssueModal from "@/components/dashboard/RaiseIssueModal";
+import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
+import ClientSettings from "@/components/dashboard/ClientSettings";
+import axiosInstance from "@/api/axios";
 
 const ClientDashboard = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Modal states
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [paymentGatewayOpen, setPaymentGatewayOpen] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState({ amount: '', description: '' });
+  const [paymentDetails, setPaymentDetails] = useState({
+    amount: "",
+    description: "",
+  });
   const [manageSubscriptionOpen, setManageSubscriptionOpen] = useState(false);
   const [raiseIssueOpen, setRaiseIssueOpen] = useState(false);
   const [supportTicketOpen, setSupportTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
-  const [offer, setOffer] = useState(null);
-  
-  const { logout } = useAuth();
+  const [offer, setOffer] = useState([]);
+  const [projects, setProjects] = useState([]);
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -62,111 +78,238 @@ const ClientDashboard = () => {
     logout();
     toast({
       title: "Logged out",
-      description: "You have been successfully logged out."
+      description: "You have been successfully logged out.",
     });
-    navigate('/client-login');
+    navigate("/client-login");
   };
 
   const fetchOffer = async () => {
     try {
       const response = await axiosInstance.get(`/client/my-leads`);
       setOffer(response?.data?.data);
-      console.log("Offer response", response.data.data);
     } catch (error) {
-      console.error('Error fetching offer:', error);
+      console.error("Error fetching offer:", error);
     }
   };
 
-  const offers = offer?.filter((item) => item.status === 'OFFER_SENT_TO_CLIENT');
+  const fetchProjects = async () => {
+    try {
+      const response = await axiosInstance.get(`/project/client/${user?.id}`);
+      setProjects(response?.data?.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
+  };
+
+  const offers = offer?.filter(
+    (item) => item.status === "OFFER_SENT_TO_CLIENT"
+  );
 
   useEffect(() => {
     fetchOffer();
+    fetchProjects();
   }, []);
 
   const navigationItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: FolderOpen },
-    { id: 'projects', label: 'Projects', icon: FileText },
-    { id: 'offers', label: 'Offers', icon: DollarSign },
-    { id: 'milestones', label: 'Milestones', icon: CheckCircle },
-    { id: 'invoices', label: 'Invoices', icon: FileDown },
-    { id: 'maintenance', label: 'Maintenance', icon: Wrench },
-    { id: 'support', label: 'Support', icon: MessageSquare },
-    { id: 'settings', label: 'Settings', icon: Settings }
+    { id: "dashboard", label: "Dashboard", icon: FolderOpen },
+    { id: "projects", label: "Projects", icon: FileText },
+    { id: "offers", label: "Offers", icon: DollarSign },
+    { id: "milestones", label: "Milestones", icon: CheckCircle },
+    { id: "invoices", label: "Invoices", icon: FileDown },
+    { id: "maintenance", label: "Maintenance", icon: Wrench },
+    { id: "support", label: "Support", icon: MessageSquare },
+    { id: "settings", label: "Settings", icon: Settings },
   ];
 
   // Mock data
   const dashboardStats = [
-    { title: 'Active Projects', value: '3', icon: FolderOpen, color: 'text-blue-600' },
-    { title: 'Pending Offers', value: '2', icon: AlertCircle, color: 'text-yellow-600' },
-    { title: 'Payments Due', value: '$1,850', icon: DollarSign, color: 'text-red-600' },
-    { title: 'Completed Projects', value: '8', icon: CheckCircle, color: 'text-green-600' }
+    {
+      title: "Active Projects",
+      value: "3",
+      icon: FolderOpen,
+      color: "text-blue-600",
+    },
+    {
+      title: "Pending Offers",
+      value: "2",
+      icon: AlertCircle,
+      color: "text-yellow-600",
+    },
+    {
+      title: "Payments Due",
+      value: "$1,850",
+      icon: DollarSign,
+      color: "text-red-600",
+    },
+    {
+      title: "Completed Projects",
+      value: "8",
+      icon: CheckCircle,
+      color: "text-green-600",
+    },
   ];
 
-  const projects = [
-    { id: 1, name: 'Real Estate Portal', status: 'Offer Sent', lastUpdated: '2025-07-06', description: 'Modern property listing platform' },
-    { id: 2, name: 'E-commerce Store', status: 'Active', lastUpdated: '2025-07-05', description: 'Online retail platform with payment integration' },
-    { id: 3, name: 'Healthcare CRM', status: 'Completed', lastUpdated: '2025-06-28', description: 'Patient management system' }
-  ];
-
-
+  // const projects = [
+  //   { id: 1, name: 'Real Estate Portal', status: 'Offer Sent', lastUpdated: '2025-07-06', description: 'Modern property listing platform' },
+  //   { id: 2, name: 'E-commerce Store', status: 'Active', lastUpdated: '2025-07-05', description: 'Online retail platform with payment integration' },
+  //   { id: 3, name: 'Healthcare CRM', status: 'Completed', lastUpdated: '2025-06-28', description: 'Patient management system' }
+  // ];
 
   const milestones = [
-    { id: 1, project: 'E-commerce Store', title: 'API Integration', amount: '$500', status: 'Unpaid', dueDate: '2025-07-11' },
-    { id: 2, project: 'E-commerce Store', title: 'Payment Gateway Setup', amount: '$350', status: 'Paid', dueDate: '2025-07-08' },
-    { id: 3, project: 'Real Estate Portal', title: 'Database Design', amount: '$400', status: 'Pending', dueDate: '2025-07-15' }
+    {
+      id: 1,
+      project: "E-commerce Store",
+      title: "API Integration",
+      amount: "$500",
+      status: "Unpaid",
+      dueDate: "2025-07-11",
+    },
+    {
+      id: 2,
+      project: "E-commerce Store",
+      title: "Payment Gateway Setup",
+      amount: "$350",
+      status: "Paid",
+      dueDate: "2025-07-08",
+    },
+    {
+      id: 3,
+      project: "Real Estate Portal",
+      title: "Database Design",
+      amount: "$400",
+      status: "Pending",
+      dueDate: "2025-07-15",
+    },
   ];
 
   const invoices = [
-    { id: 1, number: 'INV-0021', project: 'Healthcare CRM', amount: '$1,320', date: '2025-07-06' },
-    { id: 2, number: 'INV-0020', project: 'E-commerce Store', amount: '$850', date: '2025-06-28' },
-    { id: 3, number: 'INV-0019', project: 'Mobile App', amount: '$1,200', date: '2025-06-15' }
+    {
+      id: 1,
+      number: "INV-0021",
+      project: "Healthcare CRM",
+      amount: "$1,320",
+      date: "2025-07-06",
+    },
+    {
+      id: 2,
+      number: "INV-0020",
+      project: "E-commerce Store",
+      amount: "$850",
+      date: "2025-06-28",
+    },
+    {
+      id: 3,
+      number: "INV-0019",
+      project: "Mobile App",
+      amount: "$1,200",
+      date: "2025-06-15",
+    },
   ];
 
   const supportTickets = [
-    { id: 1, subject: 'Delay in second milestone delivery', status: 'Responded', date: '2025-07-05', priority: 'High' },
-    { id: 2, subject: 'Login issue on dashboard', status: 'Closed', date: '2025-07-03', priority: 'Medium' },
-    { id: 3, subject: 'Feature request for analytics', status: 'Open', date: '2025-07-06', priority: 'Low' }
+    {
+      id: 1,
+      subject: "Delay in second milestone delivery",
+      status: "Responded",
+      date: "2025-07-05",
+      priority: "High",
+    },
+    {
+      id: 2,
+      subject: "Login issue on dashboard",
+      status: "Closed",
+      date: "2025-07-03",
+      priority: "Medium",
+    },
+    {
+      id: 3,
+      subject: "Feature request for analytics",
+      status: "Open",
+      date: "2025-07-06",
+      priority: "Low",
+    },
   ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'Under Review': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' },
-      'Offer Sent': { variant: 'secondary' as const, className: 'bg-blue-100 text-blue-800' },
-      'Accepted': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
-      'Active': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
-      'Completed': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' },
-      'Paid': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
-      'Unpaid': { variant: 'secondary' as const, className: 'bg-red-100 text-red-800' },
-      'Pending': { variant: 'secondary' as const, className: 'bg-yellow-100 text-yellow-800' },
-      'Responded': { variant: 'secondary' as const, className: 'bg-blue-100 text-blue-800' },
-      'Open': { variant: 'secondary' as const, className: 'bg-yellow-100 text-yellow-800' },
-      'Closed': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' }
+      "Under Review": {
+        variant: "secondary" as const,
+        className: "bg-gray-100 text-gray-800",
+      },
+      "Offer Sent": {
+        variant: "secondary" as const,
+        className: "bg-blue-100 text-blue-800",
+      },
+      Accepted: {
+        variant: "secondary" as const,
+        className: "bg-green-100 text-green-800",
+      },
+      Active: {
+        variant: "secondary" as const,
+        className: "bg-green-100 text-green-800",
+      },
+      Completed: {
+        variant: "secondary" as const,
+        className: "bg-gray-100 text-gray-800",
+      },
+      Paid: {
+        variant: "secondary" as const,
+        className: "bg-green-100 text-green-800",
+      },
+      Unpaid: {
+        variant: "secondary" as const,
+        className: "bg-red-100 text-red-800",
+      },
+      Pending: {
+        variant: "secondary" as const,
+        className: "bg-yellow-100 text-yellow-800",
+      },
+      Responded: {
+        variant: "secondary" as const,
+        className: "bg-blue-100 text-blue-800",
+      },
+      Open: {
+        variant: "secondary" as const,
+        className: "bg-yellow-100 text-yellow-800",
+      },
+      Closed: {
+        variant: "secondary" as const,
+        className: "bg-gray-100 text-gray-800",
+      },
     };
-    
-    const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'secondary' as const, className: '' };
-    return <Badge variant={config.variant} className={config.className}>{status}</Badge>;
+
+    const config = statusConfig[status as keyof typeof statusConfig] || {
+      variant: "secondary" as const,
+      className: "",
+    };
+    return (
+      <Badge variant={config.variant} className={config.className}>
+        {status}
+      </Badge>
+    );
   };
 
   const handleAcceptOffer = (offerId: number) => {
     toast({
       title: "Offer Accepted",
-      description: "The project offer has been accepted and work will begin soon."
+      description:
+        "The project offer has been accepted and work will begin soon.",
     });
   };
 
   const handleRejectOffer = (offerId: number) => {
     toast({
       title: "Offer Rejected",
-      description: "The project offer has been rejected."
+      description: "The project offer has been rejected.",
     });
   };
 
   const handlePayMilestone = (milestoneId: number) => {
-    const milestone = milestones.find(m => m.id === milestoneId);
+    const milestone = milestones.find((m) => m.id === milestoneId);
     if (milestone) {
       setPaymentDetails({
         amount: milestone.amount,
-        description: `${milestone.project} - ${milestone.title}`
+        description: `${milestone.project} - ${milestone.title}`,
       });
       setPaymentGatewayOpen(true);
     }
@@ -180,7 +323,7 @@ const ClientDashboard = () => {
   const handleDownloadInvoice = (invoiceId: number) => {
     toast({
       title: "Download Started",
-      description: "Your invoice is being downloaded..."
+      description: "Your invoice is being downloaded...",
     });
   };
 
@@ -191,12 +334,14 @@ const ClientDashboard = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
+      case "dashboard":
         return (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-              <Button 
+              <h2 className="text-2xl font-bold text-gray-900">
+                Dashboard Overview
+              </h2>
+              <Button
                 className="bg-brand-primary hover:bg-brand-primary/90"
                 onClick={() => setNewProjectOpen(true)}
               >
@@ -212,8 +357,12 @@ const ClientDashboard = () => {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-brand-gray-600 mb-1">{stat.title}</p>
-                        <p className="text-2xl font-bold text-brand-gray-900">{stat.value}</p>
+                        <p className="text-sm text-brand-gray-600 mb-1">
+                          {stat.title}
+                        </p>
+                        <p className="text-2xl font-bold text-brand-gray-900">
+                          {stat.value}
+                        </p>
                       </div>
                       <stat.icon className={`w-8 h-8 ${stat.color}`} />
                     </div>
@@ -225,24 +374,36 @@ const ClientDashboard = () => {
             {/* Recent Activity */}
             <Card className="border-brand-gray-200">
               <CardHeader>
-                <CardTitle className="text-brand-primary">Recent Activity</CardTitle>
-                <CardDescription>Latest updates on your projects</CardDescription>
+                <CardTitle className="text-brand-primary">
+                  Recent Activity
+                </CardTitle>
+                <CardDescription>
+                  Latest updates on your projects
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                     <AlertCircle className="w-5 h-5 text-blue-600" />
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">New offer received</p>
-                      <p className="text-sm text-gray-600">Real Estate Portal - $1,320 for 12 days</p>
+                      <p className="font-medium text-gray-900">
+                        New offer received
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Real Estate Portal - $1,320 for 12 days
+                      </p>
                     </div>
                     <span className="text-xs text-gray-500">2 hours ago</span>
                   </div>
                   <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                     <CheckCircle className="w-5 h-5 text-green-600" />
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900">Milestone completed</p>
-                      <p className="text-sm text-gray-600">E-commerce Store - Payment Gateway Setup</p>
+                      <p className="font-medium text-gray-900">
+                        Milestone completed
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        E-commerce Store - Payment Gateway Setup
+                      </p>
                     </div>
                     <span className="text-xs text-gray-500">1 day ago</span>
                   </div>
@@ -252,75 +413,100 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'projects':
+      case "projects":
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
-            <Card className="border-brand-gray-200">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-brand-gray-200">
-                      <TableHead>Project Name</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Last Updated</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {projects.map((project) => (
-                      <TableRow key={project.id} className="border-brand-gray-200">
-                        <TableCell>
-                          <div>
-                            <p className="font-medium text-gray-900">{project.name}</p>
-                            <p className="text-sm text-gray-600">{project.description}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(project.status)}</TableCell>
-                        <TableCell className="text-gray-600">{project.lastUpdated}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-                            onClick={() => handleViewProject(project)}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        </TableCell>
+            {projects?.length === 0 ? (
+              <div className="flex justify-center items-center">
+                <p className="text-gray-600 text-center text-lg">
+                  No projects found!
+                </p>
+              </div>
+            ) : (
+              <Card className="border-brand-gray-200">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-brand-gray-200">
+                        <TableHead>Project Name</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Last Updated</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {projects?.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {project.name}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {project.description}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(project.status)}
+                          </TableCell>
+                          <TableCell className="text-gray-600">
+                            {project.lastUpdated}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleViewProject(project)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
 
-      case 'offers':
+      case "offers":
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Pending Offers</h2>
-            {
-              offers?.length === 0 && (
-                <div className='flex justify-center items-center'>
-                  <p className="text-gray-600 text-center text-lg">No offers found!</p>
-                </div>
-              )
-            }
+            {offers?.length === 0 && (
+              <div className="flex justify-center items-center">
+                <p className="text-gray-600 text-center text-lg">
+                  No offers found!
+                </p>
+              </div>
+            )}
             <div className="grid gap-4">
               {offers.map((offer) => (
                 <Card key={offer.id} className="border-brand-gray-200">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{offer.projectTitle}</h3>
-                        <p className="text-gray-600 mb-3">{offer.description}</p>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          {offer.projectTitle}
+                        </h3>
+                        <p className="text-gray-600 mb-3">
+                          {offer.description}
+                        </p>
                         <div className="flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="font-medium">Total: {offer.offerPrice}</span>
+                            <span className="font-medium">
+                              Total: {offer.offerPrice}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4 text-blue-600" />
@@ -329,15 +515,15 @@ const ClientDashboard = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        <Button 
-                          variant="outline" 
+                        <Button
+                          variant="outline"
                           onClick={() => handleRejectOffer(offer.id)}
                           className="border-red-300 text-red-600 hover:bg-red-50"
                         >
                           <XCircle className="w-4 h-4 mr-1" />
                           Reject
                         </Button>
-                        <Button 
+                        <Button
                           onClick={() => handleAcceptOffer(offer.id)}
                           className="bg-green-600 hover:bg-green-700 text-white"
                         >
@@ -353,10 +539,12 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'milestones':
+      case "milestones":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Project Milestones</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Project Milestones
+            </h2>
             <div className="grid gap-4">
               {milestones.map((milestone) => (
                 <Card key={milestone.id} className="border-brand-gray-200">
@@ -364,14 +552,20 @@ const ClientDashboard = () => {
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{milestone.title}</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            {milestone.title}
+                          </h3>
                           {getStatusBadge(milestone.status)}
                         </div>
-                        <p className="text-gray-600 mb-2">{milestone.project}</p>
+                        <p className="text-gray-600 mb-2">
+                          {milestone.project}
+                        </p>
                         <div className="flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="font-medium">{milestone.amount}</span>
+                            <span className="font-medium">
+                              {milestone.amount}
+                            </span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4 text-blue-600" />
@@ -379,8 +573,8 @@ const ClientDashboard = () => {
                           </div>
                         </div>
                       </div>
-                      {milestone.status === 'Unpaid' && (
-                        <Button 
+                      {milestone.status === "Unpaid" && (
+                        <Button
                           onClick={() => handlePayMilestone(milestone.id)}
                           className="bg-brand-primary hover:bg-brand-primary/90"
                         >
@@ -396,7 +590,7 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'invoices':
+      case "invoices":
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Invoices</h2>
@@ -414,15 +608,24 @@ const ClientDashboard = () => {
                   </TableHeader>
                   <TableBody>
                     {invoices.map((invoice) => (
-                      <TableRow key={invoice.id} className="border-brand-gray-200">
-                        <TableCell className="font-medium">{invoice.number}</TableCell>
+                      <TableRow
+                        key={invoice.id}
+                        className="border-brand-gray-200"
+                      >
+                        <TableCell className="font-medium">
+                          {invoice.number}
+                        </TableCell>
                         <TableCell>{invoice.project}</TableCell>
-                        <TableCell className="font-medium text-green-600">{invoice.amount}</TableCell>
-                        <TableCell className="text-gray-600">{invoice.date}</TableCell>
+                        <TableCell className="font-medium text-green-600">
+                          {invoice.amount}
+                        </TableCell>
+                        <TableCell className="text-gray-600">
+                          {invoice.date}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
                             onClick={() => handleDownloadInvoice(invoice.id)}
                           >
@@ -439,28 +642,37 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'maintenance':
+      case "maintenance":
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">Maintenance Subscription</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Maintenance Subscription
+            </h2>
             <Card className="border-brand-gray-200">
               <CardHeader>
-                <CardTitle className="text-brand-primary">Monthly Maintenance Plan</CardTitle>
-                <CardDescription>$75/month – includes 24/7 uptime monitoring, backups, and minor updates</CardDescription>
+                <CardTitle className="text-brand-primary">
+                  Monthly Maintenance Plan
+                </CardTitle>
+                <CardDescription>
+                  $75/month – includes 24/7 uptime monitoring, backups, and
+                  minor updates
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <p className="font-medium text-gray-900">Current Status</p>
-                    <p className="text-sm text-gray-600">Active until August 15, 2025</p>
+                    <p className="text-sm text-gray-600">
+                      Active until August 15, 2025
+                    </p>
                   </div>
                   <Badge className="bg-green-100 text-green-800">Active</Badge>
                 </div>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                     <span className="font-medium">Auto-renewal</span>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => setManageSubscriptionOpen(true)}
                     >
@@ -494,7 +706,7 @@ const ClientDashboard = () => {
                     <TableRow className="border-brand-gray-200">
                       <TableCell>2025-07-01</TableCell>
                       <TableCell>$75.00</TableCell>
-                      <TableCell>{getStatusBadge('Paid')}</TableCell>
+                      <TableCell>{getStatusBadge("Paid")}</TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="sm">
                           <Download className="w-4 h-4" />
@@ -508,12 +720,12 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'support':
+      case "support":
         return (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <h2 className="text-2xl font-bold text-gray-900">Support</h2>
-              <Button 
+              <Button
                 className="bg-brand-primary hover:bg-brand-primary/90"
                 onClick={() => setRaiseIssueOpen(true)}
               >
@@ -536,28 +748,37 @@ const ClientDashboard = () => {
                   </TableHeader>
                   <TableBody>
                     {supportTickets.map((ticket) => (
-                      <TableRow key={ticket.id} className="border-brand-gray-200">
+                      <TableRow
+                        key={ticket.id}
+                        className="border-brand-gray-200"
+                      >
                         <TableCell>
-                          <p className="font-medium text-gray-900">{ticket.subject}</p>
+                          <p className="font-medium text-gray-900">
+                            {ticket.subject}
+                          </p>
                         </TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="secondary" 
+                          <Badge
+                            variant="secondary"
                             className={
-                              ticket.priority === 'High' ? 'bg-red-100 text-red-800' :
-                              ticket.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                              'bg-gray-100 text-gray-800'
+                              ticket.priority === "High"
+                                ? "bg-red-100 text-red-800"
+                                : ticket.priority === "Medium"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-gray-100 text-gray-800"
                             }
                           >
                             {ticket.priority}
                           </Badge>
                         </TableCell>
                         <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                        <TableCell className="text-gray-600">{ticket.date}</TableCell>
+                        <TableCell className="text-gray-600">
+                          {ticket.date}
+                        </TableCell>
                         <TableCell className="text-right">
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
+                          <Button
+                            variant="outline"
+                            size="sm"
                             className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
                             onClick={() => handleViewTicket(ticket)}
                           >
@@ -574,20 +795,26 @@ const ClientDashboard = () => {
           </div>
         );
 
-      case 'settings':
+      case "settings":
         return <ClientSettings />;
 
       default:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900 capitalize">{activeTab}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 capitalize">
+              {activeTab}
+            </h2>
             <Card className="border-brand-gray-200">
               <CardHeader>
                 <CardTitle>Coming Soon</CardTitle>
-                <CardDescription>{activeTab} features will be added here</CardDescription>
+                <CardDescription>
+                  {activeTab} features will be added here
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">This section is being prepared for new content.</p>
+                <p className="text-gray-600">
+                  This section is being prepared for new content.
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -599,24 +826,32 @@ const ClientDashboard = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <div className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <div
+        className={`fixed left-0 top-0 h-full w-64 bg-white border-r border-brand-gray-200 shadow-sm z-50 transform transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } lg:translate-x-0`}
+      >
         <div className="p-4 lg:p-6 border-b border-brand-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <User className="w-6 h-6 lg:w-8 lg:h-8 text-brand-primary" />
               <div>
-                <h2 className="text-lg lg:text-xl font-bold text-brand-gray-900">Client Portal</h2>
-                <p className="text-xs lg:text-sm text-brand-gray-600">Welcome Back</p>
+                <h2 className="text-lg lg:text-xl font-bold text-brand-gray-900">
+                  Client Portal
+                </h2>
+                <p className="text-xs lg:text-sm text-brand-gray-600">
+                  Welcome Back
+                </p>
               </div>
             </div>
-            <button 
+            <button
               className="lg:hidden p-1"
               onClick={() => setSidebarOpen(false)}
             >
@@ -624,9 +859,9 @@ const ClientDashboard = () => {
             </button>
           </div>
         </div>
-        
+
         <nav className="p-4 space-y-2">
-          {navigationItems.map(item => (
+          {navigationItems.map((item) => (
             <button
               key={item.id}
               onClick={() => {
@@ -634,18 +869,18 @@ const ClientDashboard = () => {
                 setSidebarOpen(false);
               }}
               className={`w-full flex items-center space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-sm lg:text-base ${
-                activeTab === item.id 
-                  ? 'bg-brand-primary text-white' 
-                  : 'text-brand-gray-700 hover:bg-brand-gray-100'
+                activeTab === item.id
+                  ? "bg-brand-primary text-white"
+                  : "text-brand-gray-700 hover:bg-brand-gray-100"
               }`}
             >
               <item.icon className="w-4 h-4 lg:w-5 lg:h-5" />
               <span className="font-medium">{item.label}</span>
             </button>
           ))}
-          
-          <button 
-            onClick={handleLogout} 
+
+          <button
+            onClick={handleLogout}
             className="w-full flex items-center space-x-3 px-3 lg:px-4 py-2 lg:py-3 rounded-lg text-left transition-colors text-red-600 hover:bg-red-50 text-sm lg:text-base mt-4"
           >
             <LogOut className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -658,18 +893,22 @@ const ClientDashboard = () => {
       <div className="lg:ml-64 p-4 lg:p-8">
         <div className="flex items-center justify-between mb-6 lg:mb-8">
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               className="lg:hidden p-2 rounded-lg bg-white border border-brand-gray-200"
               onClick={() => setSidebarOpen(true)}
             >
               <Menu className="w-5 h-5 text-brand-gray-600" />
             </button>
-            <h1 className="text-2xl lg:text-3xl font-bold text-brand-gray-900">Client Dashboard</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-brand-gray-900">
+              Client Dashboard
+            </h1>
           </div>
           <div className="flex items-center space-x-2 lg:space-x-4">
             <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-brand-gray-600 cursor-pointer hover:text-brand-primary" />
             <div className="w-7 h-7 lg:w-8 lg:h-8 bg-brand-primary rounded-full flex items-center justify-center">
-              <span className="text-white text-xs lg:text-sm font-semibold">C</span>
+              <span className="text-white text-xs lg:text-sm font-semibold">
+                C
+              </span>
             </div>
           </div>
         </div>
@@ -678,32 +917,32 @@ const ClientDashboard = () => {
       </div>
 
       {/* Modals */}
-      <NewProjectModal 
-        isOpen={newProjectOpen} 
-        onClose={() => setNewProjectOpen(false)} 
+      <NewProjectModal
+        isOpen={newProjectOpen}
+        onClose={() => setNewProjectOpen(false)}
       />
-      <ProjectDetailsModal 
-        isOpen={projectDetailsOpen} 
-        onClose={() => setProjectDetailsOpen(false)} 
+      <ProjectDetailsModal
+        isOpen={projectDetailsOpen}
+        onClose={() => setProjectDetailsOpen(false)}
         project={selectedProject}
       />
-      <PaymentGatewayModal 
-        isOpen={paymentGatewayOpen} 
-        onClose={() => setPaymentGatewayOpen(false)} 
+      <PaymentGatewayModal
+        isOpen={paymentGatewayOpen}
+        onClose={() => setPaymentGatewayOpen(false)}
         amount={paymentDetails.amount}
         description={paymentDetails.description}
       />
-      <ManageSubscriptionModal 
-        isOpen={manageSubscriptionOpen} 
-        onClose={() => setManageSubscriptionOpen(false)} 
+      <ManageSubscriptionModal
+        isOpen={manageSubscriptionOpen}
+        onClose={() => setManageSubscriptionOpen(false)}
       />
-      <RaiseIssueModal 
-        isOpen={raiseIssueOpen} 
-        onClose={() => setRaiseIssueOpen(false)} 
+      <RaiseIssueModal
+        isOpen={raiseIssueOpen}
+        onClose={() => setRaiseIssueOpen(false)}
       />
-      <SupportTicketModal 
-        isOpen={supportTicketOpen} 
-        onClose={() => setSupportTicketOpen(false)} 
+      <SupportTicketModal
+        isOpen={supportTicketOpen}
+        onClose={() => setSupportTicketOpen(false)}
         ticket={selectedTicket}
       />
     </div>
