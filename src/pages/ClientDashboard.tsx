@@ -70,6 +70,8 @@ const ClientDashboard = () => {
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [offer, setOffer] = useState([]);
   const [projects, setProjects] = useState([]);
+  // const [milestones, setMilestones] = useState([]);
+
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -98,6 +100,14 @@ const ClientDashboard = () => {
       setProjects(response?.data?.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
+    }
+  };
+  const fetchMilestones = async () => {
+    try {
+      const response = await axiosInstance.get(`/milestone/projects/${user?.id}`);
+      // setMilestones(response?.data?.data);
+    } catch (error) {
+      console.error("Error fetching milestones:", error);
     }
   };
 
@@ -148,13 +158,6 @@ const ClientDashboard = () => {
       color: "text-green-600",
     },
   ];
-
-  // const projects = [
-  //   { id: 1, name: 'Real Estate Portal', status: 'Offer Sent', lastUpdated: '2025-07-06', description: 'Modern property listing platform' },
-  //   { id: 2, name: 'E-commerce Store', status: 'Active', lastUpdated: '2025-07-05', description: 'Online retail platform with payment integration' },
-  //   { id: 3, name: 'Healthcare CRM', status: 'Completed', lastUpdated: '2025-06-28', description: 'Patient management system' }
-  // ];
-
   const milestones = [
     {
       id: 1,
