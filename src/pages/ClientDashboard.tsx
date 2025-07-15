@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +36,7 @@ import ManageSubscriptionModal from '@/components/dashboard/ManageSubscriptionMo
 import RaiseIssueModal from '@/components/dashboard/RaiseIssueModal';
 import SupportTicketModal from '@/components/dashboard/SupportTicketModal';
 import ClientSettings from '@/components/dashboard/ClientSettings';
+import axiosInstance from '@/api/axios';
 
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -51,6 +52,7 @@ const ClientDashboard = () => {
   const [raiseIssueOpen, setRaiseIssueOpen] = useState(false);
   const [supportTicketOpen, setSupportTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [offer, setOffer] = useState(null);
   
   const { logout } = useAuth();
   const navigate = useNavigate();
@@ -64,6 +66,22 @@ const ClientDashboard = () => {
     });
     navigate('/client-login');
   };
+
+  const fetchOffer = async () => {
+    try {
+      const response = await axiosInstance.get(`/client/my-leads`);
+      setOffer(response?.data?.data);
+      console.log("Offer response", response.data.data);
+    } catch (error) {
+      console.error('Error fetching offer:', error);
+    }
+  };
+
+  const offers = offer?.filter((item) => item.status === 'OFFER_SENT_TO_CLIENT');
+
+  useEffect(() => {
+    fetchOffer();
+  }, []);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: FolderOpen },
@@ -90,10 +108,7 @@ const ClientDashboard = () => {
     { id: 3, name: 'Healthcare CRM', status: 'Completed', lastUpdated: '2025-06-28', description: 'Patient management system' }
   ];
 
-  const offers = [
-    { id: 1, projectName: 'Real Estate Portal', total: '$1,320', timeline: '12 days', description: 'UI + Frontend Development' },
-    { id: 2, projectName: 'Mobile App Design', total: '$950', timeline: '8 days', description: 'Complete mobile UI/UX design' }
-  ];
+
 
   const milestones = [
     { id: 1, project: 'E-commerce Store', title: 'API Integration', amount: '$500', status: 'Unpaid', dueDate: '2025-07-11' },
@@ -287,18 +302,25 @@ const ClientDashboard = () => {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Pending Offers</h2>
+            {
+              offers?.length === 0 && (
+                <div className='flex justify-center items-center'>
+                  <p className="text-gray-600 text-center text-lg">No offers found!</p>
+                </div>
+              )
+            }
             <div className="grid gap-4">
               {offers.map((offer) => (
                 <Card key={offer.id} className="border-brand-gray-200">
                   <CardContent className="p-6">
                     <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
                       <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{offer.projectName}</h3>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{offer.projectTitle}</h3>
                         <p className="text-gray-600 mb-3">{offer.description}</p>
                         <div className="flex flex-wrap gap-4 text-sm">
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="font-medium">Total: {offer.total}</span>
+                            <span className="font-medium">Total: {offer.offerPrice}</span>
                           </div>
                           <div className="flex items-center gap-1">
                             <Clock className="w-4 h-4 text-blue-600" />
