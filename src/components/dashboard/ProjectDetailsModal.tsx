@@ -2,12 +2,13 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 interface Project {
   id: number;
-  name: string;
+  title: string;
   status: string;
-  lastUpdated: string;
+  updatedAt: string;
   description: string;
 }
 
@@ -24,8 +25,8 @@ const ProjectDetailsModal = ({ isOpen, onClose, project }: ProjectDetailsModalPr
     const statusConfig = {
       'Under Review': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' },
       'Offer Sent': { variant: 'secondary' as const, className: 'bg-blue-100 text-blue-800' },
-      'Active': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
-      'Completed': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' }
+      'ACTIVE': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
+      'COMPLETE': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' }
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || { variant: 'secondary' as const, className: '' };
@@ -36,7 +37,7 @@ const ProjectDetailsModal = ({ isOpen, onClose, project }: ProjectDetailsModalPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{project.name}</DialogTitle>
+          <DialogTitle>{project.title}</DialogTitle>
           <DialogDescription>
             Project details and current status
           </DialogDescription>
@@ -63,7 +64,7 @@ const ProjectDetailsModal = ({ isOpen, onClose, project }: ProjectDetailsModalPr
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Last Updated</p>
-                    <p className="font-semibold">{project.lastUpdated}</p>
+                    <p className="font-semibold">{format(new Date(project.updatedAt), 'PPpp')}</p>
                   </div>
                 </div>
               </div>

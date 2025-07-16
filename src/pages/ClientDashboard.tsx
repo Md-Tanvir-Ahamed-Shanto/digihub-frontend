@@ -50,6 +50,7 @@ import RaiseIssueModal from "@/components/dashboard/RaiseIssueModal";
 import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
 import ClientSettings from "@/components/dashboard/ClientSettings";
 import axiosInstance from "@/api/axios";
+import { format } from "date-fns";
 
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -96,8 +97,12 @@ const ClientDashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axiosInstance.get(`/project/client/${user?.id}`);
-      setProjects(response?.data?.data);
+      const response = await axiosInstance.get(`/project/client`,{
+        params: {
+          clientId: user?.id
+        }
+      });
+      setProjects(response?.data);
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
@@ -292,19 +297,42 @@ const ClientDashboard = () => {
     );
   };
 
-  const handleAcceptOffer = (offerId: number) => {
-    toast({
-      title: "Offer Accepted",
-      description:
-        "The project offer has been accepted and work will begin soon.",
-    });
+  const handleAcceptOffer = async (offerId: number) => {
+    try {
+      const response = await axiosInstance.post(`/lead/${offerId}/accept-offer`);
+      if(response.status === 200) {
+        toast({
+          title: "Offer Accepted",
+          description:
+            "The project offer has been accepted and work will begin soon.",
+        });
+        fetchOffer();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while accepting the offer.",
+      });
+    }
   };
 
-  const handleRejectOffer = (offerId: number) => {
-    toast({
-      title: "Offer Rejected",
-      description: "The project offer has been rejected.",
-    });
+  const handleRejectOffer = async (offerId: number) => {
+    try {
+      const response = await axiosInstance.post(`/lead/${offerId}/reject-offer`);
+      if(response.status === 200) {
+        toast({
+          title: "Offer Rejected",
+          description:
+            "The project offer has been rejected.",
+        });
+        fetchOffer();
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An error occurred while rejecting the offer.",
+      });
+    }
   };
 
   const handlePayMilestone = (milestoneId: number) => {
@@ -447,7 +475,7 @@ const ClientDashboard = () => {
                           <TableCell>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {project.name}
+                                {project.title}
                               </p>
                               <p className="text-sm text-gray-600">
                                 {project.description}
@@ -458,7 +486,7 @@ const ClientDashboard = () => {
                             {getStatusBadge(project.status)}
                           </TableCell>
                           <TableCell className="text-gray-600">
-                            {project.lastUpdated}
+                            {format(project.updatedAt, "MMM d, yyyy")}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
