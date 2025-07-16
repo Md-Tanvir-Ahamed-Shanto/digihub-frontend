@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,9 @@ import SubmitOfferModal from '@/components/dashboard/SubmitOfferModal';
 import AddMilestoneModal from '@/components/dashboard/AddMilestoneModal';
 import WithdrawalRequestModal from '@/components/dashboard/WithdrawalRequestModal';
 import DeveloperSettings from '@/components/dashboard/DeveloperSettings';
+import axiosInstance from '@/api/axios';
+import { format } from 'date-fns';
+import LeadViewModal from '@/components/dashboard/LeadViewModel';
 
 const PartnerDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -44,9 +47,12 @@ const PartnerDashboard = () => {
   const [addMilestoneOpen, setAddMilestoneOpen] = useState(false);
   const [withdrawalRequestOpen, setWithdrawalRequestOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedLead, setSelectedLead] = useState(null);
+  const [leadViewOpen, setLeadViewOpen] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [leads, setLeads] = useState([])
 
   const handleLogout = () => {
     logout();
@@ -57,8 +63,28 @@ const PartnerDashboard = () => {
     navigate('/partner-login');
   };
 
+  const handleViewLead = (lead: any) =>{
+    setSelectedLead(lead);
+    setLeadViewOpen(true);
+  }
+
+  const fetchLeads = async () => {
+    try {
+      const response = await axiosInstance.get('/partner/leads');
+      setLeads(response.data.data);
+      console.log("leads", response.data.data)
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
+
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: FolderOpen },
+    {id: 'leads', label: 'Leads', icon: MessageSquare},
     { id: 'projects', label: 'Projects', icon: FileText },
     { id: 'milestones', label: 'Milestones', icon: CheckCircle },
     { id: 'earnings', label: 'Earnings', icon: TrendingUp },
@@ -116,9 +142,9 @@ const PartnerDashboard = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Assigned':
+      case 'ASSIGNED_TO_PARTNER':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{status}</Badge>;
-      case 'Offer Submitted':
+      case 'PARTNER_OFFER_PROPOSED':
         return <Badge variant="outline" className="border-yellow-500 text-yellow-700">{status}</Badge>;
       case 'Active':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
@@ -126,7 +152,7 @@ const PartnerDashboard = () => {
         return <Badge variant="secondary" className="bg-gray-100 text-gray-800">{status}</Badge>;
       case 'Pending Approval':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{status}</Badge>;
-      case 'Approved':
+      case 'ACCEPTED':
         return <Badge variant="outline" className="border-green-500 text-green-700">{status}</Badge>;
       case 'Paid':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
@@ -259,6 +285,58 @@ const PartnerDashboard = () => {
                         </Button>
                         {project.status === 'Assigned' && (
                           <Button size="sm" onClick={() => handleSubmitOffer(project)}>
+                            <Send className="w-3 h-3 mr-1" />
+                            Submit Offer
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+   const renderLeads = () => (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-2xl font-bold text-gray-900">My Leads</h2>
+      </div>
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project Brief</TableHead>
+                  <TableHead className="hidden md:table-cell">Submission Date</TableHead>
+                  <TableHead>Status</TableHead>
+               
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {leads.map((lead) => (
+                  <TableRow key={lead.id}>
+                    <TableCell className="max-w-xs">
+                      <div className="truncate font-medium">{lead.description}</div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{format(lead.updatedAt, 'yyyy-MM-dd')}</TableCell>
+                    <TableCell>{getStatusBadge(lead.status)}</TableCell>
+                   
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        <Button size="sm" variant="outline" onClick={() => handleViewLead(lead)}>
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                        {lead.status === 'ASSIGNED_TO_PARTNER' && (
+                          <Button size="sm" onClick={() => handleSubmitOffer(lead)}>
                             <Send className="w-3 h-3 mr-1" />
                             Submit Offer
                           </Button>
@@ -512,6 +590,8 @@ const PartnerDashboard = () => {
     switch (activeTab) {
       case 'dashboard':
         return renderDashboard();
+      case 'leads':
+        return renderLeads();
       case 'projects':
         return renderProjects();
       case 'milestones':
@@ -634,10 +714,16 @@ const PartnerDashboard = () => {
         onClose={() => setProjectViewOpen(false)} 
         project={selectedProject}
       />
+      <LeadViewModal 
+        isOpen={leadViewOpen} 
+        onClose={() => setLeadViewOpen(false)} 
+        lead={selectedLead}
+      />
       <SubmitOfferModal 
         isOpen={submitOfferOpen} 
         onClose={() => setSubmitOfferOpen(false)} 
         project={selectedProject}
+        fetchLead={fetchLeads}
       />
       <AddMilestoneModal 
         isOpen={addMilestoneOpen} 

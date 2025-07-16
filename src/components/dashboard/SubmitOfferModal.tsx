@@ -6,13 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
 
 interface Project {
   id: number;
-  briefSnippet: string;
+  description: string;
   status: string;
-  submissionDate: string;
-  estimatedCost: string;
+  updatedAt: string;
+  budgetRange: string;
   timeline: string;  
 }
 
@@ -20,24 +21,33 @@ interface SubmitOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
   project: Project | null;
+  fetchLead: () => void;
 }
 
-const SubmitOfferModal = ({ isOpen, onClose, project }: SubmitOfferModalProps) => {
+const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferModalProps) => {
   const [cost, setCost] = useState('');
   const [timeline, setTimeline] = useState('');
   const [description, setDescription] = useState('');
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Offer Submitted",
-      description: "Your project offer has been submitted successfully."
+    const response = await axiosInstance.post(`/partner/leads/${project.id}/submit-offer`, {
+      proposedCost: Number(cost),
+      timeline: timeline,
+      notes: description
     });
-    setCost('');
-    setTimeline('');
-    setDescription('');
-    onClose();
+    if (response.status === 200) {
+      toast({
+        title: "Offer Submitted",
+        description: "Your project offer has been submitted successfully."
+      });
+      fetchLead()
+      setCost('');
+      setTimeline('');
+      setDescription('');
+      onClose();
+    }
   };
 
   if (!project) return null;
@@ -54,8 +64,8 @@ const SubmitOfferModal = ({ isOpen, onClose, project }: SubmitOfferModalProps) =
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600 mb-2">Project Brief:</p>
-            <p className="text-gray-900">{project.briefSnippet}</p>
+            <p className="text-sm text-gray-600 mb-2">Project Description:</p>
+            <p className="text-gray-900">{project.description}</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
