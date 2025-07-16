@@ -64,7 +64,10 @@ const AdminDashboard = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedPartner, setSelectedPartner] = useState(null);
+  const [partners, setPartners] = useState([]);
+  const [isLoadingPartners, setIsLoadingPartners] = useState(false);
   const [leads, setLeads] = useState([]);
+  const [isLoadingLeads, setIsLoadingLeads] = useState(false);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -86,8 +89,28 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchPartners = async () => {
+    try {
+      setIsLoadingPartners(true);
+      const response = await axiosInstance.get('/partner');
+      setPartners(response.data);
+      setIsLoadingPartners(false);
+      console.log("partner", response.data)
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch partners. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingPartners(false);
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
+    fetchPartners();
   }, []);
 
   const navigationItems = [
@@ -173,44 +196,7 @@ const AdminDashboard = () => {
     { id: 4, name: 'Restaurant POS', client: 'David Wilson', partner: 'SoftSolutions', status: 'Completed', progress: 100 }
   ];
 
-  const partners = [
-    { 
-      id: 1, 
-      name: 'TechPro Solutions', 
-      status: 'Active', 
-      projectsHandled: 12, 
-      rating: 4.8, 
-      balance: '$3,200',
-      pendingWithdrawals: '$1,200'
-    },
-    { 
-      id: 2, 
-      name: 'WebCraft Studio', 
-      status: 'Active', 
-      projectsHandled: 8, 
-      rating: 4.6, 
-      balance: '$1,800',
-      pendingWithdrawals: '$500'
-    },
-    { 
-      id: 3, 
-      name: 'AppDev Team', 
-      status: 'Active', 
-      projectsHandled: 15, 
-      rating: 4.9, 
-      balance: '$2,400',
-      pendingWithdrawals: '$0'
-    },
-    { 
-      id: 4, 
-      name: 'SoftSolutions', 
-      status: 'Inactive', 
-      projectsHandled: 5, 
-      rating: 4.2, 
-      balance: '$800',
-      pendingWithdrawals: '$0'
-    }
-  ];
+
 
   const supportTickets = [
     {
@@ -565,39 +551,63 @@ const AdminDashboard = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Partner Name</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="hidden md:table-cell">Projects</TableHead>
-                  <TableHead className="hidden sm:table-cell">Rating</TableHead>
-                  <TableHead>Balance</TableHead>
-                  <TableHead className="hidden lg:table-cell">Pending Withdrawals</TableHead>
+                  <TableHead className="hidden md:table-cell">Skills</TableHead>
+                  <TableHead className="hidden lg:table-cell">Industry Experience</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {partners.map((partner) => (
-                  <TableRow key={partner.id}>
-                    <TableCell className="font-medium">{partner.name}</TableCell>
-                    <TableCell>
-                      <Badge variant={partner.status === 'Active' ? 'default' : 'secondary'}>
-                        {partner.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">{partner.projectsHandled}</TableCell>
-                    <TableCell className="hidden sm:table-cell">⭐ {partner.rating}</TableCell>
-                    <TableCell className="font-medium text-green-600">{partner.balance}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <span className={`font-medium ${partner.pendingWithdrawals === '$0' ? 'text-gray-400' : 'text-yellow-600'}`}>
-                        {partner.pendingWithdrawals}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button size="sm" variant="outline" onClick={() => handleViewPartner(partner)}>
-                        <Eye className="w-3 h-3 mr-1" />
-                        View
-                      </Button>
+                {isLoadingPartners ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      Loading partners...
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : partners.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      No partners found
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  partners.map((partner) => (
+                    <TableRow key={partner.id}>
+                      <TableCell className="font-medium">{partner.name}</TableCell>
+                      <TableCell>{partner.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={partner.isActive ? 'default' : 'secondary'}>
+                          {partner.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          {partner.skillSet?.map((skill, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {skill}
+                            </Badge>
+                          ))}                          
+                        </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <div className="flex flex-wrap gap-1">
+                          {partner.industryExp?.map((exp, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {exp}
+                            </Badge>
+                          ))}                          
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline" onClick={() => handleViewPartner(partner)}>
+                          <Eye className="w-3 h-3 mr-1" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
@@ -834,6 +844,7 @@ const AdminDashboard = () => {
       <AddPartnerModal 
         open={addPartnerOpen}
         onOpenChange={setAddPartnerOpen}
+        onPartnerAdded={fetchPartners}
       />
     </div>
   );

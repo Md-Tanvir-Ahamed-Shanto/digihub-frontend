@@ -4,66 +4,90 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface AddPartnerModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onPartnerAdded?: () => void;
 }
 
-const AddPartnerModal = ({ open, onOpenChange }: AddPartnerModalProps) => {
+const AddPartnerModal = ({ open, onOpenChange, onPartnerAdded }: AddPartnerModalProps) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    phone: '',
-    location: '',
-    specialization: '',
-    experience: '',
-    portfolio: '',
-    notes: ''
+    password: '',
+    skillSet: [] as string[],
+    industryExp: [] as string[]
   });
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  const specializations = [
-    'Full Stack Development',
-    'Frontend & UI/UX',
-    'Backend Development',
-    'Mobile App Development',
-    'DevOps & Cloud',
-    'Data Science & AI',
-    'Blockchain Development',
-    'Game Development',
-    'Quality Assurance',
+  const skillOptions = [
+    'HTML/CSS',
+    'JavaScript',
+    'React',
+    'Node.js',
+    'Python',
+    'Java',
+    'PHP',
+    'Mobile Development',
+    'DevOps',
+    'UI/UX Design'
+  ];
+
+  const industryOptions = [
+    'E-commerce',
+    'Healthcare',
+    'Finance',
+    'Education',
+    'Real Estate',
+    'Manufacturing',
+    'Technology',
+    'Entertainment',
+    'Travel',
     'Other'
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('New partner:', formData);
-    
-    toast({
-      title: "Partner Added",
-      description: `Partner "${formData.name}" has been added successfully.`
-    });
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      location: '',
-      specialization: '',
-      experience: '',
-      portfolio: '',
-      notes: ''
-    });
-    
-    onOpenChange(false);
+    setIsLoading(true);
+
+    try {
+      await axiosInstance.post('/partner', formData);
+      
+      toast({
+        title: "Success",
+        description: `Partner "${formData.name}" has been added successfully.`
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        skillSet: [],
+        industryExp: []
+      });
+      
+      onPartnerAdded?.();
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to add partner. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -88,97 +112,109 @@ const AddPartnerModal = ({ open, onOpenChange }: AddPartnerModalProps) => {
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="contact@techforge.com"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                type="tel"
-                value={formData.phone}
-                onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="+1 555-101-2020"
-              />
-            </div>
-          </div>
-          
           <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
-              id="location"
-              value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
-              placeholder="San Francisco, USA"
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="partner@example.com"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              value={formData.password}
+              onChange={(e) => handleInputChange('password', e.target.value)}
+              placeholder="Enter temporary password"
+              required
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="specialization">Specialization</Label>
-            <Select onValueChange={(value) => handleInputChange('specialization', value)}>
+            <Label htmlFor="skillSet">Skills</Label>
+            <Select
+              onValueChange={(value) => {
+                const skills = formData.skillSet.includes(value) 
+                  ? formData.skillSet.filter(skill => skill !== value)
+                  : [...formData.skillSet, value];
+                handleInputChange('skillSet', skills);
+              }}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select specialization" />
+                <SelectValue placeholder="Select skills" />
               </SelectTrigger>
               <SelectContent>
-                {specializations.map((spec) => (
-                  <SelectItem key={spec} value={spec}>
-                    {spec}
+                {skillOptions.map((skill) => (
+                  <SelectItem key={skill} value={skill}>
+                    {skill}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {formData.skillSet.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.skillSet.map((skill) => (
+                  <Badge key={skill} variant="secondary" className="cursor-pointer"
+                    onClick={() => handleInputChange('skillSet', formData.skillSet.filter(s => s !== skill))}>
+                    {skill} ×
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="experience">Years of Experience</Label>
-            <Input
-              id="experience"
-              type="number"
-              value={formData.experience}
-              onChange={(e) => handleInputChange('experience', e.target.value)}
-              placeholder="5"
-              min="0"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="portfolio">Portfolio URL</Label>
-            <Input
-              id="portfolio"
-              type="url"
-              value={formData.portfolio}
-              onChange={(e) => handleInputChange('portfolio', e.target.value)}
-              placeholder="https://techforge.com/portfolio"
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Additional notes about the partner"
-              rows={3}
-            />
+            <Label htmlFor="industryExp">Industry Experience</Label>
+            <Select
+              onValueChange={(value) => {
+                const industries = formData.industryExp.includes(value)
+                  ? formData.industryExp.filter(ind => ind !== value)
+                  : [...formData.industryExp, value];
+                handleInputChange('industryExp', industries);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select industries" />
+              </SelectTrigger>
+              <SelectContent>
+                {industryOptions.map((industry) => (
+                  <SelectItem key={industry} value={industry}>
+                    {industry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {formData.industryExp.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {formData.industryExp.map((industry) => (
+                  <Badge key={industry} variant="secondary" className="cursor-pointer"
+                    onClick={() => handleInputChange('industryExp', formData.industryExp.filter(i => i !== industry))}>
+                    {industry} ×
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
           
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              Add Partner
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Partner'
+              )}
             </Button>
           </div>
         </form>
