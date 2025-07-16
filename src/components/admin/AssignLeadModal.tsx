@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -11,35 +11,63 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Star, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
 
 interface AssignLeadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead: any;
+  fetchLeads: () => void;
 }
 
-const AssignLeadModal = ({ open, onOpenChange, lead }: AssignLeadModalProps) => {
+const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadModalProps) => {
   const { toast } = useToast();
   const [selectedPartner, setSelectedPartner] = useState('');
   const [budgetForPartner, setBudgetForPartner] = useState('');
   const [timelineForPartner, setTimelineForPartner] = useState('');
   const [notes, setNotes] = useState('');
+  const [partners, setPartners] = useState([]);
 
-  const partners = [
-    { id: '1', name: 'TechPro Solutions', rating: 4.8, projects: 12, expertise: ['React', 'Node.js', 'E-commerce'], availability: 'Available' },
-    { id: '2', name: 'WebCraft Studio', rating: 4.6, projects: 8, expertise: ['Vue.js', 'Design', 'UX/UI'], availability: 'Busy' },
-    { id: '3', name: 'AppDev Team', rating: 4.9, projects: 15, expertise: ['React Native', 'Flutter', 'Mobile'], availability: 'Available' }
-  ];
+  const fetchPartners = async () => {
+    try {
+      const response = await axiosInstance.get('/partner');
+      setPartners(response.data);
+      console.log(response.data)
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+    }
+  };
 
-  const handleAssign = () => {
+  useEffect(() => {
+    fetchPartners();
+  }, []);
+
+
+  const handleAssign = async () => {
     if (!selectedPartner) return;
     
     const partner = partners.find(p => p.id === selectedPartner);
-    toast({
-      title: "Lead Assigned",
-      description: `Lead has been assigned to ${partner?.name} with budget ${budgetForPartner} and timeline ${timelineForPartner}.`,
-    });
-    onOpenChange(false);
+    try {
+      await axiosInstance.put(`/lead/${lead.id}/assign-partner`, {
+        partnerId: selectedPartner,
+        budget: budgetForPartner,
+        timeline: timelineForPartner,
+        notes,
+      });
+      toast({
+        title: "Lead Assigned",
+        description: `Lead has been assigned to ${partner?.name} with budget ${budgetForPartner} and timeline ${timelineForPartner}.`,
+      });
+      fetchLeads();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error assigning lead:', error);
+      toast({
+        title: "Error Assigning Lead",
+        description: "There was an issue assigning the lead. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -57,7 +85,7 @@ const AssignLeadModal = ({ open, onOpenChange, lead }: AssignLeadModalProps) => 
           <div>
             <Label className="text-base font-medium mb-4 block">Available Partners</Label>
             <div className="space-y-3">
-              {partners.map((partner) => (
+              {partners?.map((partner) => (
                 <Card 
                   key={partner.id} 
                   className={`cursor-pointer transition-colors ${
@@ -84,7 +112,7 @@ const AssignLeadModal = ({ open, onOpenChange, lead }: AssignLeadModalProps) => 
                             </div>
                           </div>
                           <div className="flex flex-wrap gap-1 mt-2">
-                            {partner.expertise.map((skill) => (
+                            {partner?.skillSet?.map((skill) => (
                               <Badge key={skill} variant="secondary" className="text-xs">
                                 {skill}
                               </Badge>
@@ -92,8 +120,8 @@ const AssignLeadModal = ({ open, onOpenChange, lead }: AssignLeadModalProps) => 
                           </div>
                         </div>
                       </div>
-                      <Badge variant={partner.availability === 'Available' ? 'default' : 'secondary'}>
-                        {partner.availability}
+                      <Badge variant={partner?.isActive ? 'default' : 'secondary'}>
+                        {partner?.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
                   </CardContent>

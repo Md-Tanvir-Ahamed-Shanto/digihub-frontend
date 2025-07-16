@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +47,8 @@ import WebsiteContentManager from '@/components/admin/website/WebsiteContentMana
 import SubmissionsPanel from '@/components/admin/SubmissionsPanel';
 import PagesManager from '@/components/admin/PagesManager';
 import AdminSettings from '@/components/admin/AdminSettings';
+import axiosInstance from '@/api/axios';
+import { format } from "date-fns";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -62,6 +64,7 @@ const AdminDashboard = () => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedPartner, setSelectedPartner] = useState(null);
+  const [leads, setLeads] = useState([]);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -73,6 +76,19 @@ const AdminDashboard = () => {
       description: "You have been successfully logged out."
     });
   };
+
+  const fetchLeads = async () => {
+    try {
+      const response = await axiosInstance.get(`/lead`);
+      setLeads(response.data.data);
+    } catch (error) {
+      console.error('Error fetching leads:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchLeads();
+  }, []);
 
   const navigationItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -113,42 +129,42 @@ const AdminDashboard = () => {
     { type: 'Partner Assignment', description: 'TechPro assigned to CRM project', time: '1 day ago', status: 'info' }
   ];
 
-  const leads = [
-    { 
-      id: 1, 
-      clientName: 'Sarah Johnson', 
-      projectSnippet: 'E-commerce site for organic products...', 
-      dateSubmitted: '2024-01-15', 
-      status: 'Partner Assigned',
-      partnerOffer: '$4,000',
-      partnerTimeline: '3-4 weeks',
-      partner: 'TechPro Solutions'
-    },
-    { 
-      id: 2, 
-      clientName: 'Mike Chen', 
-      projectSnippet: 'Mobile app for fitness tracking...', 
-      dateSubmitted: '2024-01-14', 
-      status: 'Offer Sent',
-      partnerOffer: '$3,500',
-      partnerTimeline: '4-5 weeks',
-      partner: 'AppDev Team'
-    },
-    { 
-      id: 3, 
-      clientName: 'Lisa Anderson', 
-      projectSnippet: 'Corporate website redesign...', 
-      dateSubmitted: '2024-01-13', 
-      status: 'Under Review'
-    },
-    { 
-      id: 4, 
-      clientName: 'David Wilson', 
-      projectSnippet: 'Restaurant management system...', 
-      dateSubmitted: '2024-01-12', 
-      status: 'Completed'
-    }
-  ];
+  // const leads = [
+  //   { 
+  //     id: 1, 
+  //     clientName: 'Sarah Johnson', 
+  //     projectSnippet: 'E-commerce site for organic products...', 
+  //     dateSubmitted: '2024-01-15', 
+  //     status: 'Partner Assigned',
+  //     partnerOffer: '$4,000',
+  //     partnerTimeline: '3-4 weeks',
+  //     partner: 'TechPro Solutions'
+  //   },
+  //   { 
+  //     id: 2, 
+  //     clientName: 'Mike Chen', 
+  //     projectSnippet: 'Mobile app for fitness tracking...', 
+  //     dateSubmitted: '2024-01-14', 
+  //     status: 'Offer Sent',
+  //     partnerOffer: '$3,500',
+  //     partnerTimeline: '4-5 weeks',
+  //     partner: 'AppDev Team'
+  //   },
+  //   { 
+  //     id: 3, 
+  //     clientName: 'Lisa Anderson', 
+  //     projectSnippet: 'Corporate website redesign...', 
+  //     dateSubmitted: '2024-01-13', 
+  //     status: 'Under Review'
+  //   },
+  //   { 
+  //     id: 4, 
+  //     clientName: 'David Wilson', 
+  //     projectSnippet: 'Restaurant management system...', 
+  //     dateSubmitted: '2024-01-12', 
+  //     status: 'Completed'
+  //   }
+  // ];
 
   const projects = [
     { id: 1, name: 'Health Coach CRM', client: 'Alex Thompson', partner: 'TechPro Solutions', status: 'Active', progress: 65 },
@@ -237,13 +253,13 @@ const AdminDashboard = () => {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Under Review':
+      case 'PENDING':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">{status}</Badge>;
-      case 'Partner Assigned':
+      case 'ASSIGNED_TO_PARTNER':
         return <Badge variant="outline" className="border-purple-200 text-purple-800">{status}</Badge>;
-      case 'Offer Sent':
+      case 'OFFER_SENT_TO_CLIENT':
         return <Badge variant="outline" className="border-blue-200 text-blue-800">{status}</Badge>;
-      case 'Active':
+      case 'ACCEPTED_AND_CONVERTED':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
       case 'Completed':
         return <Badge variant="secondary" className="bg-gray-100 text-gray-800">{status}</Badge>;
@@ -425,9 +441,9 @@ const AdminDashboard = () => {
               <TableBody>
                 {leads.map((lead) => (
                   <TableRow key={lead.id}>
-                    <TableCell className="font-medium">{lead.clientName}</TableCell>
-                    <TableCell className="hidden md:table-cell max-w-xs truncate">{lead.projectSnippet}</TableCell>
-                    <TableCell className="hidden sm:table-cell">{lead.dateSubmitted}</TableCell>
+                    <TableCell className="font-medium">{lead.name}</TableCell>
+                    <TableCell className="hidden md:table-cell max-w-xs truncate">{lead.description}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{ format(new Date(lead.createdAt), "dd MMM yyyy")}</TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {lead.partnerOffer ? (
@@ -445,15 +461,19 @@ const AdminDashboard = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline" onClick={() => handleViewLead(lead)}>
+                        {
+                          lead.status !== 'ACCEPTED_AND_CONVERTED' && (
+                            <Button size="sm" variant="outline" onClick={() => handleViewLead(lead)}>
                           <Eye className="w-3 h-3" />
                         </Button>
-                        {lead.status === 'Under Review' && (
+                          )
+                        }
+                        {lead.status === 'PENDING' && (
                           <Button size="sm" variant="outline" onClick={() => handleAssignLead(lead)}>
                             <UserCheck className="w-3 h-3" />
                           </Button>
                         )}
-                        {lead.partnerOffer && lead.status === 'Partner Assigned' && (
+                        {lead.partnerOffer && lead.status === 'ASSIGNED_TO_PARTNER' && (
                           <Button size="sm" variant="outline" onClick={() => handleCreateClientOffer(lead)}>
                             <Send className="w-3 h-3" />
                           </Button>
@@ -790,6 +810,7 @@ const AdminDashboard = () => {
         open={assignLeadOpen}
         onOpenChange={setAssignLeadOpen}
         lead={selectedLead}
+        fetchLeads={fetchLeads}
       />
       <CreateClientOfferModal 
         open={createClientOfferOpen}
