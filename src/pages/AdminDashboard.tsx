@@ -459,7 +459,7 @@ const AdminDashboard = () => {
                             <UserCheck className="w-3 h-3" />
                           </Button>
                         )}
-                        {lead.partnerOffer && lead.status === 'ASSIGNED_TO_PARTNER' && (
+                        {lead.partnerProposedCost && lead.status === 'PARTNER_OFFER_PROPOSED' && (
                           <Button size="sm" variant="outline" onClick={() => handleCreateClientOffer(lead)}>
                             <Send className="w-3 h-3" />
                           </Button>
@@ -826,6 +826,7 @@ const AdminDashboard = () => {
         open={createClientOfferOpen}
         onOpenChange={setCreateClientOfferOpen}
         lead={selectedLead}
+        onOfferCreated={fetchLeads}
       />
       <ViewProjectModal 
         open={viewProjectOpen}

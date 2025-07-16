@@ -25,7 +25,7 @@ const SubmitProject = () => {
   });
   const navigate = useNavigate();
   const industries = ['Plumbing & Trade Services', 'Real Estate', 'E-commerce', 'Healthcare', 'Automotive', 'Education', 'Professional Services', 'Food & Hospitality', 'Technology', 'Other'];
-  const budgetRanges = ['$5,000 - $10,000', '$10,000 - $25,000', '$25,000 - $50,000', '$50,000 - $100,000', '$100,000+'];
+  const budgetRanges = ['$5,000', '$10,000', '$25,000', '$50,000', '$100,000+'];
   const timelineOptions = ['1-2 months', '2-4 months', '4-6 months', '6+ months'];
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
