@@ -90,6 +90,7 @@ const ClientDashboard = () => {
     try {
       const response = await axiosInstance.get(`/client/my-leads`);
       setOffer(response?.data?.data);
+  
     } catch (error) {
       console.error("Error fetching offer:", error);
     }
@@ -119,10 +120,13 @@ const ClientDashboard = () => {
   const offers = offer?.filter(
     (item) => item.status === "OFFER_SENT_TO_CLIENT"
   );
-
+  const pendingProjects = offer?.filter(
+    (item) => item.status === "PENDING"
+  );
+console.log("project", projects)
   useEffect(() => {
-    fetchOffer();
     fetchProjects();
+    fetchOffer();
   }, []);
 
   const navigationItems = [
@@ -136,7 +140,7 @@ const ClientDashboard = () => {
     { id: "settings", label: "Settings", icon: Settings },
   ];
 const activeProject = projects?.filter((item) => item.status === "ACTIVE");
-const pendingOffer = offers?.filter((item) => item.status === "OFFER_SENT_TO_CLIENT");  
+const pendingOffer = projects?.filter((item) => item.status === "OFFER_SENT_TO_CLIENT");  
 const paymentDue = activeProject?.filter((item) => item.paymentStatus === "PAYMENT_DUE");
 const completedProject = activeProject?.filter((item) => item.status === "COMPLETED");
   // Mock data
@@ -245,47 +249,47 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      "Under Review": {
+      "PENDING": {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
-      "Offer Sent": {
+      "OFFER_SENT_TO_CLIENT": {
         variant: "secondary" as const,
         className: "bg-blue-100 text-blue-800",
       },
-      Accepted: {
+      "OFFER_ACCEPTED_BY_CLIENT": {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      Active: {
+      "ACTIVE": {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      Completed: {
+      "COMPLETED": {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
-      Paid: {
+      "PAID": {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      Unpaid: {
+      "UNPAID": {
         variant: "secondary" as const,
         className: "bg-red-100 text-red-800",
       },
-      Pending: {
+      "PENDING_PAYMENT": {
         variant: "secondary" as const,
         className: "bg-yellow-100 text-yellow-800",
       },
-      Responded: {
+      "RESPONDED": {
         variant: "secondary" as const,
         className: "bg-blue-100 text-blue-800",
       },
-      Open: {
+      "OPEN": {
         variant: "secondary" as const,
         className: "bg-yellow-100 text-yellow-800",
       },
-      Closed: {
+      "CLOSED": {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
@@ -473,6 +477,40 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
                     </TableHeader>
                     <TableBody>
                       {projects?.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {project.title}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {project.description}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(project.status)}
+                          </TableCell>
+                          <TableCell className="text-gray-600">
+                            {format(project.updatedAt, "MMM d, yyyy")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleViewProject(project)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                        {pendingProjects?.map((project) => (
                         <TableRow
                           key={project.id}
                           className="border-brand-gray-200"

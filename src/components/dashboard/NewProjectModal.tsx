@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import axiosInstance from '@/api/axios';
 
 interface NewProjectModalProps {
   isOpen: boolean;
@@ -18,18 +20,30 @@ const NewProjectModal = ({ isOpen, onClose }: NewProjectModalProps) => {
   const [budget, setBudget] = useState('');
   const [timeline, setTimeline] = useState('');
   const { toast } = useToast();
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    toast({
-      title: "Project Submitted",
-      description: "Your new project has been submitted successfully. We'll review it and get back to you soon."
-    });
-    setProjectName('');
-    setDescription('');
-    setBudget('');
-    setTimeline('');
-    onClose();
+  const {user} = useAuth();
+console.log("user", user)
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault(); 
+    const response = await axiosInstance.post('/lead/submit', {
+      projectTitle: projectName,
+      description,
+      budgetRange:budget,
+      timeline,
+      clientId: user?.id,
+      email: user?.email,
+    })
+    if(response.status === 201) {
+      
+      toast({
+        title: "Project Submitted",
+        description: "Your new project has been submitted successfully. We'll review it and get back to you soon."
+      });
+      setProjectName('');
+      setDescription('');
+      setBudget('');
+      setTimeline('');
+      onClose();
+    }
   };
 
   return (
