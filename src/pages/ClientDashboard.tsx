@@ -108,14 +108,14 @@ const ClientDashboard = () => {
       console.error("Error fetching projects:", error);
     }
   };
-  const fetchMilestones = async () => {
-    try {
-      const response = await axiosInstance.get(`/milestone/projects/${user?.id}`);
-      // setMilestones(response?.data?.data);
-    } catch (error) {
-      console.error("Error fetching milestones:", error);
-    }
-  };
+  // const fetchMilestones = async () => {
+  //   try {
+  //     const response = await axiosInstance.get(`/milestone/projects/${user?.id}`);
+  //     setMilestones(response?.data?.data);
+  //   } catch (error) {
+  //     console.error("Error fetching milestones:", error);
+  //   }
+  // };
 
   const offers = offer?.filter(
     (item) => item.status === "OFFER_SENT_TO_CLIENT"
@@ -128,6 +128,14 @@ console.log("project", projects)
     fetchProjects();
     fetchOffer();
   }, []);
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      fetchMilestones();
+    } else {
+      setIsLoadingMilestones(false);
+    }
+  }, [projects]);
 
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: FolderOpen },
@@ -172,32 +180,37 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
   ];
 
 
-  const milestones = [
-    {
-      id: 1,
-      project: "E-commerce Store",
-      title: "API Integration",
-      amount: "$500",
-      status: "Unpaid",
-      dueDate: "2025-07-11",
-    },
-    {
-      id: 2,
-      project: "E-commerce Store",
-      title: "Payment Gateway Setup",
-      amount: "$350",
-      status: "Paid",
-      dueDate: "2025-07-08",
-    },
-    {
-      id: 3,
-      project: "Real Estate Portal",
-      title: "Database Design",
-      amount: "$400",
-      status: "Pending",
-      dueDate: "2025-07-15",
-    },
-  ];
+  const [milestones, setMilestones] = useState([]);
+  const [isLoadingMilestones, setIsLoadingMilestones] = useState(true);
+
+  const fetchMilestones = async () => {
+    try {
+      setIsLoadingMilestones(true);
+      const milestonesData = [];
+
+      for (const project of projects) {
+        const response = await axiosInstance.get(
+          `/milestone/client/projects/${project.id}/milestones`
+        );
+        if (response.data && Array.isArray(response.data)) {
+          const projectMilestones = response.data.map(milestone => ({
+            ...milestone,
+            projectName: project.name || project.title
+          }));
+          milestonesData.push(...projectMilestones);
+        }
+      }
+
+      setMilestones(milestonesData);
+    } catch (error) {
+      toast({
+        title: "Error fetching milestones",
+        description: error.response?.data?.message || "Failed to load milestones",
+      });
+    } finally {
+      setIsLoadingMilestones(false);
+    }
+  };
 
   const invoices = [
     {
@@ -619,48 +632,73 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
             <h2 className="text-2xl font-bold text-gray-900">
               Project Milestones
             </h2>
-            <div className="grid gap-4">
-              {milestones.map((milestone) => (
-                <Card key={milestone.id} className="border-brand-gray-200">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            {milestone.title}
-                          </h3>
-                          {getStatusBadge(milestone.status)}
-                        </div>
-                        <p className="text-gray-600 mb-2">
-                          {milestone.project}
-                        </p>
-                        <div className="flex flex-wrap gap-4 text-sm">
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="w-4 h-4 text-green-600" />
-                            <span className="font-medium">
-                              {milestone.amount}
-                            </span>
+            {isLoadingMilestones ? (
+              <div className="flex items-center justify-center p-6">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+              </div>
+            ) : milestones.length === 0 ? (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                  <p className="text-gray-600">No milestones available.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {milestones.map((milestone) => (
+                  <Card key={milestone.id} className="border-brand-gray-200">
+                    <CardContent className="p-6">
+                      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {milestone.title}
+                            </h3>
+                            {getStatusBadge(milestone.status)}
                           </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4 text-blue-600" />
-                            <span>Due: {milestone.dueDate}</span>
+                          <p className="text-gray-600 mb-2">
+                            {milestone.projectName || milestone.project}
+                          </p>
+                          <div className="flex flex-wrap gap-4 text-sm">
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="w-4 h-4 text-green-600" />
+                              <span className="font-medium">
+                                ${milestone.cost || milestone.amount}
+                              </span>
+                            </div>
+                            {milestone.timeline && (
+                              <div className="flex items-center gap-1">
+                                <Clock className="w-4 h-4 text-blue-600" />
+                                <span>{milestone.timeline} days</span>
+                              </div>
+                            )}
+                            {milestone.dueDate && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="w-4 h-4 text-blue-600" />
+                                <span>Due: {milestone.dueDate}</span>
+                              </div>
+                            )}
                           </div>
+                          {milestone.description && (
+                            <p className="text-sm text-gray-600 mt-2">
+                              {milestone.description}
+                            </p>
+                          )}
                         </div>
+                        {milestone.status === "Unpaid" && (
+                          <Button
+                            onClick={() => handlePayMilestone(milestone.id)}
+                            className="bg-brand-primary hover:bg-brand-primary/90"
+                          >
+                            <CreditCard className="w-4 h-4 mr-1" />
+                            Pay Now
+                          </Button>
+                        )}
                       </div>
-                      {milestone.status === "Unpaid" && (
-                        <Button
-                          onClick={() => handlePayMilestone(milestone.id)}
-                          className="bg-brand-primary hover:bg-brand-primary/90"
-                        >
-                          <CreditCard className="w-4 h-4 mr-1" />
-                          Pay Now
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         );
 
