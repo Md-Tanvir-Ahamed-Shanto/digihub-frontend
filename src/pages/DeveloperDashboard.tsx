@@ -53,7 +53,10 @@ const PartnerDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [leads, setLeads] = useState([])
-
+  const [milestones, setMilestones] = useState([]);
+  const [isLoadingMilestones, setIsLoadingMilestones] = useState(false);
+  const [projects, setProjects] = useState([]);
+console.log("milestone", milestones)
   const handleLogout = () => {
     logout();
     toast({
@@ -98,26 +101,18 @@ const PartnerDashboard = () => {
     { title: 'Earnings This Month', value: '$2,400', icon: DollarSign, color: 'text-green-600' },
     { title: 'Pending Withdrawals', value: '$600', icon: Wallet, color: 'text-purple-600' }
   ];
-
-  const projects = [
-    { id: 1, briefSnippet: 'Real Estate CRM platform with lead tracking...', status: 'Offer Submitted', submissionDate: '2024-07-06', estimatedCost: '$1,200', timeline: '4 weeks' },
-    { id: 2, briefSnippet: 'E-commerce mobile app with payment integration...', status: 'Active', submissionDate: '2024-07-02', estimatedCost: '$2,800', timeline: '6 weeks' },
-    { id: 3, briefSnippet: 'Corporate website with CMS functionality...', status: 'Completed', submissionDate: '2024-06-28', estimatedCost: '$900', timeline: '3 weeks' },
-    { id: 4, briefSnippet: 'Restaurant management system with POS...', status: 'Assigned', submissionDate: '2024-07-08', estimatedCost: '', timeline: '' }
-  ];
-
-  // Group milestones by project
-  const milestonesByProject = {
-    'Real Estate CRM': [
-      { id: 1, projectName: 'Real Estate CRM', title: 'Database Schema Design', cost: '$300', timeline: '3 days', status: 'Approved', datePaid: '2024-07-05' },
-      { id: 2, projectName: 'Real Estate CRM', title: 'Dashboard UI Development', cost: '$400', timeline: '5 days', status: 'Pending Approval', datePaid: null }
-    ],
-    'E-commerce App': [
-      { id: 3, projectName: 'E-commerce App', title: 'User Authentication', cost: '$350', timeline: '4 days', status: 'Paid', datePaid: '2024-07-03' }
-    ],
-    'Corporate Website': [
-      { id: 4, projectName: 'Corporate Website', title: 'CMS Integration', cost: '$250', timeline: '2 days', status: 'Paid', datePaid: '2024-06-30' }
-    ]
+console.log("project", projects)
+  const fetchProjects = async () => {
+    try {
+      const response = await axiosInstance.get(`/project/partner`,{
+        // params: {
+        //   clientId: user?.id
+        // }
+      });
+      setProjects(response?.data);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+    }
   };
 
   const earnings = [
@@ -146,17 +141,17 @@ const PartnerDashboard = () => {
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{status}</Badge>;
       case 'PARTNER_OFFER_PROPOSED':
         return <Badge variant="outline" className="border-yellow-500 text-yellow-700">{status}</Badge>;
-      case 'Active':
+      case 'ACTIVE':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
       case 'Completed':
         return <Badge variant="secondary" className="bg-gray-100 text-gray-800">{status}</Badge>;
-      case 'Pending Approval':
+      case 'OFFER_SENT_TO_CLIENT':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{status}</Badge>;
-      case 'ACCEPTED':
+      case 'APPROVED':
         return <Badge variant="outline" className="border-green-500 text-green-700">{status}</Badge>;
-      case 'Paid':
+      case 'PAID':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
-      case 'Pending':
+      case 'PENDING':
         return <Badge variant="secondary" className="bg-orange-100 text-orange-800">{status}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
@@ -172,6 +167,51 @@ const PartnerDashboard = () => {
     setSelectedProject(project);
     setSubmitOfferOpen(true);
   };
+   const fetchMilestones = async () => {
+    try {
+      setIsLoadingMilestones(true);
+      const milestonesData = [];
+
+      for (const project of projects) {
+        const response = await axiosInstance.get(
+          `/milestone/partner/projects/${project.id}/milestones`
+        );
+        console.log("milestone response", response)
+        if (response.data.milestones && Array.isArray(response.data.milestones)) {
+          const projectMilestones = response.data.milestones.map(milestone => ({
+            ...milestone,
+            projectName: project.name || project.title
+          }));
+          milestonesData.push(...projectMilestones);
+        }
+      }
+
+      setMilestones(milestonesData);
+    } catch (error) {
+      toast({
+        title: "Error fetching milestones",
+        description: error.response?.data?.message || "Failed to load milestones",
+      });
+    } finally {
+      setIsLoadingMilestones(false);
+    }
+  };
+
+  const handleMilestoneAdded = () => {
+    fetchMilestones();
+  };
+
+    useEffect(() => {
+    if (projects.length > 0) {
+      fetchMilestones();
+    } else {
+      setIsLoadingMilestones(false);
+    }
+  }, [projects]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -363,41 +403,66 @@ const PartnerDashboard = () => {
         </Button>
       </div>
 
-      <div className="space-y-8">
-        {Object.entries(milestonesByProject).map(([projectName, milestones]) => (
-          <div key={projectName} className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{projectName}</h3>
-            <div className="grid gap-4">
-              {milestones.map((milestone) => (
-                <Card key={milestone.id}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg">{milestone.title}</CardTitle>
-                      {getStatusBadge(milestone.status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600">Cost</p>
-                        <p className="font-semibold">{milestone.cost}</p>
+      {isLoadingMilestones ? (
+        <div className="flex items-center justify-center p-6">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+        </div>
+      ) : milestones.length === 0 ? (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+            <p className="text-gray-600">No milestones available. Create your first milestone by clicking the 'Add Milestone' button above.</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-8">
+          {/* Group milestones by project */}
+          {Object.entries(
+            milestones.reduce((acc, milestone) => {
+              const projectName = milestone.projectName || 'Uncategorized';
+              if (!acc[projectName]) {
+                acc[projectName] = [];
+              }
+              acc[projectName].push(milestone);
+              return acc;
+            }, {})
+          ).map(([projectName, projectMilestones]) => (
+            <div key={projectName} className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{projectName}</h3>
+              <div className="grid gap-4">
+                {projectMilestones.map((milestone) => (
+                  <Card key={milestone.id}>
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">{milestone.title}</CardTitle>
+                        {getStatusBadge(milestone.status)}
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Timeline</p>
-                        <p className="font-semibold">{milestone.timeline}</p>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-600">Cost</p>
+                          <p className="font-semibold">${milestone.cost}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Duration</p>
+                          <p className="font-semibold">{milestone.duration} days</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">Due Date</p>
+                          <p className="font-semibold">{milestone.dueDate ? format(new Date(milestone.dueDate), 'MMM dd, yyyy') : 'Not set'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Date Paid</p>
-                        <p className="font-semibold">{milestone.datePaid || 'Pending'}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                      {milestone.description && (
+                        <p className="text-sm text-gray-600 mt-4">{milestone.description}</p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 
@@ -725,9 +790,10 @@ const PartnerDashboard = () => {
         project={selectedProject}
         fetchLead={fetchLeads}
       />
-      <AddMilestoneModal 
-        isOpen={addMilestoneOpen} 
-        onClose={() => setAddMilestoneOpen(false)} 
+      <AddMilestoneModal
+        isOpen={addMilestoneOpen}
+        onClose={() => setAddMilestoneOpen(false)}
+        onSuccess={handleMilestoneAdded}
       />
       <WithdrawalRequestModal 
         isOpen={withdrawalRequestOpen} 

@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,37 +7,89 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface AddMilestoneModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-const AddMilestoneModal = ({ isOpen, onClose }: AddMilestoneModalProps) => {
+const AddMilestoneModal = ({ isOpen, onClose, onSuccess }: AddMilestoneModalProps) => {
   const [selectedProject, setSelectedProject] = useState('');
   const [title, setTitle] = useState('');
   const [cost, setCost] = useState('');
   const [timeline, setTimeline] = useState('');
   const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeProjects, setActiveProjects] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const activeProjects = [
-    { id: 1, name: 'Real Estate CRM' },
-    { id: 2, name: 'E-commerce App' }
-  ];
+  useEffect(() => {
+    if (isOpen) {
+      fetchActiveProjects();
+    }
+  }, [isOpen]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const fetchActiveProjects = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get('/project/partner');
+      const projects = response.data.filter(project => project.status === 'ACTIVE');
+      setActiveProjects(projects);
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch active projects',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Milestone Added",
-      description: "The milestone has been added successfully."
-    });
-    setSelectedProject('');
-    setTitle('');
-    setCost('');
-    setTimeline('');
-    setDescription('');
-    onClose();
+    try {
+      setIsSubmitting(true);
+      const milestoneData = [{
+        title,
+        cost: parseFloat(cost),
+        timeline: parseInt(timeline),
+        description
+      }];
+
+      await axiosInstance.post(
+        `/milestone/partner/projects/${selectedProject}/milestones`,
+        milestoneData
+      );
+
+      toast({
+        title: 'Success',
+        description: 'Milestone has been created successfully',
+      });
+
+      setSelectedProject('');
+      setTitle('');
+      setCost('');
+      setTimeline('');
+      setDescription('');
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to create milestone',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -58,11 +110,21 @@ const AddMilestoneModal = ({ isOpen, onClose }: AddMilestoneModalProps) => {
                 <SelectValue placeholder="Choose a project" />
               </SelectTrigger>
               <SelectContent>
-                {activeProjects.map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
+                {isLoading ? (
+                  <SelectItem value="loading" disabled>
+                    Loading projects...
                   </SelectItem>
-                ))}
+                ) : activeProjects.length === 0 ? (
+                  <SelectItem value="none" disabled>
+                    No active projects found
+                  </SelectItem>
+                ) : (
+                  activeProjects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name || project.title}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
           </div>
@@ -114,11 +176,18 @@ const AddMilestoneModal = ({ isOpen, onClose }: AddMilestoneModalProps) => {
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              Add Milestone
+            <Button type="submit" disabled={isSubmitting || !selectedProject}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                'Add Milestone'
+              )}
             </Button>
           </div>
         </form>
