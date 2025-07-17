@@ -192,8 +192,8 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
         const response = await axiosInstance.get(
           `/milestone/client/projects/${project.id}/milestones`
         );
-        if (response.data && Array.isArray(response.data)) {
-          const projectMilestones = response.data.map(milestone => ({
+        if (response.data.milestones && Array.isArray(response.data.milestones)) {
+          const projectMilestones = response.data.milestones.map(milestone => ({
             ...milestone,
             projectName: project.name || project.title
           }));
@@ -265,6 +265,10 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
       "PENDING": {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
+      },
+      "APPROVED": {
+        variant: "secondary" as const,
+        className: "bg-green-100 text-green-800",
       },
       "OFFER_SENT_TO_CLIENT": {
         variant: "secondary" as const,
@@ -663,19 +667,19 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
                             <div className="flex items-center gap-1">
                               <DollarSign className="w-4 h-4 text-green-600" />
                               <span className="font-medium">
-                                ${milestone.cost || milestone.amount}
+                                ${milestone.invoices[0]?.totalAmount || "N/A"}
                               </span>
                             </div>
                             {milestone.timeline && (
                               <div className="flex items-center gap-1">
                                 <Clock className="w-4 h-4 text-blue-600" />
-                                <span>{milestone.timeline} days</span>
+                                <span>{milestone.duration} days</span>
                               </div>
                             )}
-                            {milestone.dueDate && (
+                              {milestone.invoices[0]?.dueDate && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-blue-600" />
-                                <span>Due: {milestone.dueDate}</span>
+                                <span>Due: {format(milestone.invoices[0]?.dueDate, "MMM d, yyyy")}</span>
                               </div>
                             )}
                           </div>
@@ -685,7 +689,7 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
                             </p>
                           )}
                         </div>
-                        {milestone.status === "Unpaid" && (
+                        {milestone.invoices[0]?.status === "PENDING" && (
                           <Button
                             onClick={() => handlePayMilestone(milestone.id)}
                             className="bg-brand-primary hover:bg-brand-primary/90"
