@@ -135,34 +135,39 @@ const ClientDashboard = () => {
     { id: "support", label: "Support", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ];
-
+const activeProject = projects?.filter((item) => item.status === "ACTIVE");
+const pendingOffer = offers?.filter((item) => item.status === "OFFER_SENT_TO_CLIENT");  
+const paymentDue = activeProject?.filter((item) => item.paymentStatus === "PAYMENT_DUE");
+const completedProject = activeProject?.filter((item) => item.status === "COMPLETED");
   // Mock data
   const dashboardStats = [
     {
       title: "Active Projects",
-      value: "3",
+      value: activeProject?.length || 0,
       icon: FolderOpen,
       color: "text-blue-600",
     },
     {
       title: "Pending Offers",
-      value: "2",
+      value: pendingOffer?.length || 0,
       icon: AlertCircle,
       color: "text-yellow-600",
     },
     {
       title: "Payments Due",
-      value: "$1,850",
+      value: paymentDue?.length || 0,
       icon: DollarSign,
       color: "text-red-600",
     },
     {
       title: "Completed Projects",
-      value: "8",
+      value: completedProject?.length || 0,
       icon: CheckCircle,
       color: "text-green-600",
     },
   ];
+
+
   const milestones = [
     {
       id: 1,
@@ -403,7 +408,7 @@ const ClientDashboard = () => {
             </div>
 
             {/* Recent Activity */}
-            <Card className="border-brand-gray-200">
+            {/* <Card className="border-brand-gray-200">
               <CardHeader>
                 <CardTitle className="text-brand-primary">
                   Recent Activity
@@ -440,7 +445,7 @@ const ClientDashboard = () => {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
           </div>
         );
 
