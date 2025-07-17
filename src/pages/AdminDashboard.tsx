@@ -213,14 +213,16 @@ console.log("all projects", projects)
     switch (status) {
       case 'PENDING':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 border-yellow-200">{status}</Badge>;
+        case 'ACTIVE': 
+        return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
       case 'ASSIGNED_TO_PARTNER':
         return <Badge variant="outline" className="border-purple-200 text-purple-800">{status}</Badge>;
       case 'OFFER_SENT_TO_CLIENT':
         return <Badge variant="outline" className="border-blue-200 text-blue-800">{status}</Badge>;
       case 'ACCEPTED_AND_CONVERTED':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
-      case 'Completed':
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">{status}</Badge>;
+      case 'COMPLETE':
+        return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }

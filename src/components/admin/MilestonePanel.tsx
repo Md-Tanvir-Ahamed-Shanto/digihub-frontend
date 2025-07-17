@@ -139,7 +139,7 @@ console.log("allMilestones", allMilestones)
     pendingApproval: allMilestones.filter(m => m.status === 'PENDING').length,
     approved: allMilestones.filter(m => m.status === 'APPROVED').length,
     completed: allMilestones.filter(m => m.status === 'COMPLETED').length,
-    totalValue: allMilestones.reduce((sum, m) => sum + (m.cost || 0), 0)
+    totalValue: allMilestones.reduce((sum, m) => sum + ( parseInt(m.cost || 0)), 0)
   };
 
   const handleApproveMilestone = (milestone) => {

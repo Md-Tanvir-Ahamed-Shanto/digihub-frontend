@@ -15,9 +15,8 @@ interface ViewPartnerModalProps {
 }
 
 const ViewPartnerModal = ({ open, onOpenChange, partner }: ViewPartnerModalProps) => {
-  const [withdrawalStatus, setWithdrawalStatus] = useState('');
   const { toast } = useToast();
-
+console.log("partner view", partner)
   if (!partner) return null;
 
   const withdrawalRequests = [
@@ -75,7 +74,7 @@ const ViewPartnerModal = ({ open, onOpenChange, partner }: ViewPartnerModalProps
                   <DollarSign className="w-5 h-5 text-green-600" />
                   <div>
                     <p className="text-sm font-medium text-gray-600">Current Balance</p>
-                    <p className="text-xl font-bold text-green-600">{partner.balance}</p>
+                    <p className="text-xl font-bold text-green-600">{partner.availableBalance}</p>
                   </div>
                 </div>
               </CardContent>
@@ -93,17 +92,7 @@ const ViewPartnerModal = ({ open, onOpenChange, partner }: ViewPartnerModalProps
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-2">
-                  <User className="w-5 h-5 text-blue-600" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Projects</p>
-                    <p className="text-xl font-bold text-blue-600">{partner.projectsHandled}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            
             
             <Card>
               <CardContent className="p-4">

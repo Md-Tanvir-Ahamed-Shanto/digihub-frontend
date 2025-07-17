@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DollarSign, Calendar, User, FileText, Clock, CheckCircle, CheckSquare, XCircle } from 'lucide-react';
+import { format } from 'date-fns';
 
 interface ViewMilestoneModalProps {
   open: boolean;
@@ -12,11 +13,12 @@ interface ViewMilestoneModalProps {
 }
 
 const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModalProps) => {
+  console.log("view milestone", milestone)
   if (!milestone) return null;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'PENDING_APPROVAL':
+      case 'PENDING':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs"><Clock className="w-3 h-3 mr-1" />Pending Approval</Badge>;
       case 'APPROVED':
         return <Badge variant="default" className="bg-green-600 text-white text-xs"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
@@ -53,61 +55,26 @@ const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModa
                 <div className="flex items-center space-x-2">
                   <User className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium">Partner:</span>
-                  <span className="text-sm">{milestone.partner}</span>
+                  <span className="text-sm">{milestone.partner.name}</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <DollarSign className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium">Partner Cost:</span>
+                  <span className="text-sm font-medium">Cost:</span>
                   <span className="text-sm font-bold">${milestone.cost?.toLocaleString()}</span>
                 </div>
-                {milestone.clientCost && (
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="w-4 h-4 text-gray-500" />
-                    <span className="text-sm font-medium">Client Cost:</span>
-                    <span className="text-sm font-bold">${milestone.clientCost?.toLocaleString()}</span>
-                  </div>
-                )}
+                
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium">Timeline:</span>
-                  <span className="text-sm">{milestone.timeline} days</span>
+                  <span className="text-sm">{milestone.duration} days</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium">Due Date:</span>
-                  <span className="text-sm">{milestone.dueDate}</span>
-                </div>
+               
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
                   <span className="text-sm font-medium">Submitted:</span>
-                  <span className="text-sm">{milestone.submittedDate}</span>
+                  <span className="text-sm">{format(new Date(milestone.createdAt), 'yyyy-MM-dd')}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Project Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Project Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div>
-                <span className="text-sm font-medium">Project:</span>
-                <span className="text-sm ml-2">{milestone.project}</span>
-              </div>
-              <div>
-                <span className="text-sm font-medium">Client:</span>
-                <span className="text-sm ml-2">{milestone.client}</span>
-              </div>
-              {milestone.clientBudget && (
-                <div>
-                  <span className="text-sm font-medium">Client Budget:</span>
-                  <span className="text-sm ml-2 font-bold text-blue-600">
-                    ${milestone.clientBudget?.toLocaleString()}
-                  </span>
-                </div>
-              )}
             </CardContent>
           </Card>
 
