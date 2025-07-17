@@ -77,7 +77,7 @@ const SetPassword = () => {
                 <Handshake className="w-4 h-4 text-brand-accent absolute -bottom-1 -right-1" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-indigo-500">DGHUB</span>
+                <span className="text-xl font-bold text-indigo-500">DIGIHUB AUST</span>
                 <span className="text-sm font-light text-brand-gray-600 -mt-1">Digital Solutions Hub</span>
               </div>
             </Link>

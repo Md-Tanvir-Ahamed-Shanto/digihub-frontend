@@ -53,7 +53,7 @@ const AdminLogin = () => {
                 <Handshake className="w-4 h-4 text-brand-accent absolute -bottom-1 -right-1" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-indigo-500">DGHUB</span>
+                <span className="text-xl font-bold text-indigo-500">DIGIHUB AUST</span>
                 <span className="text-sm font-light text-brand-gray-600 -mt-1">Digital Solutions Hub</span>
               </div>
             </Link>
@@ -87,7 +87,7 @@ const AdminLogin = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm md:text-base">Email Address</Label>
-                  <Input id="email" type="email" placeholder="admin@dghub.com" value={email} onChange={e => setEmail(e.target.value)} required className="border-brand-gray-300 focus:border-brand-accent h-10 md:h-11" />
+                  <Input id="email" type="email" placeholder="admin@DIGIHUB AUST.com" value={email} onChange={e => setEmail(e.target.value)} required className="border-brand-gray-300 focus:border-brand-accent h-10 md:h-11" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="password" className="text-sm md:text-base">Password</Label>

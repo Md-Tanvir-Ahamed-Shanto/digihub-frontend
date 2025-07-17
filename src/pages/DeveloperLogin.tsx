@@ -55,7 +55,7 @@ const PartnerLogin = () => {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent">
-                  DGHUB
+                  DIGIHUB AUST
                 </span>
                 <span className="text-sm font-light text-brand-gray-600 -mt-1">Digital Solutions Hub</span>
               </div>
@@ -93,7 +93,7 @@ const PartnerLogin = () => {
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="partner@dghub.com" 
+                    placeholder="partner@DIGIHUB AUST.com" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)} 
                     required 

@@ -27,20 +27,20 @@ const AdminSettings = () => {
   const [smtpSettings, setSmtpSettings] = useState({
     host: 'smtp.gmail.com',
     port: '587',
-    username: 'admin@dghub.com',
+    username: 'admin@DIGIHUB AUST.com',
     password: '',
     encryption: 'TLS'
   });
   
   const [adminCredentials, setAdminCredentials] = useState({
-    email: 'admin@dghub.com',
+    email: 'admin@DIGIHUB AUST.com',
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
 
   const [siteSettings, setSiteSettings] = useState({
-    title: 'DGHUB',
+    title: 'DIGIHUB AUST',
     tagline: 'Your Digital Growth Hub',
     logo: '',
     favicon: ''
@@ -273,7 +273,7 @@ const AdminSettings = () => {
                   type="email"
                   value={adminCredentials.email}
                   onChange={(e) => setAdminCredentials(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="admin@dghub.com"
+                  placeholder="admin@DIGIHUB AUST.com"
                 />
               </div>
               

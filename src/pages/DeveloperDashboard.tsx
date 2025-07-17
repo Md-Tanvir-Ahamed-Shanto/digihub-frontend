@@ -167,6 +167,7 @@ console.log("project", projects)
     setSelectedProject(project);
     setSubmitOfferOpen(true);
   };
+
    const fetchMilestones = async () => {
     try {
       setIsLoadingMilestones(true);
@@ -346,8 +347,13 @@ console.log("project", projects)
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold text-gray-900">My Leads</h2>
       </div>
-
-      <Card>
+      {
+        leads.length === 0 ? (
+         <div className='text-center'> 
+         <p className='text-gray-600 text-xl'>No leads available</p>
+         </div>
+        ):(
+          <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
@@ -390,6 +396,9 @@ console.log("project", projects)
           </div>
         </CardContent>
       </Card>
+        )
+      }
+      
     </div>
   );
 
@@ -704,7 +713,7 @@ console.log("project", projects)
             <div className="flex items-center space-x-2">
               <Building2 className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
               <div>
-                <h2 className="text-lg lg:text-xl font-bold text-gray-900">DGHUB</h2>
+                <h2 className="text-lg lg:text-xl font-bold text-gray-900">DIGIHUB AUST</h2>
                 <p className="text-xs lg:text-sm text-gray-600">Partner Portal</p>
               </div>
             </div>

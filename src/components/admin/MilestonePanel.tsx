@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,185 +14,225 @@ import {
   XCircle,
   AlertCircle,
   Calculator,
-  Users
+  Users,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import ApproveMilestoneModal from './ApproveMilestoneModal';
 import ViewMilestoneModal from './ViewMilestoneModal';
+import  axiosInstance  from '@/api/axios';
+
 
 const MilestonePanel = () => {
   const { toast } = useToast();
   const [approveMilestoneOpen, setApproveMilestoneOpen] = useState(false);
   const [viewMilestoneOpen, setViewMilestoneOpen] = useState(false);
   const [selectedMilestone, setSelectedMilestone] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [projects, setProjects] = useState([]);
+  const [milestones, setMilestones] = useState([]);
+console.log("milestones", milestones)
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
-  // Group milestones by project
-  const milestonesByProject = {
-    'Health Coach CRM': [
-      {
-        id: 1,
-        project: 'Health Coach CRM',
-        client: 'Alex Thompson',
-        partner: 'TechPro Solutions',
-        title: 'Database Design & Setup',
-        amount: 450,
-        status: 'Pending Approval',
-        dueDate: '2024-01-20',
-        submittedDate: '2024-01-15',
-        description: 'Complete database schema design and initial setup with user authentication, data models for client profiles, session tracking, and comprehensive reporting capabilities.',
-        clientBudget: 5000
-      }
-    ],
-    'E-commerce Platform': [
-      {
-        id: 2,
-        project: 'E-commerce Platform',
-        client: 'Sarah Johnson',
-        partner: 'WebCraft Studio',
-        title: 'UI/UX Design Phase',
-        amount: 650,
-        status: 'Approved',
-        dueDate: '2024-01-25',
-        submittedDate: '2024-01-12',
-        description: 'Complete wireframes and visual designs for the entire e-commerce platform including product catalog, shopping cart, checkout process, and admin dashboard.',
-        clientBudget: 8000
-      }
-    ],
-    'Mobile Fitness App': [
-      {
-        id: 3,
-        project: 'Mobile Fitness App',
-        client: 'Mike Chen',
-        partner: 'AppDev Team',
-        title: 'Authentication System',
-        amount: 300,
-        status: 'Completed',
-        dueDate: '2024-01-18',
-        submittedDate: '2024-01-10',
-        description: 'User registration, login, and authentication flow with social media integration, password recovery, and secure token management.',
-        clientBudget: 4500
-      }
-    ],
-    'Restaurant POS': [
-      {
-        id: 4,
-        project: 'Restaurant POS',
-        client: 'David Wilson',
-        partner: 'SoftSolutions',
-        title: 'Payment Integration',
-        amount: 800,
-        status: 'Rejected',
-        dueDate: '2024-01-22',
-        submittedDate: '2024-01-14',
-        description: 'Integration with payment gateways and processing including credit card processing, digital wallets, and receipt generation.',
-        clientBudget: 6500
-      }
-    ]
+  const fetchProjects = async () => {
+    try {
+      const response = await axiosInstance.get('/project');
+      setProjects(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects",
+        variant: "destructive"
+      });
+    }
   };
 
-  // Flatten milestones for summary stats
-  const allMilestones = Object.values(milestonesByProject).flat();
+  const fetchMilestones = async () => {
+    try {
+      const milestonesData = [];
+      for (const project of projects) {
+        const response = await axiosInstance.get(
+          `/milestone/admin/projects/${project.id}/milestones`
+        );
+        if (response.data.milestones && Array.isArray(response.data.milestones)) {
+          const projectMilestones = response.data.milestones.map(milestone => ({
+            ...milestone,
+            projectName: project.name || project.title || 'Untitled Project'
+          }));
+          milestonesData.push(...projectMilestones);
+        }
+      }
+      setMilestones(milestonesData);
+    } catch (error) {
+      toast({
+        title: "Error fetching milestones",
+        description: error.response?.data?.message || "Failed to load milestones",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const getStatusBadge = (status: string) => {
+  const handleReject = async (milestoneId) => {
+    try {
+      await axiosInstance.put(`/milestone/admin/milestones/${milestoneId}/reject`);
+      toast({
+        title: "Success",
+        description: "Milestone has been rejected."
+      });
+      fetchMilestones();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to reject milestone",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleMilestoneApproved = () => {
+    fetchMilestones();
+  };
+
+  useEffect(() => {
+    if (projects.length > 0) {
+      console.log("Call fetchMilestones")
+      fetchMilestones();
+    } else {
+      setIsLoading(false);
+    }
+  }, [projects]);
+
+  const milestonesByProject = {};
+  milestones.forEach(milestone => {
+    const projectId = milestone.projectId;
+    if (!milestonesByProject[projectId]) {
+      milestonesByProject[projectId] = [];
+    }
+    milestonesByProject[projectId].push(milestone);
+  });
+  // Flatten milestones for summary stats
+const allMilestones = milestones
+console.log("projects", projects)
+console.log("allMilestones", allMilestones)
+
+  const getStatusBadge = (status) => {
     switch (status) {
-      case 'Pending Approval':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs"><Clock className="w-3 h-3 mr-1" />{status}</Badge>;
-      case 'Approved':
-        return <Badge variant="default" className="bg-green-600 text-white text-xs"><CheckCircle className="w-3 h-3 mr-1" />{status}</Badge>;
-      case 'Completed':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs"><CheckSquare className="w-3 h-3 mr-1" />{status}</Badge>;
-      case 'Rejected':
-        return <Badge variant="destructive" className="text-xs"><XCircle className="w-3 h-3 mr-1" />{status}</Badge>;
+      case 'PENDING_APPROVAL':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs"><Clock className="w-3 h-3 mr-1" />Pending Approval</Badge>;
+      case 'APPROVED':
+        return <Badge variant="default" className="bg-green-600 text-white text-xs"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'COMPLETED':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs"><CheckSquare className="w-3 h-3 mr-1" />Completed</Badge>;
+      case 'REJECTED':
+        return <Badge variant="destructive" className="text-xs"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
       default:
         return <Badge variant="secondary" className="text-xs">{status}</Badge>;
     }
   };
 
-  const handleApproveMilestone = (milestone: any) => {
+  const summaryStats = {
+    totalMilestones: allMilestones.length,
+    pendingApproval: allMilestones.filter(m => m.status === 'PENDING').length,
+    approved: allMilestones.filter(m => m.status === 'APPROVED').length,
+    completed: allMilestones.filter(m => m.status === 'COMPLETED').length,
+    totalValue: allMilestones.reduce((sum, m) => sum + (m.cost || 0), 0)
+  };
+
+  const handleApproveMilestone = (milestone) => {
     setSelectedMilestone(milestone);
     setApproveMilestoneOpen(true);
   };
 
-  const handleViewMilestone = (milestone: any) => {
+  const handleViewMilestone = (milestone) => {
     setSelectedMilestone(milestone);
     setViewMilestoneOpen(true);
   };
 
-  const handleReject = (milestoneId: number) => {
-    toast({
-      title: "Milestone Rejected",
-      description: "The milestone has been rejected.",
-    });
-  };
-
-  const summaryStats = {
-    totalMilestones: allMilestones.length,
-    pendingApproval: allMilestones.filter(m => m.status === 'Pending Approval').length,
-    approved: allMilestones.filter(m => m.status === 'Approved').length,
-    completed: allMilestones.filter(m => m.status === 'Completed').length,
-    totalValue: allMilestones.reduce((sum, m) => sum + m.amount, 0)
-  };
-
-  const renderMilestoneTable = (milestones: any[], showActions = true) => (
+  const renderMilestoneTable = (milestones, showActions = true) => (
     <div className="overflow-x-auto">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="min-w-[150px]">Milestone</TableHead>
-            <TableHead className="min-w-[120px]">Partner</TableHead>
-            <TableHead className="min-w-[100px]">Partner Cost</TableHead>
-            <TableHead className="min-w-[120px] hidden sm:table-cell">Client Budget</TableHead>
-            <TableHead className="min-w-[120px]">Status</TableHead>
-            <TableHead className="min-w-[100px] hidden md:table-cell">Due Date</TableHead>
-            {showActions && <TableHead className="min-w-[200px]">Actions</TableHead>}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {milestones.map((milestone) => (
-            <TableRow key={milestone.id}>
-              <TableCell className="font-medium">{milestone.title}</TableCell>
-              <TableCell>{milestone.partner}</TableCell>
-              <TableCell className="font-medium">${milestone.amount}</TableCell>
-              <TableCell className="text-blue-600 font-medium hidden sm:table-cell">
-                ${milestone.clientBudget?.toLocaleString()}
-              </TableCell>
-              <TableCell>{getStatusBadge(milestone.status)}</TableCell>
-              <TableCell className="hidden md:table-cell">{milestone.dueDate}</TableCell>
-              {showActions && (
-                <TableCell>
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleViewMilestone(milestone)}
-                    >
-                      <Eye className="w-3 h-3 mr-1" />
-                      View
-                    </Button>
-                    {milestone.status === 'Pending Approval' && (
-                      <>
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleApproveMilestone(milestone)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <Calculator className="w-3 h-3 mr-1" />
-                          Set Cost
-                        </Button>
-                        <Button size="sm" variant="destructive" onClick={() => handleReject(milestone.id)}>
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
-              )}
+      {milestones.length > 0 ? (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="min-w-[150px]">Milestone</TableHead>
+              <TableHead className="min-w-[120px]">Project</TableHead>
+              <TableHead className="min-w-[120px]">Partner</TableHead>
+              <TableHead className="min-w-[100px]">Cost</TableHead>
+              <TableHead className="min-w-[120px] hidden sm:table-cell">Timeline</TableHead>
+              <TableHead className="min-w-[120px]">Status</TableHead>
+              <TableHead className="min-w-[100px] hidden md:table-cell">Due Date</TableHead>
+              {showActions && <TableHead className="min-w-[200px]">Actions</TableHead>}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {milestones.map((milestone) => (
+              <TableRow key={milestone.id}>
+                <TableCell className="font-medium">{milestone.title}</TableCell>
+                <TableCell>{milestone.projectName}</TableCell>
+                <TableCell>{typeof milestone.partner === 'object' ? milestone.partner?.name || 'N/A' : milestone.partner || 'N/A'}</TableCell>
+                <TableCell className="font-medium">${milestone.cost?.toLocaleString() || 0}</TableCell>
+                <TableCell className="hidden sm:table-cell">{milestone.timeline || 0} days</TableCell>
+                <TableCell>{getStatusBadge(milestone.status)}</TableCell>
+                <TableCell className="hidden md:table-cell">
+                  {milestone.dueDate ? new Date(milestone.dueDate).toLocaleDateString() : 'Not set'}
+                </TableCell>
+                {showActions && (
+                  <TableCell>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleViewMilestone(milestone)}
+                      >
+                        <Eye className="w-3 h-3 mr-1" />
+                        View
+                      </Button>
+                      {milestone.status === 'PENDING' && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleApproveMilestone(milestone)}
+                            className="bg-green-600 hover:bg-green-700 text-white"
+                          >
+                            <Calculator className="w-3 h-3 mr-1" />
+                            Set Cost
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive" 
+                            onClick={() => handleReject(milestone.id)}
+                          >
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : (
+        <div className="text-center py-4 text-gray-500">
+          No milestones found
+        </div>
+      )}
     </div>
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-4 sm:p-6">
@@ -200,7 +240,6 @@ const MilestonePanel = () => {
         <h2 className="text-2xl font-bold text-gray-900">Milestone Management</h2>
       </div>
 
-      {/* Summary Cards - Reverted to single row with 5 cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-6">
         <Card>
           <CardContent className="p-4 sm:p-6">
@@ -273,26 +312,39 @@ const MilestonePanel = () => {
         </TabsList>
 
         <TabsContent value="projects" className="space-y-6">
-          {Object.entries(milestonesByProject).map(([projectName, projectMilestones]) => (
-            <Card key={projectName}>
-              <CardHeader>
-                <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
-                  <div className="flex items-center">
-                    <Users className="w-5 h-5 mr-2 text-blue-600" />
-                    {projectName}
+          {projects.map((project) => {
+            const projectMilestones = milestonesByProject[project.id] || [];
+            const totalValue = projectMilestones.reduce((sum, m) => sum + (m.cost || 0), 0);
+            const pendingCount = projectMilestones.filter(m => m.status === 'PENDING').length;
+            const approvedCount = projectMilestones.filter(m => m.status === 'APPROVED').length;
+            const completedCount = projectMilestones.filter(m => m.status === 'COMPLETED').length;
+
+            return (
+              <Card key={project.id}>
+                <CardHeader>
+                  <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2">
+                    <div className="flex items-center">
+                      <Users className="w-5 h-5 mr-2 text-blue-600" />
+                      {project.name || project.title || 'Untitled Project'}
+                    </div>
+                  </CardTitle>
+                  <div className="text-xs sm:text-sm text-gray-600 space-y-1 sm:space-y-0">
+                    <div>Client: {typeof project.client === 'object' ? project.client?.name || 'N/A' : project.client || 'N/A'}</div>
+                    <div>Total Value: ${totalValue.toLocaleString()}</div>
+                    <div className="flex gap-4">
+                      <span>Total: {projectMilestones.length}</span>
+                      <span>Pending: {pendingCount}</span>
+                      <span>Approved: {approvedCount}</span>
+                      <span>Completed: {completedCount}</span>
+                    </div>
                   </div>
-                </CardTitle>
-                <div className="text-xs sm:text-sm text-gray-600 space-y-1 sm:space-y-0">
-                  <div>Client: {projectMilestones[0]?.client}</div>
-                  <div>Budget: ${projectMilestones[0]?.clientBudget?.toLocaleString()}</div>
-                  <div>Milestones: {projectMilestones.length}</div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {renderMilestoneTable(projectMilestones)}
-              </CardContent>
-            </Card>
-          ))}
+                </CardHeader>
+                <CardContent>
+                  {renderMilestoneTable(projectMilestones)}
+                </CardContent>
+              </Card>
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="all" className="space-y-6">
@@ -315,7 +367,7 @@ const MilestonePanel = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {renderMilestoneTable(allMilestones.filter(m => m.status === 'Pending Approval'))}
+              {renderMilestoneTable(allMilestones.filter(m => m.status === 'PENDING'))}
             </CardContent>
           </Card>
         </TabsContent>
@@ -326,7 +378,7 @@ const MilestonePanel = () => {
               <CardTitle>Approved Milestones</CardTitle>
             </CardHeader>
             <CardContent>
-              {renderMilestoneTable(allMilestones.filter(m => m.status === 'Approved'), false)}
+              {renderMilestoneTable(allMilestones.filter(m => m.status === 'APPROVED'), false)}
             </CardContent>
           </Card>
         </TabsContent>
@@ -337,17 +389,17 @@ const MilestonePanel = () => {
               <CardTitle>Completed Milestones</CardTitle>
             </CardHeader>
             <CardContent>
-              {renderMilestoneTable(allMilestones.filter(m => m.status === 'Completed'), false)}
+              {renderMilestoneTable(allMilestones.filter(m => m.status === 'COMPLETED'), false)}
             </CardContent>
           </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Modals */}
       <ApproveMilestoneModal 
         open={approveMilestoneOpen}
         onOpenChange={setApproveMilestoneOpen}
         milestone={selectedMilestone}
+        onSuccess={handleMilestoneApproved}
       />
       
       <ViewMilestoneModal 

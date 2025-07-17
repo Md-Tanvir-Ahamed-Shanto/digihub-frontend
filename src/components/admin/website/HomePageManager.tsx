@@ -11,7 +11,7 @@ const HomePageManager = () => {
   const { toast } = useToast();
   
   const [homeContent, setHomeContent] = useState({
-    heroTitle: 'Welcome to DGHub',
+    heroTitle: 'Welcome to DIGIHUB AUST',
     heroSubtitle: 'Your premier destination for digital solutions',
     heroDescription: 'Connect with expert developers and bring your digital vision to life',
     heroImage: '',
@@ -19,7 +19,7 @@ const HomePageManager = () => {
     aboutTitle: 'About Our Platform',
     aboutDescription: 'We connect businesses with talented developers to create amazing digital experiences.',
     aboutImage: '',
-    featuresTitle: 'Why Choose DGHub',
+    featuresTitle: 'Why Choose DIGIHUB AUST',
     featuresDescription: 'Discover what makes us the best choice for your development needs',
     ctaTitle: 'Ready to Start Your Project?',
     ctaDescription: 'Join thousands of satisfied clients who have transformed their business with our platform',

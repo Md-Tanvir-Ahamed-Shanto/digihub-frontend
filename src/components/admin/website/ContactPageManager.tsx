@@ -17,7 +17,7 @@ const ContactPageManager = () => {
     contactInfo: {
       address: '123 Business Street, City, State 12345',
       phone: '+1 (555) 123-4567',
-      email: 'hello@dghub.com',
+      email: 'hello@DIGIHUB AUST.com',
       workingHours: 'Monday - Friday: 9:00 AM - 6:00 PM'
     },
     officeLocations: [
@@ -26,7 +26,7 @@ const ContactPageManager = () => {
         name: 'Main Office',
         address: '123 Business Street, City, State 12345',
         phone: '+1 (555) 123-4567',
-        email: 'main@dghub.com',
+        email: 'main@DIGIHUB AUST.com',
         image: ''
       }
     ],

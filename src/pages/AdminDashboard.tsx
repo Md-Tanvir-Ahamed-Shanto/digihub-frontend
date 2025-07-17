@@ -68,6 +68,7 @@ const AdminDashboard = () => {
   const [isLoadingPartners, setIsLoadingPartners] = useState(false);
   const [leads, setLeads] = useState([]);
   const [isLoadingLeads, setIsLoadingLeads] = useState(false);
+  const [projects, setProjects] = useState([]);
   const { logout } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -89,6 +90,20 @@ const AdminDashboard = () => {
     }
   };
 
+
+  const fetchProjects = async () => {
+    try {
+      const response = await axiosInstance.get('/project');
+      setProjects(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch projects",
+        variant: "destructive"
+      });
+    }
+  };
+console.log("all projects", projects)
   const fetchPartners = async () => {
     try {
       setIsLoadingPartners(true);
@@ -111,6 +126,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchLeads();
     fetchPartners();
+    fetchProjects();
   }, []);
 
   const navigationItems = [
@@ -150,50 +166,6 @@ const AdminDashboard = () => {
     { type: 'Payment Received', description: '$1,100 from Sarah Johnson', time: '4 hours ago', status: 'success' },
     { type: 'New Lead', description: 'E-commerce site project submitted', time: '6 hours ago', status: 'pending' },
     { type: 'Partner Assignment', description: 'TechPro assigned to CRM project', time: '1 day ago', status: 'info' }
-  ];
-
-  // const leads = [
-  //   { 
-  //     id: 1, 
-  //     clientName: 'Sarah Johnson', 
-  //     projectSnippet: 'E-commerce site for organic products...', 
-  //     dateSubmitted: '2024-01-15', 
-  //     status: 'Partner Assigned',
-  //     partnerOffer: '$4,000',
-  //     partnerTimeline: '3-4 weeks',
-  //     partner: 'TechPro Solutions'
-  //   },
-  //   { 
-  //     id: 2, 
-  //     clientName: 'Mike Chen', 
-  //     projectSnippet: 'Mobile app for fitness tracking...', 
-  //     dateSubmitted: '2024-01-14', 
-  //     status: 'Offer Sent',
-  //     partnerOffer: '$3,500',
-  //     partnerTimeline: '4-5 weeks',
-  //     partner: 'AppDev Team'
-  //   },
-  //   { 
-  //     id: 3, 
-  //     clientName: 'Lisa Anderson', 
-  //     projectSnippet: 'Corporate website redesign...', 
-  //     dateSubmitted: '2024-01-13', 
-  //     status: 'Under Review'
-  //   },
-  //   { 
-  //     id: 4, 
-  //     clientName: 'David Wilson', 
-  //     projectSnippet: 'Restaurant management system...', 
-  //     dateSubmitted: '2024-01-12', 
-  //     status: 'Completed'
-  //   }
-  // ];
-
-  const projects = [
-    { id: 1, name: 'Health Coach CRM', client: 'Alex Thompson', partner: 'TechPro Solutions', status: 'Active', progress: 65 },
-    { id: 2, name: 'E-commerce Platform', client: 'Sarah Johnson', partner: 'WebCraft Studio', status: 'Offer Sent', progress: 0 },
-    { id: 3, name: 'Mobile Fitness App', client: 'Mike Chen', partner: 'AppDev Team', status: 'Active', progress: 30 },
-    { id: 4, name: 'Restaurant POS', client: 'David Wilson', partner: 'SoftSolutions', status: 'Completed', progress: 100 }
   ];
 
 
@@ -501,22 +473,14 @@ const AdminDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {projects?.map((project) => (
                   <TableRow key={project.id}>
-                    <TableCell className="font-medium">{project.name}</TableCell>
-                    <TableCell className="hidden md:table-cell">{project.client}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{project.partner}</TableCell>
+                    <TableCell className="font-medium">{project.title}</TableCell>
+                    <TableCell className="hidden md:table-cell">{project?.client?.name}</TableCell>
+                    <TableCell className="hidden lg:table-cell">{project?.partner?.name}</TableCell>
                     <TableCell>{getStatusBadge(project.status)}</TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${project.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm text-gray-600">{project.progress}%</span>
-                      </div>
+                    
                     </TableCell>
                     <TableCell>
                       <Button size="sm" variant="outline" onClick={() => handleViewProject(project)}>
@@ -741,7 +705,7 @@ const AdminDashboard = () => {
             <div className="flex items-center space-x-2">
               <LayoutDashboard className="w-6 h-6 lg:w-8 lg:h-8 text-blue-600" />
               <div>
-                <h2 className="text-lg lg:text-xl font-bold text-gray-900">DGHUB</h2>
+                <h2 className="text-lg lg:text-xl font-bold text-gray-900">DIGIHUB AUST</h2>
                 <p className="text-xs lg:text-sm text-gray-600">Admin Portal</p>
               </div>
             </div>
@@ -794,7 +758,7 @@ const AdminDashboard = () => {
             >
               <Menu className="w-5 h-5 text-gray-600" />
             </button>
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">DGHUB Admin</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">DIGIHUB AUST Admin</h1>
           </div>
           <div className="flex items-center space-x-4">
             <div className="w-7 h-7 lg:w-8 lg:h-8 bg-blue-600 rounded-full flex items-center justify-center">

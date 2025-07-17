@@ -5,23 +5,25 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Calculator, Clock, DollarSign, FileText } from 'lucide-react';
+import { Calculator, Clock, DollarSign, FileText, Loader2 } from 'lucide-react';
+import  axiosInstance  from '@/api/axios';
 
 interface ApproveMilestoneModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   milestone: any;
+  onSuccess?: () => void;
 }
 
-const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilestoneModalProps) => {
+const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: ApproveMilestoneModalProps) => {
   const { toast } = useToast();
   const [clientCost, setClientCost] = useState('');
   const [notes, setNotes] = useState('');
   const [timeline, setTimeline] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleApprove = () => {
+  const handleApprove = async () => {
     if (!clientCost) {
       toast({
         title: "Error",
@@ -31,15 +33,34 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
       return;
     }
 
-    toast({
-      title: "Milestone Approved",
-      description: `Milestone has been approved with client cost of $${clientCost}. Client will be notified.`,
-    });
-    
-    onOpenChange(false);
-    setClientCost('');
-    setNotes('');
-    setTimeline('');
+    try {
+      setIsSubmitting(true);
+      await axiosInstance.put(`/milestone/admin/milestones/${milestone.id}/approve`, {
+        clientCost: parseFloat(clientCost),
+        estimatedTimeline: timeline || `${milestone.timeline} days`,
+        additionalNotes: notes,
+        includesGST: false // You might want to add a checkbox for this
+      });
+
+      toast({
+        title: "Success",
+        description: `Milestone has been approved with client cost of $${clientCost}. Client will be notified.`,
+      });
+      
+      onSuccess?.();
+      onOpenChange(false);
+      setClientCost('');
+      setNotes('');
+      setTimeline('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to approve milestone. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!milestone) return null;
@@ -64,16 +85,16 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
                 <p className="font-medium">{milestone.project}</p>
               </div>
               <div>
-                <span className="text-gray-600">Client:</span>
-                <p className="font-medium">{milestone.client}</p>
-              </div>
-              <div>
                 <span className="text-gray-600">Partner:</span>
                 <p className="font-medium">{milestone.partner}</p>
               </div>
               <div>
                 <span className="text-gray-600">Partner Cost:</span>
-                <p className="font-medium text-green-600">${milestone.amount}</p>
+                <p className="font-medium text-green-600">${milestone.cost.toLocaleString()}</p>
+              </div>
+              <div>
+                <span className="text-gray-600">Timeline:</span>
+                <p className="font-medium">{milestone.timeline} days</p>
               </div>
               <div className="md:col-span-2">
                 <span className="text-gray-600">Milestone Title:</span>
@@ -98,7 +119,7 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
                 <Label htmlFor="partnerCost">Partner Cost (Fixed)</Label>
                 <Input
                   id="partnerCost"
-                  value={`$${milestone.amount}`}
+                  value={`$${milestone.cost.toLocaleString()}`}
                   disabled
                   className="bg-gray-100"
                 />
@@ -116,10 +137,10 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
             </div>
 
             <div>
-              <Label htmlFor="timeline">Estimated Timeline</Label>
+              <Label htmlFor="timeline">Estimated Timeline (Optional)</Label>
               <Input
                 id="timeline"
-                placeholder="e.g., 2-3 weeks"
+                placeholder={`Default: ${milestone.timeline} days`}
                 value={timeline}
                 onChange={(e) => setTimeline(e.target.value)}
               />
@@ -148,18 +169,18 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
                 </div>
                 <div>
                   <span className="text-blue-700">Partner Cost:</span>
-                  <p className="font-medium">${milestone.amount.toLocaleString()}</p>
+                  <p className="font-medium">${milestone.cost.toLocaleString()}</p>
                 </div>
                 <div>
                   <span className="text-blue-700">Gross Profit:</span>
                   <p className="font-medium text-green-600">
-                    ${(parseFloat(clientCost) - milestone.amount).toLocaleString()}
+                    ${(parseFloat(clientCost) - milestone.cost).toLocaleString()}
                   </p>
                 </div>
                 <div>
                   <span className="text-blue-700">Profit Margin:</span>
                   <p className="font-medium text-green-600">
-                    {(((parseFloat(clientCost) - milestone.amount) / parseFloat(clientCost)) * 100).toFixed(1)}%
+                    {(((parseFloat(clientCost) - milestone.cost) / parseFloat(clientCost)) * 100).toFixed(1)}%
                   </p>
                 </div>
               </div>
@@ -171,15 +192,25 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone }: ApproveMilesto
             <Button
               onClick={handleApprove}
               className="flex-1 bg-green-600 hover:bg-green-700"
-              disabled={!clientCost}
+              disabled={!clientCost || isSubmitting}
             >
-              <FileText className="w-4 h-4 mr-2" />
-              Approve & Send to Client
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Approving...
+                </>
+              ) : (
+                <>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Approve & Send to Client
+                </>
+              )}
             </Button>
             <Button
               variant="outline"
               onClick={() => onOpenChange(false)}
               className="flex-1"
+              disabled={isSubmitting}
             >
               Cancel
             </Button>

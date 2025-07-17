@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { DollarSign, Calendar, User, FileText } from 'lucide-react';
+import { DollarSign, Calendar, User, FileText, Clock, CheckCircle, CheckSquare, XCircle } from 'lucide-react';
 
 interface ViewMilestoneModalProps {
   open: boolean;
@@ -16,16 +16,16 @@ const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModa
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Pending Approval':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">{status}</Badge>;
-      case 'Approved':
-        return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
-      case 'Completed':
-        return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{status}</Badge>;
-      case 'Rejected':
-        return <Badge variant="destructive">{status}</Badge>;
+      case 'PENDING_APPROVAL':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 text-xs"><Clock className="w-3 h-3 mr-1" />Pending Approval</Badge>;
+      case 'APPROVED':
+        return <Badge variant="default" className="bg-green-600 text-white text-xs"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+      case 'COMPLETED':
+        return <Badge variant="secondary" className="bg-blue-100 text-blue-800 text-xs"><CheckSquare className="w-3 h-3 mr-1" />Completed</Badge>;
+      case 'REJECTED':
+        return <Badge variant="destructive" className="text-xs"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
       default:
-        return <Badge variant="secondary">{status}</Badge>;
+        return <Badge variant="secondary" className="text-xs">{status}</Badge>;
     }
   };
 
@@ -57,8 +57,20 @@ const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModa
                 </div>
                 <div className="flex items-center space-x-2">
                   <DollarSign className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm font-medium">Amount:</span>
-                  <span className="text-sm font-bold">${milestone.amount}</span>
+                  <span className="text-sm font-medium">Partner Cost:</span>
+                  <span className="text-sm font-bold">${milestone.cost?.toLocaleString()}</span>
+                </div>
+                {milestone.clientCost && (
+                  <div className="flex items-center space-x-2">
+                    <DollarSign className="w-4 h-4 text-gray-500" />
+                    <span className="text-sm font-medium">Client Cost:</span>
+                    <span className="text-sm font-bold">${milestone.clientCost?.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-2">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span className="text-sm font-medium">Timeline:</span>
+                  <span className="text-sm">{milestone.timeline} days</span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Calendar className="w-4 h-4 text-gray-500" />
@@ -88,12 +100,14 @@ const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModa
                 <span className="text-sm font-medium">Client:</span>
                 <span className="text-sm ml-2">{milestone.client}</span>
               </div>
-              <div>
-                <span className="text-sm font-medium">Client Budget:</span>
-                <span className="text-sm ml-2 font-bold text-blue-600">
-                  ${milestone.clientBudget?.toLocaleString()}
-                </span>
-              </div>
+              {milestone.clientBudget && (
+                <div>
+                  <span className="text-sm font-medium">Client Budget:</span>
+                  <span className="text-sm ml-2 font-bold text-blue-600">
+                    ${milestone.clientBudget?.toLocaleString()}
+                  </span>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -107,6 +121,12 @@ const ViewMilestoneModal = ({ open, onOpenChange, milestone }: ViewMilestoneModa
             </CardHeader>
             <CardContent>
               <p className="text-gray-700">{milestone.description}</p>
+              {milestone.additionalNotes && (
+                <div className="mt-4 pt-4 border-t">
+                  <h4 className="text-sm font-medium mb-2">Additional Notes</h4>
+                  <p className="text-gray-700 text-sm">{milestone.additionalNotes}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -40,7 +40,7 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center animate-fade-in">
             <h1 className="text-4xl lg:text-6xl font-bold text-brand-gray-900 mb-6 font-poppins">
-              About <span className="text-gradient">DGHUB</span>
+              About <span className="text-gradient">DIGIHUB AUST</span>
             </h1>
             <p className="text-xl text-brand-gray-600 leading-relaxed mb-8">
               We are a technology transformation partner connecting European and Australian 

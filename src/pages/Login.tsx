@@ -30,7 +30,7 @@ const Login = () => {
                 <Handshake className="w-4 h-4 text-orange-600 absolute -bottom-1 -right-1" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900">Dghub</span>
+                <span className="text-xl font-bold text-gray-900">DIGIHUB AUST</span>
                 <span className="text-sm font-light text-gray-600 -mt-1">Digital Solutions Hub</span>
               </div>
             </Link>
@@ -164,7 +164,7 @@ const Login = () => {
                       <Input
                         id="admin-email"
                         type="email"
-                        placeholder="admin@dghub.com"
+                        placeholder="admin@DIGIHUB AUST.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required

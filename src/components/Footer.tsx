@@ -6,15 +6,20 @@ const Footer = () => {
     company: [{
       label: 'About Us',
       href: '/about'
-    }, {
-      label: 'Our Team',
-      href: '/team'
-    }, {
-      label: 'Careers',
-      href: '/careers'
-    }, {
+    },
+    //  {
+    //   label: 'Our Team',
+    //   href: '/team'
+    // }, {
+    //   label: 'Careers',
+    //   href: '/careers'
+    // }, 
+    {
       label: 'Contact',
       href: '/contact'
+    }, {
+      label: 'How It Works',
+      href: '/how-it-works'
     }],
     services: [{
       label: 'Custom Web Apps',
@@ -25,9 +30,6 @@ const Footer = () => {
     }, {
       label: 'Admin Dashboards',
       href: '/services/dashboards'
-    }, {
-      label: 'Client Portals',
-      href: '/services/portals'
     }],
     support: [{
       label: 'Help Center',
@@ -38,9 +40,6 @@ const Footer = () => {
     }, {
       label: 'Case Studies',
       href: '/case-studies'
-    }, {
-      label: 'How It Works',
-      href: '/how-it-works'
     }],
     legal: [{
       label: 'Privacy Policy',
@@ -48,9 +47,6 @@ const Footer = () => {
     }, {
       label: 'Terms of Service',
       href: '/terms'
-    }, {
-      label: 'Cookie Policy',
-      href: '/cookies'
     }, {
       label: 'GDPR Compliance',
       href: '/gdpr'
@@ -90,7 +86,7 @@ const Footer = () => {
                 <Code className="w-5 h-5 text-brand-accent absolute -bottom-1 -right-1 bg-brand-gray-900 rounded-full p-0.5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-2xl font-bold text-white font-poppins">DGHUB</span>
+                <span className="text-2xl font-bold text-white font-poppins">DIGIHUB AUST</span>
                 <span className="text-sm font-medium text-brand-primary">Digital Solutions Hub</span>
               </div>
             </Link>
@@ -102,26 +98,7 @@ const Footer = () => {
             </p>
 
             {/* Contact Info */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-primary/20 rounded-lg flex items-center justify-center">
-                  <Mail className="w-5 h-5 text-brand-primary" />
-                </div>
-                <span className="text-brand-gray-300">hello@dghub.com</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-secondary/20 rounded-lg flex items-center justify-center">
-                  <Phone className="w-5 h-5 text-brand-secondary" />
-                </div>
-                <span className="text-brand-gray-300">+61 (0) 123 456 789</span>
-              </div>
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-brand-accent/20 rounded-lg flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-brand-accent" />
-                </div>
-                <span className="text-brand-gray-300">Sydney, Australia</span>
-              </div>
-            </div>
+           
           </div>
 
           {/* Links Sections */}
@@ -175,9 +152,29 @@ const Footer = () => {
             </div>
           </div>
         </div>
+         <div className="w-full flex flex-col mt-7 h-full md:flex-row justify-between md:mt-3">
+              <div className="flex mt-2 items-center space-x-3">
+                <div className="w-10 h-10 bg-brand-primary/20 rounded-lg flex items-center justify-center">
+                  <Mail className="w-5 h-5 text-brand-primary" />
+                </div>
+                <span className="text-brand-gray-300">hello@DIGIHUB AUST.com</span>
+              </div>
+              <div className="flex mt-2 items-center space-x-3">
+                <div className="w-10 h-10 bg-brand-secondary/20 rounded-lg flex items-center justify-center">
+                  <Phone className="w-5 h-5 text-brand-secondary" />
+                </div>
+                <span className="text-brand-gray-300">+61 (0) 123 456 789</span>
+              </div>
+              <div className="flex mt-2 items-center space-x-3">
+                <div className="w-10 h-10 bg-brand-accent/20 rounded-lg flex items-center justify-center">
+                  <MapPin className="w-5 h-5 text-brand-accent" />
+                </div>
+                <span className="text-brand-gray-300">Sydney, Australia</span>
+              </div>
+            </div>
 
         {/* Newsletter Section */}
-        <div className="border-t border-brand-gray-700 mt-16 pt-12">
+        {/* <div className="border-t border-brand-gray-700 mt-16 pt-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             <div>
               <h4 className="text-xl font-bold text-white mb-2 font-poppins">Stay Updated</h4>
@@ -190,13 +187,13 @@ const Footer = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Bottom Section */}
         <div className="border-t border-brand-gray-700 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-brand-gray-400 text-sm">
-              © {currentYear} Dghub: Digital Solutions Hub. All rights reserved.
+              © {currentYear} DIGIHUB AUST: Digital Solutions Hub. All rights reserved.
             </p>
 
             {/* Social Links */}

@@ -470,7 +470,7 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
-            {projects?.length === 0 ? (
+            {(projects?.length  === 0) &&( pendingProjects?.length === 0) ? (
               <div className="flex justify-center items-center">
                 <p className="text-gray-600 text-center text-lg">
                   No projects found!
@@ -489,6 +489,40 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
                       </TableRow>
                     </TableHeader>
                     <TableBody>
+                                              {pendingProjects?.map((project) => (
+                        <TableRow
+                          key={project.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell>
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {project.title}
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {project.description}
+                              </p>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {getStatusBadge(project.status)}
+                          </TableCell>
+                          <TableCell className="text-gray-600">
+                            {format(project.updatedAt, "MMM d, yyyy")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleViewProject(project)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                       {projects?.map((project) => (
                         <TableRow
                           key={project.id}
@@ -523,40 +557,7 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
                           </TableCell>
                         </TableRow>
                       ))}
-                        {pendingProjects?.map((project) => (
-                        <TableRow
-                          key={project.id}
-                          className="border-brand-gray-200"
-                        >
-                          <TableCell>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {project.title}
-                              </p>
-                              <p className="text-sm text-gray-600">
-                                {project.description}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(project.status)}
-                          </TableCell>
-                          <TableCell className="text-gray-600">
-                            {format(project.updatedAt, "MMM d, yyyy")}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-                              onClick={() => handleViewProject(project)}
-                            >
-                              <Eye className="w-4 h-4 mr-1" />
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+
                     </TableBody>
                   </Table>
                 </CardContent>

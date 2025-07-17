@@ -16,7 +16,7 @@ const ProfileSettings = () => {
 
   const [profileData, setProfileData] = useState({
     name: 'Admin User',
-    email: 'admin@dghub.com',
+    email: 'admin@DIGIHUB AUST.com',
     profileImage: '',
     currentPassword: '',
     newPassword: '',
