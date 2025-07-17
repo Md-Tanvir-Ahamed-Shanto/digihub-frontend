@@ -17,6 +17,7 @@ interface ApproveMilestoneModalProps {
 }
 
 const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: ApproveMilestoneModalProps) => {
+  console.log("view milestone", milestone)
   const { toast } = useToast();
   const [clientCost, setClientCost] = useState('');
   const [notes, setNotes] = useState('');
@@ -82,11 +83,11 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Project:</span>
-                <p className="font-medium">{milestone.project}</p>
+                <p className="font-medium">{milestone.projectName}</p>
               </div>
               <div>
                 <span className="text-gray-600">Partner:</span>
-                <p className="font-medium">{milestone.partner}</p>
+                <p className="font-medium">{milestone.partner.name}</p>
               </div>
               <div>
                 <span className="text-gray-600">Partner Cost:</span>
@@ -94,7 +95,7 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
               </div>
               <div>
                 <span className="text-gray-600">Timeline:</span>
-                <p className="font-medium">{milestone.timeline} days</p>
+                <p className="font-medium">{milestone.duration} days</p>
               </div>
               <div className="md:col-span-2">
                 <span className="text-gray-600">Milestone Title:</span>
