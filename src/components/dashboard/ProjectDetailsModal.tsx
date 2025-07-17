@@ -10,6 +10,8 @@ interface Project {
   status: string;
   updatedAt: string;
   description: string;
+  budgetRange: string;
+  offerPrice: string;
 }
 
 interface ProjectDetailsModalProps {
@@ -20,10 +22,9 @@ interface ProjectDetailsModalProps {
 
 const ProjectDetailsModal = ({ isOpen, onClose, project }: ProjectDetailsModalProps) => {
   if (!project) return null;
-
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      'Under Review': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' },
+      'PENDING': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' },
       'Offer Sent': { variant: 'secondary' as const, className: 'bg-blue-100 text-blue-800' },
       'ACTIVE': { variant: 'secondary' as const, className: 'bg-green-100 text-green-800' },
       'COMPLETE': { variant: 'secondary' as const, className: 'bg-gray-100 text-gray-800' }
@@ -51,12 +52,16 @@ const ProjectDetailsModal = ({ isOpen, onClose, project }: ProjectDetailsModalPr
                   <h3 className="text-lg font-semibold">Project Information</h3>
                   {getStatusBadge(project.status)}
                 </div>
-                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Description</p>
                   <p className="text-gray-900">{project.description}</p>
                 </div>
-                
+                <div>
+                    <p className="text-sm text-gray-600">Budget</p>
+                    <p className="font-semibold">{project.offerPrice || project.budgetRange}</p>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Status</p>
