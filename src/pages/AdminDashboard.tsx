@@ -468,7 +468,6 @@ console.log("all projects", projects)
                   <TableHead className="hidden md:table-cell">Client</TableHead>
                   <TableHead className="hidden lg:table-cell">Partner</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="hidden sm:table-cell">Progress</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -479,9 +478,7 @@ console.log("all projects", projects)
                     <TableCell className="hidden md:table-cell">{project?.client?.name}</TableCell>
                     <TableCell className="hidden lg:table-cell">{project?.partner?.name}</TableCell>
                     <TableCell>{getStatusBadge(project.status)}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
                     
-                    </TableCell>
                     <TableCell>
                       <Button size="sm" variant="outline" onClick={() => handleViewProject(project)}>
                         <Eye className="w-3 h-3 mr-1" />
