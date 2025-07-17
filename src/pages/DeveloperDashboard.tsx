@@ -310,12 +310,12 @@ console.log("project", projects)
                 {projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell className="max-w-xs">
-                      <div className="truncate font-medium">{project.briefSnippet}</div>
+                      <div className="truncate font-medium">{project.description}</div>
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">{project.submissionDate}</TableCell>
+                    <TableCell className="hidden md:table-cell">{format(project.updatedAt, 'yyyy-MM-dd HH:mm')}</TableCell>
                     <TableCell>{getStatusBadge(project.status)}</TableCell>
                     <TableCell className="hidden sm:table-cell font-medium">
-                      {project.estimatedCost || 'Pending'}
+                      {project.partnerCost || 'Pending'}
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
@@ -429,7 +429,7 @@ console.log("project", projects)
             <div key={projectName} className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">{projectName}</h3>
               <div className="grid gap-4">
-                {projectMilestones.map((milestone) => (
+                {(projectMilestones as any[]).map((milestone) => (
                   <Card key={milestone.id}>
                     <CardHeader>
                       <div className="flex items-center justify-between">

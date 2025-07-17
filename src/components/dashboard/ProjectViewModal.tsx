@@ -2,13 +2,14 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { format } from 'date-fns';
 
 interface Project {
   id: number;
   briefSnippet: string;
   status: string;
-  submissionDate: string;
-  estimatedCost: string;
+  updatedAt: string;
+  partnerCost: string;
   timeline: string;
 }
 
@@ -23,14 +24,14 @@ const ProjectViewModal = ({ isOpen, onClose, project }: ProjectViewModalProps) =
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'Assigned':
+      case 'ASSIGNED':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800">{status}</Badge>;
-      case 'Offer Submitted':
+      case 'OFFER_SUBMITTED':
         return <Badge variant="outline" className="border-yellow-500 text-yellow-700">{status}</Badge>;
-      case 'Active':
+      case 'ACTIVE':
         return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
-      case 'Completed':
-        return <Badge variant="secondary" className="bg-gray-100 text-gray-800">{status}</Badge>;
+      case 'COMPLETE':
+        return <Badge variant="default" className="bg-gray-100 text-gray-800">{status}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -59,11 +60,11 @@ const ProjectViewModal = ({ isOpen, onClose, project }: ProjectViewModalProps) =
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                   <div>
                     <p className="text-sm text-gray-600">Submission Date</p>
-                    <p className="font-semibold">{project.submissionDate}</p>
+                    <p className="font-semibold">{format(new Date(project.updatedAt), 'yyyy-MM-dd HH:mm')}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Estimated Cost</p>
-                    <p className="font-semibold">{project.estimatedCost || 'Pending'}</p>
+                    <p className="font-semibold">{project.partnerCost || 'Pending'}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Timeline</p>
