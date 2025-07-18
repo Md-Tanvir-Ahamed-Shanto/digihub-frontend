@@ -14,22 +14,43 @@ import {
   MessageSquare,
   Edit
 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
+import { toast } from '@/hooks/use-toast';
 
 interface ViewProjectModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project: any;
+  fetchProject: () => void;
 }
 
-const ViewProjectModal = ({ open, onOpenChange, project }: ViewProjectModalProps) => {
+const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewProjectModalProps) => {
   if (!project) return null;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'COMPLETE': return 'bg-green-100 text-green-800';
+      case 'COMPLETED': return 'bg-green-100 text-green-800';
       case 'IN-PROGRESS': return 'bg-blue-100 text-blue-800';
       case 'PENDING': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const onMarkComplete = async (projectId: string) => {
+    try {
+     const response =  await axiosInstance.put(`/project/${projectId}/complete`);
+      if(response.status === 200) {
+        toast({
+          title: 'Project marked as complete',
+          description: 'Project status has been updated to completed'
+        })
+        fetchProject();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error marking project as complete',
+        description: 'Project status could not be updated'
+      })
     }
   };
 
@@ -152,7 +173,10 @@ const ViewProjectModal = ({ open, onOpenChange, project }: ViewProjectModalProps
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
-            <Button>
+            <Button onClick={() => {
+              onOpenChange(false);
+              onMarkComplete(project.id);
+            }}>
               Mark as Complete
             </Button>
           </div>

@@ -222,9 +222,9 @@ console.log("all projects", projects)
       case 'OFFER_SENT_TO_CLIENT':
         return <Badge variant="outline" className="border-blue-200 text-blue-800">{status}</Badge>;
       case 'ACCEPTED_AND_CONVERTED':
-        return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
-      case 'COMPLETE':
-        return <Badge variant="default" className="bg-green-600 text-white">{status}</Badge>;
+        return <Badge variant="default" className="bg-emerald-600 text-white">{status}</Badge>;
+      case 'COMPLETED':
+        return <Badge variant="outline" className="bg-blue-600 text-white">{status}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -799,6 +799,7 @@ console.log("all projects", projects)
         open={viewProjectOpen}
         onOpenChange={setViewProjectOpen}
         project={selectedProject}
+        fetchProject={fetchProjects}
       />
       <NewProjectModal 
         open={newProjectOpen}
