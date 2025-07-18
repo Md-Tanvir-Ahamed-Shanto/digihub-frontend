@@ -386,9 +386,11 @@ const generateInvoiceFromData = (data, autoDownload = false) => {
 };
 
 // Export for external use
-window?.generateInvoiceFromData = generateInvoiceFromData;
+if (typeof window !== 'undefined') {
+  (window as any).generateInvoiceFromData = generateInvoiceFromData;
+}
 
-const App = () => { // Renamed InvoiceGenerator to App for default export
+const GenerateInvoice = () => {
   const [currentView, setCurrentView] = useState('generator');
   const [invoice, setInvoice] = useState({
     invoiceNumber: '',
@@ -453,7 +455,7 @@ const App = () => { // Renamed InvoiceGenerator to App for default export
     
     // Recalculate item amount if quantity or rate changes
     if (field === 'quantity' || field === 'rate') {
-      const quantity = parseFloat(newItems[index].quantity) || 0;
+      const quantity = parseFloat(newItems[index].quantity.toString()) || 0;
       const rate = parseFloat(newItems[index].rate) || 0;
       newItems[index].amount = (quantity * rate).toFixed(2);
     }
@@ -584,7 +586,7 @@ const App = () => { // Renamed InvoiceGenerator to App for default export
   // Main Invoice Generator UI
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center py-10 px-4 font-sans">
-      <div className="max-w-4xl w-full mx-auto p-6 bg-white rounded-xl shadow-2xl">
+      <div className=" w-full mx-auto p-6 bg-white rounded-xl shadow-2xl">
         <div className="mb-8 text-center">
           <h1 className="text-4xl font-extrabold text-gray-900 mb-2">Invoice Generator</h1>
           <p className="text-gray-600 text-lg">Create professional invoices with GST calculations</p>
@@ -861,4 +863,4 @@ const App = () => { // Renamed InvoiceGenerator to App for default export
   );
 };
 
-export default App;
+export default GenerateInvoice;

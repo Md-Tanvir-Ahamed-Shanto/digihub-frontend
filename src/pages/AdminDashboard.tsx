@@ -49,6 +49,7 @@ import PagesManager from '@/components/admin/PagesManager';
 import AdminSettings from '@/components/admin/AdminSettings';
 import axiosInstance from '@/api/axios';
 import { format } from "date-fns";
+import GenerateInvoice from './GenerateInvoice';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -137,6 +138,7 @@ console.log("all projects", projects)
     { id: 'finance', label: 'Finance', icon: DollarSign },
     { id: 'partners', label: 'Partners', icon: Building2 },
     { id: 'invoices', label: 'Invoices', icon: FileText },
+    { id: 'generate-invoice', label: 'Generate Invoices', icon: FileText },
     { id: 'feedback', label: 'Feedback', icon: MessageSquare },
     { id: 'websites', label: 'Websites', icon: Globe },
     { id: 'submissions', label: 'Submissions', icon: Mail },
@@ -672,6 +674,8 @@ console.log("all projects", projects)
         return <FinancePanel />;
       case 'invoices':
         return <InvoicePanel />;
+      case 'generate-invoice':
+        return <GenerateInvoice />;
       case 'websites':
         return <WebsiteContentManager />;
       case 'submissions':
