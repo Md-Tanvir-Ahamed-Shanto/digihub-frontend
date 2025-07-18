@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,126 +14,209 @@ import {
   Search,
   Filter,
   Mail,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CreateInvoiceModal from './CreateInvoiceModal';
+import axiosInstance from '@/api/axios';
 
 const InvoicePanel = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
+  const [invoices, setInvoices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const invoices = [
-    { 
-      id: 'INV-2024-001', 
-      project: 'Health Coach CRM', 
-      client: 'Alex Thompson', 
-      milestone: 'Database Design & Setup',
-      amount: 2000, 
-      gst: 180, 
-      total: 2180, 
-      status: 'Paid', 
-      date: '2024-01-15',
-      dueDate: '2024-01-30',
-      paymentDate: '2024-01-25'
-    },
-    { 
-      id: 'INV-2024-002', 
-      project: 'E-commerce Platform', 
-      client: 'Sarah Johnson', 
-      milestone: 'UI/UX Design Phase',
-      amount: 1320, 
-      gst: 118.8, 
-      total: 1438.8, 
-      status: 'Pending', 
-      date: '2024-01-20',
-      dueDate: '2024-02-04',
-      paymentDate: null
-    },
-    { 
-      id: 'INV-2024-003', 
-      project: 'Mobile Fitness App', 
-      client: 'Mike Chen', 
-      milestone: 'Authentication System',
-      amount: 2500, 
-      gst: 225, 
-      total: 2725, 
-      status: 'Overdue', 
-      date: '2024-01-10',
-      dueDate: '2024-01-25',
-      paymentDate: null
-    },
-    { 
-      id: 'INV-2024-004', 
-      project: 'Restaurant POS', 
-      client: 'David Wilson', 
-      milestone: 'Payment Integration',
-      amount: 1800, 
-      gst: 162, 
-      total: 1962, 
-      status: 'Draft', 
-      date: '2024-01-22',
-      dueDate: '2024-02-06',
-      paymentDate: null
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const response = await axiosInstance.get('/invoice');
+      setInvoices(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch invoices",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Paid':
+  const handleDownloadInvoice = async (invoice) => {
+    try {
+      // Generate invoice HTML
+      const invoiceData = {
+        invoiceNumber: invoice.id,
+        companyInfo: {
+          name: 'DGHUB',
+          address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
+          phone: '+880 1234567890',
+          email: 'info@dghub.com'
+        },
+        client: invoice.client,
+        project: invoice.project,
+        milestone: invoice.milestone,
+        items: [{
+          description: invoice.milestone?.title || invoice.project?.name || 'Project Services',
+          quantity: 1,
+          rate: invoice.amount,
+          amount: invoice.amount
+        }],
+        amount: invoice.amount,
+        gstEnabled: invoice.gstEnabled,
+        gstAmount: invoice.gst,
+        totalAmount: invoice.total,
+        status: invoice.status,
+        dueDate: invoice.dueDate
+      };
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({
+          title: "Error",
+          description: "Please allow pop-ups to download the invoice",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const invoiceHTML = generateInvoiceHTML(invoiceData);
+      printWindow.document.write(invoiceHTML);
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+
+      toast({
+        title: "Success",
+        description: `Invoice ${invoice.id} has been generated for download.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleViewInvoice = async (invoice) => {
+ try {
+      // Generate invoice HTML
+      const invoiceData = {
+        invoiceNumber: invoice.id,
+        companyInfo: {
+          name: 'DIGIHUB',
+          address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
+          phone: '+880 1234567890',
+          email: 'info@digihub.com'
+        },
+        client: invoice.client,
+        project: invoice.project,
+        milestone: invoice.milestone,
+        items: [{
+          description: invoice.milestone?.title || invoice.project?.name || 'Project Services',
+          quantity: 1,
+          rate: invoice.amount,
+          amount: invoice.amount
+        }],
+        amount: invoice.amount,
+        gstEnabled: invoice.gstEnabled,
+        gstAmount: invoice.gst,
+        totalAmount: invoice.total,
+        status: invoice.status,
+        dueDate: invoice.dueDate
+      };
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({
+          title: "Error",
+          description: "Please allow pop-ups to download the invoice",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const invoiceHTML = generateInvoiceHTML(invoiceData);
+      printWindow.document.write(invoiceHTML);
+      printWindow.document.close();
+      printWindow.focus();
+
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice",
+        variant: "destructive"
+      });
+    }
+  };
+
+
+  const handleCreateInvoiceSuccess = () => {
+    setCreateInvoiceOpen(false);
+    fetchInvoices();
+    toast({
+      title: "Success",
+      description: "Invoice created successfully",
+    });
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status.toUpperCase()) {
+      case 'PAID':
         return <Badge className="bg-green-100 text-green-800 border-green-200">{status}</Badge>;
-      case 'Pending':
+      case 'PENDING':
         return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">{status}</Badge>;
-      case 'Overdue':
+      case 'OVERDUE':
         return <Badge className="bg-red-100 text-red-800 border-red-200">{status}</Badge>;
-      case 'Draft':
+      case 'DRAFT':
         return <Badge variant="secondary">{status}</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
-  const handleDownloadInvoice = (invoiceId: string) => {
-    toast({
-      title: "Invoice Downloaded",
-      description: `Invoice ${invoiceId} has been downloaded successfully.`,
-    });
-  };
-
-  const handleViewInvoice = (invoiceId: string) => {
-    toast({
-      title: "Opening Invoice",
-      description: `Opening invoice ${invoiceId} in preview mode.`,
-    });
-  };
-
-  const handleSendReminder = (invoice: any) => {
-    toast({
-      title: "Payment Reminder Sent",
-      description: `Payment reminder email sent to ${invoice.client} for invoice ${invoice.id}.`,
-    });
-  };
-
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.project.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.client.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.milestone.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || invoice.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesSearch = 
+      invoice.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.project?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.client?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.milestone?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || invoice.status?.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   const totalStats = {
     totalInvoices: invoices.length,
-    paidAmount: invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.total, 0),
-    pendingAmount: invoices.filter(inv => inv.status === 'Pending').reduce((sum, inv) => sum + inv.total, 0),
-    overdueAmount: invoices.filter(inv => inv.status === 'Overdue').reduce((sum, inv) => sum + inv.total, 0),
-    totalGST: invoices.filter(inv => inv.status === 'Paid').reduce((sum, inv) => sum + inv.gst, 0),
-    unpaidInvoices: invoices.filter(inv => inv.status !== 'Paid').length
+    paidAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'PAID')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+    pendingAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'PENDING')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+    overdueAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'OVERDUE')
+      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+    totalGST: invoices.filter(inv => inv.status?.toUpperCase() === 'PAID')
+      .reduce((sum, inv) => sum + (inv.gst || 0), 0),
+    unpaidInvoices: invoices.filter(inv => inv.status?.toUpperCase() !== 'PAID').length
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
+  // Rest of the component remains the same, just update the data references
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -265,42 +348,35 @@ const InvoicePanel = () => {
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
                     <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.project}</TableCell>
-                    <TableCell className="hidden md:table-cell">{invoice.client}</TableCell>
+                    <TableCell>{invoice.project?.name || 'N/A'}</TableCell>
+                    <TableCell className="hidden md:table-cell">{invoice.client?.name || 'N/A'}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <span className="text-sm text-gray-600">{invoice.milestone}</span>
+                      <span className="text-sm text-gray-600">{invoice.milestone?.title || 'N/A'}</span>
                     </TableCell>
-                    <TableCell>${invoice.amount.toLocaleString()}</TableCell>
-                    <TableCell className="hidden sm:table-cell">${invoice.gst.toFixed(2)}</TableCell>
-                    <TableCell className="font-medium">${invoice.total.toLocaleString()}</TableCell>
-                    <TableCell>{getStatusBadge(invoice.status)}</TableCell>
-                    <TableCell className="hidden lg:table-cell">{invoice.dueDate}</TableCell>
+                    <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
+                    <TableCell className="hidden sm:table-cell">${(invoice.gst || 0).toFixed(2)}</TableCell>
+                    <TableCell className="font-medium">${(invoice.total || 0).toLocaleString()}</TableCell>
+                    <TableCell>{getStatusBadge(invoice.status || 'N/A')}</TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleViewInvoice(invoice.id)}
+                          onClick={() => handleViewInvoice(invoice)}
                         >
                           <Eye className="w-3 h-3" />
                         </Button>
                         <Button 
                           size="sm" 
                           variant="outline"
-                          onClick={() => handleDownloadInvoice(invoice.id)}
+                          onClick={() => handleDownloadInvoice(invoice)}
                         >
                           <Download className="w-3 h-3" />
                         </Button>
-                        {(invoice.status === 'Pending' || invoice.status === 'Overdue') && (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleSendReminder(invoice)}
-                            className="text-orange-600 hover:text-orange-700"
-                          >
-                            <Mail className="w-3 h-3" />
-                          </Button>
-                        )}
+                       
                       </div>
                     </TableCell>
                   </TableRow>
@@ -315,9 +391,111 @@ const InvoicePanel = () => {
       <CreateInvoiceModal 
         open={createInvoiceOpen}
         onOpenChange={setCreateInvoiceOpen}
+        onSuccess={handleCreateInvoiceSuccess}
       />
     </div>
   );
 };
+
+
+
+// Add generateInvoiceHTML function
+const generateInvoiceHTML = (invoiceData) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice ${invoiceData.invoiceNumber}</title>
+      <style>
+        /* Basic styling for the invoice print view */
+        body { font-family: 'Inter', Arial, sans-serif; margin: 0; padding: 20px; color: #333; }
+        .invoice-header { display: flex; justify-content: space-between; margin-bottom: 30px; }
+        .company-info { text-align: left; }
+        .invoice-info { text-align: right; }
+        .client-info { margin-bottom: 30px; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .invoice-table th, .invoice-table td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .invoice-table th { background-color: #f8f9fa; font-weight: bold; }
+        .totals { text-align: right; margin-top: 20px; }
+        .total-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .total-amount { font-weight: bold; font-size: 1.2em; border-top: 2px solid #333; padding-top: 8px; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.9em; }
+        .status.pending { background-color: #fef3c7; color: #d97706; }
+        .status.paid { background-color: #d1fae5; color: #059669; }
+        .status.overdue { background-color: #fee2e2; color: #dc2626; }
+        /* Hide print buttons when printing */
+        @media print {
+          body { margin: 0; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-header">
+        <div class="company-info">
+          <h2>${invoiceData.companyInfo.name}</h2>
+          <p>${invoiceData.companyInfo.address.replace(/\n/g, '<br>')}</p>
+          <p>Phone: ${invoiceData.companyInfo.phone}</p>
+          <p>Email: ${invoiceData.companyInfo.email}</p>
+        </div>
+        <div class="invoice-info">
+          <h1>INVOICE</h1>
+          <p><strong>Invoice #:</strong> ${invoiceData.invoiceNumber}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+          <p><strong>Due Date:</strong> ${invoiceData.dueDate ? new Date(invoiceData.dueDate).toLocaleDateString() : 'Not specified'}</p>
+          <p><strong>Status:</strong> <span class="status ${invoiceData.status.toLowerCase()}">${invoiceData.status}</span></p>
+        </div>
+      </div>
+
+      <div class="client-info">
+        <h3>Bill To:</h3>
+        <p><strong>${invoiceData.client.name}</strong></p>
+        <p>${invoiceData.client.address || 'N/A'}</p>
+        <p>Phone: ${invoiceData.client.phone || 'N/A'}</p>
+        <p>Email: ${invoiceData.client.email || 'N/A'}</p>
+        ${invoiceData.project.name ? `<p><strong>Project:</strong> ${invoiceData.project.name}</p>` : ''}
+        ${invoiceData.milestone.title ? `<p><strong>Milestone:</strong> ${invoiceData.milestone.title}</p>` : ''}
+      </div>
+
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoiceData.items.map(item => `
+            <tr>
+              <td>${item.description}</td>
+              <td>${item.quantity}</td>
+              <td>$${parseFloat(item.rate || 0).toFixed(2)}</td>
+              <td>$${parseFloat(item.amount || 0).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="totals">
+        <div class="total-row">
+          <span>Subtotal with GST (10%):</span>
+          <span>$${invoiceData.amount}</span>
+        </div>
+        <div class="total-row total-amount">
+          <span>Total Amount:</span>
+          <span>$${invoiceData.amount}</span>
+        </div>
+      </div>
+
+      <div class="no-print" style="margin-top: 30px; text-align: center;">
+        <button onclick="window.print()" style="padding: 10px 20px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Print Invoice</button>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 
 export default InvoicePanel;

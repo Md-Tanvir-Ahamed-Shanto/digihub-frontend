@@ -13,9 +13,10 @@ import { Calculator, FileText } from 'lucide-react';
 interface CreateInvoiceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess: (invoice: Invoice) => void;
 }
 
-const CreateInvoiceModal = ({ open, onOpenChange }: CreateInvoiceModalProps) => {
+const CreateInvoiceModal = ({ open, onOpenChange, onSuccess }: CreateInvoiceModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     clientName: '',
