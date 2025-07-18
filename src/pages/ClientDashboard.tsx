@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
 import {
   Table,
   TableBody,
@@ -17,7 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
+import {Loader2,
   User,
   FolderOpen,
   FileText,
@@ -49,13 +50,12 @@ import ManageSubscriptionModal from "@/components/dashboard/ManageSubscriptionMo
 import RaiseIssueModal from "@/components/dashboard/RaiseIssueModal";
 import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
 import ClientSettings from "@/components/dashboard/ClientSettings";
-import axiosInstance from "@/api/axios";
 import { format } from "date-fns";
-
+import axiosInstance from "@/api/axios";
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  
   // Modal states
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
@@ -212,30 +212,87 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
     }
   };
 
-  const invoices = [
-    {
-      id: 1,
-      number: "INV-0021",
-      project: "Healthcare CRM",
-      amount: "$1,320",
-      date: "2025-07-06",
-    },
-    {
-      id: 2,
-      number: "INV-0020",
-      project: "E-commerce Store",
-      amount: "$850",
-      date: "2025-06-28",
-    },
-    {
-      id: 3,
-      number: "INV-0019",
-      project: "Mobile App",
-      amount: "$1,200",
-      date: "2025-06-15",
-    },
-  ];
+  const [invoices, setInvoices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
+
+  const fetchInvoices = async () => {
+    try {
+      const response = await axiosInstance.get('/invoice/client');
+      setInvoices(response.data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch invoices",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDownloadInvoice = async (invoice) => {
+    try {
+      const invoiceData = {
+        invoiceNumber: invoice.id,
+        companyInfo: {
+          name: 'DIGIHUB',
+          address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
+          phone: '+880 1234567890',
+          email: 'info@digihub.com'
+        },
+        client: user,
+        project: invoice.project,
+        milestone: invoice.milestone,
+        items: [{
+          description: invoice.milestone?.title || invoice.project?.name || 'Project Services',
+          quantity: 1,
+          rate: invoice.amount,
+          amount: invoice.amount
+        }],
+        amount: invoice.amount,
+        gstEnabled: invoice.gstEnabled,
+        gstAmount: invoice.gstAmount,
+        totalAmount: invoice.totalAmount,
+        status: invoice.status,
+        dueDate: invoice.dueDate
+      };
+
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        toast({
+          title: "Error",
+          description: "Please allow pop-ups to download the invoice",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const invoiceHTML = generateInvoiceHTML(invoiceData);
+      printWindow.document.write(invoiceHTML);
+      printWindow.document.close();
+      printWindow.focus();
+
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+
+      toast({
+        title: "Success",
+        description: `Invoice ${invoice.id} has been generated for download.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate invoice",
+        variant: "destructive"
+      });
+    };
+  };
+console.log("user", user)
   const supportTickets = [
     {
       id: 1,
@@ -377,12 +434,12 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
     setProjectDetailsOpen(true);
   };
 
-  const handleDownloadInvoice = (invoiceId: number) => {
-    toast({
-      title: "Download Started",
-      description: "Your invoice is being downloaded...",
-    });
-  };
+  // const handleDownloadInvoice = (invoiceId: number) => {
+  //   toast({
+  //     title: "Download Started",
+  //     description: "Your invoice is being downloaded...",
+  //   });
+  // };
 
   const handleViewTicket = (ticket: any) => {
     setSelectedTicket(ticket);
@@ -711,51 +768,71 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">Invoices</h2>
-            <Card className="border-brand-gray-200">
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-brand-gray-200">
-                      <TableHead>Invoice #</TableHead>
-                      <TableHead>Project</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {invoices.map((invoice) => (
-                      <TableRow
-                        key={invoice.id}
-                        className="border-brand-gray-200"
-                      >
-                        <TableCell className="font-medium">
-                          {invoice.number}
-                        </TableCell>
-                        <TableCell>{invoice.project}</TableCell>
-                        <TableCell className="font-medium text-green-600">
-                          {invoice.amount}
-                        </TableCell>
-                        <TableCell className="text-gray-600">
-                          {invoice.date}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-                            onClick={() => handleDownloadInvoice(invoice.id)}
-                          >
-                            <Download className="w-4 h-4 mr-1" />
-                            Download
-                          </Button>
-                        </TableCell>
+            {isLoading ? (
+              <div className="flex items-center justify-center h-[200px]">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              </div>
+            ) : (
+              <Card className="border-brand-gray-200">
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-brand-gray-200">
+                        <TableHead>Invoice #</TableHead>
+                        <TableHead>Project</TableHead>
+                        <TableHead>Milestone</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>GST</TableHead>
+                        <TableHead>Total</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                    </TableHeader>
+                    <TableBody>
+                      {invoices.map((invoice) => (
+                        <TableRow
+                          key={invoice.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell className="font-medium">
+                            {invoice.id}
+                          </TableCell>
+                          <TableCell>{invoice.project?.name || 'N/A'}</TableCell>
+                          <TableCell>{invoice.milestone?.title || 'N/A'}</TableCell>
+                          <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
+                          <TableCell>${(invoice.gstAmount || 0).toLocaleString()}</TableCell>
+                          <TableCell className="font-medium text-green-600">
+                            ${(invoice.totalAmount || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              className=""
+                            >
+                              {invoice.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleDownloadInvoice(invoice)}
+                            >
+                              <Download className="w-4 h-4 mr-1" />
+                              Download
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </div>
         );
 
@@ -1067,3 +1144,87 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
 };
 
 export default ClientDashboard;
+
+
+const generateInvoiceHTML = (invoice) => {
+  console.log("invoice", invoice)
+
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Invoice #${invoice.invoiceNumber}</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .invoice-header { display: flex; justify-content: space-between; margin-bottom: 40px; }
+        .company-info { text-align: right; }
+        .invoice-details { margin-bottom: 30px; }
+        .client-info { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        .total-section { text-align: right; }
+        .status { padding: 6px 12px; border-radius: 4px; display: inline-block; }
+        .status-paid { background: #dcfce7; color: #166534; }
+        .status-pending { background: #fef9c3; color: #854d0e; }
+        .status-overdue { background: #fee2e2; color: #991b1b; }
+      </style>
+    </head>
+    <body>
+      <div class="invoice-header">
+        <div>
+          <h1>INVOICE</h1>
+          <p>Invoice #${invoice.invoiceNumber}</p>
+        </div>
+        <div class="company-info">
+          <h2>${invoice.companyInfo.name}</h2>
+          <p>${invoice.companyInfo.address.replace(/\n/g, '<br/>')}</p>
+          <p>Phone: ${invoice.companyInfo.phone}</p>
+          <p>Email: ${invoice.companyInfo.email}</p>
+        </div>
+      </div>
+
+      <div class="invoice-details">
+        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+        <p><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
+        <div class="status status-${invoice.status.toLowerCase()}">
+          ${invoice.status}
+        </div>
+      </div>
+
+      <div class="client-info">
+        <h3>Bill To:</h3>
+        <p>${invoice.client?.name || invoice.client?.email.charAt(0).toUpperCase() || ''}</p>
+        <p>${invoice.client?.email || ''}</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${invoice.items.map(item => `
+            <tr>
+              <td>${item.description}</td>
+              <td>${item.quantity}</td>
+              <td>${item.rate}</td>
+              <td>${item.amount}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <div class="total-section">
+        <p><strong>Subtotal:</strong> ${invoice.amount}</p>
+        ${invoice.gstEnabled ? `<p><strong>GST:</strong> ${invoice.gstAmount}</p>` : ''}
+        <h3>Total: ${invoice.totalAmount}</h3>
+      </div>
+    </body>
+    </html>
+  `;
+};
