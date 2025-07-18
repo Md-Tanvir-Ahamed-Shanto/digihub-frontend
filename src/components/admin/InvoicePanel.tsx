@@ -32,7 +32,7 @@ const InvoicePanel = () => {
   useEffect(() => {
     fetchInvoices();
   }, []);
-
+console.log("invoice in panel", invoices)
   const fetchInvoices = async () => {
     try {
       const response = await axiosInstance.get('/invoice');
@@ -51,13 +51,13 @@ const InvoicePanel = () => {
   const handleDownloadInvoice = async (invoice) => {
     try {
       // Generate invoice HTML
-      const invoiceData = {
+       const invoiceData = {
         invoiceNumber: invoice.id,
         companyInfo: {
-          name: 'DGHUB',
+          name: 'DIGIHUB',
           address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
           phone: '+880 1234567890',
-          email: 'info@dghub.com'
+          email: 'info@digihub.com'
         },
         client: invoice.client,
         project: invoice.project,
@@ -70,8 +70,8 @@ const InvoicePanel = () => {
         }],
         amount: invoice.amount,
         gstEnabled: invoice.gstEnabled,
-        gstAmount: invoice.gst,
-        totalAmount: invoice.total,
+        gstAmount: invoice.gstAmount,
+        totalAmount: invoice.totalAmount,
         status: invoice.status,
         dueDate: invoice.dueDate
       };
@@ -130,8 +130,8 @@ const InvoicePanel = () => {
         }],
         amount: invoice.amount,
         gstEnabled: invoice.gstEnabled,
-        gstAmount: invoice.gst,
-        totalAmount: invoice.total,
+        gstAmount: invoice.gstAmount,
+        totalAmount: invoice.totalAmount,
         status: invoice.status,
         dueDate: invoice.dueDate
       };
@@ -354,8 +354,14 @@ const InvoicePanel = () => {
                       <span className="text-sm text-gray-600">{invoice.milestone?.title || 'N/A'}</span>
                     </TableCell>
                     <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
-                    <TableCell className="hidden sm:table-cell">${(invoice.gst || 0).toFixed(2)}</TableCell>
-                    <TableCell className="font-medium">${(invoice.total || 0).toLocaleString()}</TableCell>
+                    {
+                      invoice.gstEnabled ? (
+                      <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
+                      ) : (
+                        <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
+                      )
+                    }
+                    <TableCell className="font-medium">${(invoice.totalAmount || 0).toLocaleString()}</TableCell>
                     <TableCell>{getStatusBadge(invoice.status || 'N/A')}</TableCell>
                     <TableCell className="hidden lg:table-cell">
                       {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
@@ -401,6 +407,7 @@ const InvoicePanel = () => {
 
 // Add generateInvoiceHTML function
 const generateInvoiceHTML = (invoiceData) => {
+  console.log("invoiceData", invoiceData)
   return `
     <!DOCTYPE html>
     <html>
@@ -480,12 +487,16 @@ const generateInvoiceHTML = (invoiceData) => {
 
       <div class="totals">
         <div class="total-row">
-          <span>Subtotal with GST (10%):</span>
+          <span>Subtota:</span>
           <span>$${invoiceData.amount}</span>
+        </div>
+        <div class="total-row">
+          <span>GST (10%):</span>
+          <span>$${invoiceData.gstAmount}</span>
         </div>
         <div class="total-row total-amount">
           <span>Total Amount:</span>
-          <span>$${invoiceData.amount}</span>
+          <span>$${invoiceData.totalAmount}</span>
         </div>
       </div>
 
