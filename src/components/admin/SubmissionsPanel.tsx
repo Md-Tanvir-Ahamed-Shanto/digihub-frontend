@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +21,8 @@ import {
   Send
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+import { format } from 'date-fns';
 
 const SubmissionsPanel = () => {
   const { toast } = useToast();
@@ -30,53 +32,21 @@ const SubmissionsPanel = () => {
   const [selectedSubmission, setSelectedSubmission] = useState(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [replySubject, setReplySubject] = useState('');
+  const [submissions, setSubmissions] = useState([]);
+ 
 
-  const submissions = [
-    {
-      id: 1,
-      name: 'John Smith',
-      email: 'john.smith@email.com',
-      subject: 'Website Development Inquiry',
-      message: 'I need a professional website for my restaurant business. Can you help me with this?',
-      date: '2024-01-20',
-      status: 'New',
-      phone: '+1234567890'
-    },
-    {
-      id: 2,
-      name: 'Sarah Wilson',
-      email: 'sarah.wilson@company.com',
-      subject: 'E-commerce Platform',
-      message: 'Looking for an e-commerce solution for my fashion brand. What packages do you offer?',
-      date: '2024-01-18',
-      status: 'Replied',
-      phone: '+1987654321'
-    },
-    {
-      id: 3,
-      name: 'Mike Johnson',
-      email: 'mike.j@tech.com',
-      subject: 'Mobile App Development',
-      message: 'I have an idea for a mobile app. Can we schedule a consultation?',
-      date: '2024-01-15',
-      status: 'New',
-      phone: '+1122334455'
+
+  const fetchSubmission = async ()=>{
+    try {
+      const response = await axiosInstance.get('/contact');
+      setSubmissions(response.data);
+    } catch (error) {
+      console.log("Error fetching submissions:", error);
     }
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'New':
-        return <Badge className="bg-blue-100 text-blue-800 border-blue-200">{status}</Badge>;
-      case 'Replied':
-        return <Badge className="bg-green-100 text-green-800 border-green-200">{status}</Badge>;
-      case 'Closed':
-        return <Badge variant="secondary">{status}</Badge>;
-      default:
-        return <Badge variant="secondary">{status}</Badge>;
-    }
-  };
-
+  }
+  useEffect(()=>{
+    fetchSubmission();
+  },[])
   const handleReply = (submission: any) => {
     setSelectedSubmission(submission);
     setReplySubject(`Re: ${submission.subject}`);
@@ -84,8 +54,37 @@ const SubmissionsPanel = () => {
     setReplyModalOpen(true);
   };
 
-  const sendReply = () => {
-    if (!replyMessage.trim() || !replySubject.trim()) {
+  console.log("contact ", submissions)
+
+  const sendReply = async (e) => {
+    e.preventDefault();
+    try {
+      if (!replyMessage.trim() || !replySubject.trim()) {
+        toast({
+          title: "Error",
+          description: "Please fill in both subject and message fields.",
+          variant: "destructive"
+        });
+        return;
+      }
+      const response = await axiosInstance.post(`/contact/${selectedSubmission.id}/reply`, {
+        email: selectedSubmission.email,
+        subject: replySubject,
+        message: replyMessage,
+      });
+      if(response.status === 200){
+        toast({
+          title: "Reply Sent",
+          description: `Your reply has been sent to ${selectedSubmission?.email}`,
+        });
+      }
+      setReplyModalOpen(false);
+      setReplyMessage('');
+      setReplySubject('');
+      setSelectedSubmission(null);
+      return;
+    } catch (error) {
+      console.log("Error sending reply:", error);
       toast({
         title: "Error",
         description: "Please fill in both subject and message fields.",
@@ -93,16 +92,7 @@ const SubmissionsPanel = () => {
       });
       return;
     }
-
-    toast({
-      title: "Reply Sent",
-      description: `Your reply has been sent to ${selectedSubmission?.email}`,
-    });
-    
-    setReplyModalOpen(false);
-    setReplyMessage('');
-    setReplySubject('');
-    setSelectedSubmission(null);
+   
   };
 
   const filteredSubmissions = submissions.filter(submission => {
@@ -139,7 +129,7 @@ const SubmissionsPanel = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">New Inquiries</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {submissions.filter(s => s.status === 'New').length}
+                  {submissions.filter(s => s.isReplied === false).length}
                 </p>
               </div>
               <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-green-600" />
@@ -153,7 +143,7 @@ const SubmissionsPanel = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Replied</p>
                 <p className="text-xl sm:text-2xl font-bold text-gray-900">
-                  {submissions.filter(s => s.status === 'Replied').length}
+                  {submissions.filter(s => s.isReplied === true).length}
                 </p>
               </div>
               <Reply className="w-6 h-6 sm:w-8 sm:h-8 text-purple-600" />
@@ -177,18 +167,7 @@ const SubmissionsPanel = () => {
                   className="pl-9 w-full sm:w-64"
                 />
               </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-32">
-                  <Filter className="w-4 h-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="replied">Replied</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
-                </SelectContent>
-              </Select>
+              
             </div>
           </div>
         </CardHeader>
@@ -211,8 +190,18 @@ const SubmissionsPanel = () => {
                     <TableCell className="font-medium">{submission.name}</TableCell>
                     <TableCell className="hidden sm:table-cell">{submission.email}</TableCell>
                     <TableCell className="max-w-xs truncate">{submission.subject}</TableCell>
-                    <TableCell className="hidden md:table-cell">{submission.date}</TableCell>
-                    <TableCell>{getStatusBadge(submission.status)}</TableCell>
+                    <TableCell className="hidden md:table-cell">{format(new Date(submission.createdAt), 'dd MMM yyyy')}</TableCell>
+                    {
+                      submission.isReplied ? (
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-800 border-green-200">Replied</Badge>
+                        </TableCell>
+                      ) : (
+                        <TableCell>
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200">New</Badge>
+                        </TableCell>
+                      )
+                    }
                     <TableCell>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <Dialog>
@@ -236,13 +225,10 @@ const SubmissionsPanel = () => {
                                   <Label>Email</Label>
                                   <p className="font-medium">{submission.email}</p>
                                 </div>
-                                <div>
-                                  <Label>Phone</Label>
-                                  <p className="font-medium">{submission.phone}</p>
-                                </div>
+                               
                                 <div>
                                   <Label>Date</Label>
-                                  <p className="font-medium">{submission.date}</p>
+                                  <p className="font-medium">{format(new Date(submission.createdAt), 'dd MMM yyyy')}</p>
                                 </div>
                                 <div className="sm:col-span-2">
                                   <Label>Subject</Label>

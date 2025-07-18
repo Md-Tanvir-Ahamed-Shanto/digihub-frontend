@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useState } from 'react';
+import axiosInstance from '@/api/axios';
+import { toast } from '@/hooks/use-toast';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -16,10 +18,23 @@ const Contact = () => {
     message: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log('Contact form submitted:', formData);
+    const response = await axiosInstance.post('/contact', formData);
+    if(response.status === 201) {
+      toast({
+        title: 'Success',
+        description: 'Your message has been sent successfully',
+      })
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        subject: '',
+        message: ''
+      });
+    }
+    console.log('Contact form submitted:', response.data);
   };
 
   const contactInfo = [
