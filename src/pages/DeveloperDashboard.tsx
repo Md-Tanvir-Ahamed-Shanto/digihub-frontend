@@ -73,7 +73,6 @@ const PartnerDashboard = () => {
   const [withdrawals, setWithdrawals] = useState([]);
   console.log("withdrawals", withdrawals);
 
-
   const handleLogout = () => {
     logout();
     toast({
@@ -122,23 +121,41 @@ const PartnerDashboard = () => {
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
-  // Dummy data
+  const earningsThisMonth = projects.reduce((total, project) => {
+    const projectDate = new Date(project.createdAt);
+    const currentDate = new Date();
+    if (
+      projectDate.getFullYear() === currentDate.getFullYear() &&
+      projectDate.getMonth() === currentDate.getMonth()
+    ) {
+      return total + parseInt(project.partnerCost);
+    }
+    return total;
+  }, 0);
+
+  const pendingWithdrawals = withdrawals.reduce((total, withdrawal) => {
+    if (withdrawal.status === "PENDING") {
+      return total + parseInt(withdrawal.amount);
+    }
+    return total;
+  }, 0);
+
   const statsData = [
     {
       title: "Total Projects",
-      value: "8",
+      value: projects.length,
       icon: Building2,
       color: "text-blue-600",
     },
     {
       title: "Earnings This Month",
-      value: "$2,400",
+      value: earningsThisMonth,
       icon: DollarSign,
       color: "text-green-600",
     },
     {
       title: "Pending Withdrawals",
-      value: "$600",
+      value: pendingWithdrawals,
       icon: Wallet,
       color: "text-purple-600",
     },
@@ -186,8 +203,6 @@ const PartnerDashboard = () => {
       status: "Pending",
     },
   ];
-
-
 
   const notifications = [
     {
@@ -388,10 +403,10 @@ const PartnerDashboard = () => {
               >
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {project.briefSnippet}
+                    {project.description}
                   </p>
                   <p className="text-xs text-gray-500">
-                    {project.submissionDate}
+                    {format(new Date(project.createdAt), "MMMM d, yyyy")}
                   </p>
                 </div>
                 <div className="ml-4">{getStatusBadge(project.status)}</div>
@@ -837,10 +852,12 @@ const PartnerDashboard = () => {
                     </TableCell>
                     <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
                     <TableCell className="hidden sm:table-cell">
-                      {format(withdrawal.requestedAt, 'yyyy-MM-dd')}
+                      {format(withdrawal.requestedAt, "yyyy-MM-dd")}
                     </TableCell>
                     <TableCell className="hidden md:table-cell">
-                      {withdrawal.processedAt ? format(withdrawal.processedAt, 'yyyy-MM-dd') : "N/A"}
+                      {withdrawal.processedAt
+                        ? format(withdrawal.processedAt, "yyyy-MM-dd")
+                        : "N/A"}
                     </TableCell>
                   </TableRow>
                 ))}
