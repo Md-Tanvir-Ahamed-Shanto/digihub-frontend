@@ -680,8 +680,6 @@ console.log("all projects", projects)
         return <WebsiteContentManager />;
       case 'submissions':
         return <SubmissionsPanel />;
-      case 'pages':
-        return <PagesManager onViewPage={handleViewPage} />;
       case 'settings':
         return <AdminSettings />;
       case 'feedback':

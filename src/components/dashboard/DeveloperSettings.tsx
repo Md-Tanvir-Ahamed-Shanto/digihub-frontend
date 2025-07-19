@@ -1,126 +1,191 @@
-
-import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import { Mail, Lock } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Settings,
+  Mail,
+  Shield,
+  Database,
+  Save,
+  TestTube,
+  CheckCircle,
+  AlertCircle,
+  Download,
+  Globe,
+  Upload,
+  Image,
+} from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import axiosInstance from "@/api/axios";
 
 const DeveloperSettings = () => {
-  const [email, setEmail] = useState('developer@example.com');
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  
   const { toast } = useToast();
+  const { user } = useAuth();
 
-  const handleEmailChange = () => {
-    toast({
-      title: "Email Updated",
-      description: "Your email address has been updated successfully."
-    });
-  };
+  const [developerCredentials, setDeveloperCredentials] = useState({
+    email: user?.email,
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
 
-  const handlePasswordChange = () => {
-    if (newPassword !== confirmPassword) {
+  const handleUpdateCredentials = async () => {
+    if (!developerCredentials.currentPassword || !developerCredentials.newPassword) {
       toast({
-        title: "Password Error",
-        description: "New passwords do not match.",
-        variant: "destructive"
+        title: "Error",
+        description: "Please fill in all password fields.",
+        variant: "destructive",
       });
       return;
     }
-    
-    toast({
-      title: "Password Updated",
-      description: "Your password has been changed successfully."
+
+    if (developerCredentials.newPassword !== developerCredentials.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const response = await axiosInstance.post("/partner/update-credentials", {
+      email: developerCredentials.email,
+      currentPassword: developerCredentials.currentPassword,
+      password: developerCredentials.newPassword,
     });
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+
+    if (response.status === 200) {
+      toast({
+        title: "Credentials Updated",
+        description: `${response.data.message}`,
+      });
+      setDeveloperCredentials((prev) => ({
+        ...prev,
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      }));
+      return;
+    } else {
+      toast({
+        title: "Error",
+        description: `${response.data.message}`,
+      });
+      return;
+    }
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+          System Settings
+        </h2>
+      </div>
 
-      {/* Account Settings */}
-      <Card className="border-brand-gray-200">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-brand-primary">
-            <Mail className="w-5 h-5" />
-            Account Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email Address</Label>
-              <div className="flex gap-2 mt-1">
+      <Tabs defaultValue="credentials" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsTrigger value="credentials" className="text-xs sm:text-sm">
+            Partner Account
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="credentials" className="space-y-4 sm:space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-green-600" />
+                Partner Account Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="developer-email">Developer Email</Label>
                 <Input
-                  id="email"
+                  id="developer-email"
                   type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1"
+                  value={developerCredentials.email}
+                  onChange={(e) =>
+                    setDeveloperCredentials((prev) => ({
+                      ...prev,
+                      email: e.target.value,
+                    }))
+                  }
+                  placeholder="developer@DIGIHUB AUST.com"
                 />
-                <Button 
-                  onClick={handleEmailChange}
-                  className="bg-brand-primary hover:bg-brand-primary/90"
-                >
-                  Update
-                </Button>
               </div>
-            </div>
-          </div>
 
-          <Separator />
+              <div className="border-t pt-4">
+                <h4 className="font-medium text-gray-900 mb-3">
+                  Change Password
+                </h4>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="current-password">Current Password *</Label>
+                    <Input
+                      id="current-password"
+                      type="password"
+                      value={developerCredentials.currentPassword}
+                      onChange={(e) =>
+                        setDeveloperCredentials((prev) => ({
+                          ...prev,
+                          currentPassword: e.target.value,
+                        }))
+                      }
+                      placeholder="Enter current password"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="new-password">New Password *</Label>
+                      <Input
+                        id="new-password"
+                        type="password"
+                        value={developerCredentials.newPassword}
+                        onChange={(e) =>
+                          setDeveloperCredentials((prev) => ({
+                            ...prev,
+                            newPassword: e.target.value,
+                          }))
+                        }
+                        placeholder="Enter new password"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirm-password">
+                        Confirm New Password *
+                      </Label>
+                      <Input
+                        id="confirm-password"
+                        type="password"
+                        value={developerCredentials.confirmPassword}
+                        onChange={(e) =>
+                          setDeveloperCredentials((prev) => ({
+                            ...prev,
+                            confirmPassword: e.target.value,
+                          }))
+                        }
+                        placeholder="Confirm new password"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center gap-2">
-              <Lock className="w-5 h-5" />
-              Change Password
-            </h3>
-            <div className="grid gap-4">
-              <div>
-                <Label htmlFor="currentPassword">Current Password</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="newPassword">New Password</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">Confirm New Password</Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-              <Button 
-                onClick={handlePasswordChange}
-                className="bg-brand-primary hover:bg-brand-primary/90 w-fit"
-              >
-                Change Password
+              <Button onClick={handleUpdateCredentials} className="w-full">
+                <Save className="w-4 h-4 mr-2" />
+                Update Credentials
               </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
