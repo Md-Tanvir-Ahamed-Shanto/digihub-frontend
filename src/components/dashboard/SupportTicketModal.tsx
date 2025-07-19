@@ -194,7 +194,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                     onChange={(e) => setReply(e.target.value)}
                     placeholder="Type your reply here..."
                     rows={3}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || user.role === 'admin'}
                   />
                     
                   </div>
@@ -202,7 +202,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                   <Button 
                     onClick={handleReply}
                     className="bg-brand-primary hover:bg-brand-primary/90"
-                    disabled={!reply.trim() || isSubmitting}
+                    disabled={!reply.trim() || isSubmitting || user.role === 'admin'}
                   >
                     {isSubmitting ? 'Sending...' : 'Send Reply'}
                   </Button>
