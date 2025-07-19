@@ -239,9 +239,9 @@ const PartnerDashboard = () => {
             {status}
           </Badge>
         );
-      case "Completed":
+      case "COMPLETED":
         return (
-          <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+          <Badge variant="secondary" className="bg-blue-400 text-gray-800">
             {status}
           </Badge>
         );
@@ -260,6 +260,12 @@ const PartnerDashboard = () => {
       case "PAID":
         return (
           <Badge variant="default" className="bg-green-600 text-white">
+            {status}
+          </Badge>
+        );
+      case "CANCELED":
+        return (
+          <Badge variant="destructive" className="bg-red-600 text-white">
             {status}
           </Badge>
         );
