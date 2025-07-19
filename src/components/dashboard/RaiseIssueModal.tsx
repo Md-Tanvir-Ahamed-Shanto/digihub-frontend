@@ -7,32 +7,69 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import axiosInstance from '@/api/axios';
 
-interface RaiseIssueModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+interface Project {
+  title: string;
+  id: string;
+  name: string;
 }
 
-const RaiseIssueModal = ({ isOpen, onClose }: RaiseIssueModalProps) => {
+interface RaiseIssueModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: any) => Promise<void>;
+  projects: Project[];
+}
+
+const RaiseIssueModal = ({ open, onClose, onSubmit, projects }: RaiseIssueModalProps) => {
   const [subject, setSubject] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('');
+  const [projectId, setProjectId] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Issue Submitted",
-      description: "Your support ticket has been created successfully. We'll get back to you soon."
-    });
-    setSubject('');
-    setDescription('');
-    setPriority('');
-    onClose();
-  };
+    if (!subject || !description || !priority || !projectId) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
 
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        subject,
+        description,
+        priority: priority.toUpperCase(),
+        projectId: projectId,
+        clientId: user?.id
+      });
+      setSubject('');
+      setDescription('');
+      setPriority('');
+      setProjectId('');
+    } catch (error) {
+      console.error('Error submitting issue:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit issue. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+console.log("projectId", projectId)
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Raise Support Issue</DialogTitle>
@@ -42,6 +79,22 @@ const RaiseIssueModal = ({ isOpen, onClose }: RaiseIssueModalProps) => {
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="project">Project</Label>
+            <Select value={projectId} onValueChange={setProjectId} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select project" />
+              </SelectTrigger>
+              <SelectContent>
+                {projects.map((project) => (
+                  <SelectItem key={project.id} value={project.id}>
+                    {project.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <div>
             <Label htmlFor="subject">Subject</Label>
             <Input
@@ -83,8 +136,12 @@ const RaiseIssueModal = ({ isOpen, onClose }: RaiseIssueModalProps) => {
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90">
-              Submit Issue
+            <Button 
+              type="submit" 
+              className="bg-brand-primary hover:bg-brand-primary/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Issue'}
             </Button>
           </div>
         </form>

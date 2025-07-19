@@ -69,6 +69,8 @@ const ClientDashboard = () => {
   const [raiseIssueOpen, setRaiseIssueOpen] = useState(false);
   const [supportTicketOpen, setSupportTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
   const [offer, setOffer] = useState([]);
   const [projects, setProjects] = useState([]);
   // const [milestones, setMilestones] = useState([]);
@@ -124,10 +126,72 @@ const ClientDashboard = () => {
     (item) => item.status === "PENDING"
   );
 console.log("project", projects)
+
+  const fetchSupportTickets = async () => {
+    try {
+      setIsLoadingTickets(true);
+      const response = await axiosInstance.get(`/support/client/${user?.id}/issues`);
+      setSupportTickets(response.data.data);
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch support tickets',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  };
+
+  const handleCreateIssue = async (issueData) => {
+    try {
+      await axiosInstance.post('/support/issues', issueData);
+      toast({
+        title: 'Success',
+        description: 'Support ticket created successfully',
+      });
+      fetchSupportTickets();
+      setRaiseIssueOpen(false);
+    } catch (error) {
+      console.error('Error creating support ticket:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create support ticket',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleTicketReply = async (ticketId, message) => {
+    try {
+      await axiosInstance.post(`/support/client/issues/${ticketId}/reply`, { message });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully',
+      });
+      fetchSupportTickets();
+      setSupportTicketOpen(false);
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send reply',
+        variant: 'destructive'
+      });
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
     fetchOffer();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'support') {
+      fetchSupportTickets();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (projects.length > 0) {
@@ -293,29 +357,6 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
     };
   };
 console.log("user", user)
-  const supportTickets = [
-    {
-      id: 1,
-      subject: "Delay in second milestone delivery",
-      status: "Responded",
-      date: "2025-07-05",
-      priority: "High",
-    },
-    {
-      id: 2,
-      subject: "Login issue on dashboard",
-      status: "Closed",
-      date: "2025-07-03",
-      priority: "Medium",
-    },
-    {
-      id: 3,
-      subject: "Feature request for analytics",
-      status: "Open",
-      date: "2025-07-06",
-      priority: "Low",
-    },
-  ];
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
@@ -434,17 +475,11 @@ console.log("user", user)
     setProjectDetailsOpen(true);
   };
 
-  // const handleDownloadInvoice = (invoiceId: number) => {
-  //   toast({
-  //     title: "Download Started",
-  //     description: "Your invoice is being downloaded...",
-  //   });
-  // };
-
   const handleViewTicket = (ticket: any) => {
     setSelectedTicket(ticket);
     setSupportTicketOpen(true);
   };
+
 
   const renderContent = () => {
     switch (activeTab) {
@@ -930,60 +965,73 @@ console.log("user", user)
 
             <Card className="border-brand-gray-200">
               <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-brand-gray-200">
-                      <TableHead>Subject</TableHead>
-                      <TableHead>Priority</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {supportTickets.map((ticket) => (
-                      <TableRow
-                        key={ticket.id}
-                        className="border-brand-gray-200"
-                      >
-                        <TableCell>
-                          <p className="font-medium text-gray-900">
-                            {ticket.subject}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant="secondary"
-                            className={
-                              ticket.priority === "High"
-                                ? "bg-red-100 text-red-800"
-                                : ticket.priority === "Medium"
-                                ? "bg-yellow-100 text-yellow-800"
-                                : "bg-gray-100 text-gray-800"
-                            }
-                          >
-                            {ticket.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{getStatusBadge(ticket.status)}</TableCell>
-                        <TableCell className="text-gray-600">
-                          {ticket.date}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
-                            onClick={() => handleViewTicket(ticket)}
-                          >
-                            <Eye className="w-4 h-4 mr-1" />
-                            View
-                          </Button>
-                        </TableCell>
+                {isLoadingTickets ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+                  </div>
+                ) : supportTickets?.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No support tickets found
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-brand-gray-200">
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {supportTickets?.map((ticket) => (
+                        <TableRow
+                          key={ticket.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell>
+                            <p className="font-medium text-gray-900">
+                              {ticket.subject}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {ticket.description}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className={
+                                ticket.priority === "HIGH"
+                                  ? "bg-red-100 text-red-800"
+                                  : ticket.priority === "MEDIUM"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }
+                            >
+                              {ticket.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                          <TableCell className="text-gray-600">
+                            {format(new Date(ticket.createdAt), "MMM dd, yyyy")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleViewTicket(ticket)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -1131,13 +1179,16 @@ console.log("user", user)
         onClose={() => setManageSubscriptionOpen(false)}
       />
       <RaiseIssueModal
-        isOpen={raiseIssueOpen}
+        open={raiseIssueOpen}
         onClose={() => setRaiseIssueOpen(false)}
+        onSubmit={handleCreateIssue}
+        projects={projects}
       />
       <SupportTicketModal
-        isOpen={supportTicketOpen}
+        open={supportTicketOpen}
         onClose={() => setSupportTicketOpen(false)}
         ticket={selectedTicket}
+        onReply={handleTicketReply}
       />
     </div>
   );
