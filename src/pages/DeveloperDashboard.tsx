@@ -38,6 +38,7 @@ import {
   Wallet,
   FolderOpen,
   FileText,
+  Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -50,6 +51,7 @@ import DeveloperSettings from "@/components/dashboard/DeveloperSettings";
 import axiosInstance from "@/api/axios";
 import { format } from "date-fns";
 import LeadViewModal from "@/components/dashboard/LeadViewModel";
+import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
 
 const PartnerDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -63,7 +65,7 @@ const PartnerDashboard = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedLead, setSelectedLead] = useState(null);
   const [leadViewOpen, setLeadViewOpen] = useState(false);
-  const { logout } = useAuth();
+  const { logout , user} = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [leads, setLeads] = useState([]);
@@ -71,7 +73,11 @@ const PartnerDashboard = () => {
   const [isLoadingMilestones, setIsLoadingMilestones] = useState(false);
   const [projects, setProjects] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
-  console.log("withdrawals", withdrawals);
+  const [supportTicketOpen, setSupportTicketOpen] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [isLoadingTickets, setIsLoadingTickets] = useState(true);
+  console.log("supportTickets", supportTickets);
 
   const handleLogout = () => {
     logout();
@@ -118,6 +124,7 @@ const PartnerDashboard = () => {
     { id: "milestones", label: "Milestones", icon: CheckCircle },
     { id: "earnings", label: "Earnings", icon: TrendingUp },
     { id: "withdraw", label: "Withdraw", icon: DollarSign },
+    { id: "support", label: "Support", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -304,6 +311,42 @@ const PartnerDashboard = () => {
     setSelectedProject(project);
     setSubmitOfferOpen(true);
   };
+  
+  const fetchSupportTickets = async () => {
+    try {
+      setIsLoadingTickets(true);
+      const response = await axiosInstance.get(`/support/partner/${user?.id}/issues`);
+      setSupportTickets(response.data.data);
+    } catch (error) {
+      console.error('Error fetching support tickets:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch support tickets',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoadingTickets(false);
+    }
+  };
+
+  const handleTicketReply = async (ticketId, message) => {
+    try {
+      await axiosInstance.post(`/support/partner/issues/${ticketId}/reply`, { message });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully',
+      });
+      fetchSupportTickets();
+      setSupportTicketOpen(false);
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to send reply',
+        variant: 'destructive'
+      });
+    }
+  };
 
   const fetchMilestones = async () => {
     try {
@@ -345,6 +388,12 @@ const PartnerDashboard = () => {
     fetchMilestones();
   };
 
+ useEffect(() => {
+    if (activeTab === 'support') {
+      fetchSupportTickets();
+    }
+  }, [activeTab]);
+
   useEffect(() => {
     if (projects.length > 0) {
       fetchMilestones();
@@ -356,6 +405,13 @@ const PartnerDashboard = () => {
   useEffect(() => {
     fetchProjects();
   }, []);
+
+    const handleViewTicket = (ticket: any) => {
+    setSelectedTicket(ticket);
+    setSupportTicketOpen(true);
+  };
+
+
 
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -929,6 +985,95 @@ const PartnerDashboard = () => {
         return renderWithdrawals();
       case "notifications":
         return renderNotifications();
+        
+      case "support":
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <h2 className="text-2xl font-bold text-gray-900">Support</h2>
+              {/* <Button
+                className="bg-brand-primary hover:bg-brand-primary/90"
+                onClick={() => setRaiseIssueOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Raise Issue
+              </Button> */}
+            </div>
+
+            <Card className="border-brand-gray-200">
+              <CardContent className="p-0">
+                {isLoadingTickets ? (
+                  <div className="flex justify-center items-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-gray-500" />
+                  </div>
+                ) : supportTickets?.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500">
+                    No support tickets found
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-brand-gray-200">
+                        <TableHead>Subject</TableHead>
+                        <TableHead>Priority</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {supportTickets?.map((ticket) => (
+                        <TableRow
+                          key={ticket.id}
+                          className="border-brand-gray-200"
+                        >
+                          <TableCell>
+                            <p className="font-medium text-gray-900">
+                              {ticket.subject}
+                            </p>
+                            <p className="text-sm text-gray-600">
+                              {ticket.description}
+                            </p>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="secondary"
+                              className={
+                                ticket.priority === "HIGH"
+                                  ? "bg-red-100 text-red-800"
+                                  : ticket.priority === "MEDIUM"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }
+                            >
+                              {ticket.priority}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>{getStatusBadge(ticket.status)}</TableCell>
+                          <TableCell className="text-gray-600">
+                            {format(new Date(ticket.createdAt), "MMM dd, yyyy")}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="border-brand-primary text-brand-primary hover:bg-brand-primary hover:text-white"
+                              onClick={() => handleViewTicket(ticket)}
+                            >
+                              <Eye className="w-4 h-4 mr-1" />
+                              View
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        );
+
       case "settings":
         return <DeveloperSettings />;
       default:
@@ -1074,6 +1219,12 @@ const PartnerDashboard = () => {
         isOpen={addMilestoneOpen}
         onClose={() => setAddMilestoneOpen(false)}
         onSuccess={handleMilestoneAdded}
+      />
+       <SupportTicketModal
+        open={supportTicketOpen}
+        onClose={() => setSupportTicketOpen(false)}
+        ticket={selectedTicket}
+        onReply={handleTicketReply}
       />
       <WithdrawalRequestModal
         isOpen={withdrawalRequestOpen}

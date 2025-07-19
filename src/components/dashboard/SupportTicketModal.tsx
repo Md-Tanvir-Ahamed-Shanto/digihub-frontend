@@ -7,13 +7,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+import axiosInstance from '@/api/axios';
 
 interface SupportResponse {
+  userType: string;
   id: number;
   message: string;
   createdAt: string;
-  respondentType: 'CLIENT' | 'PARTNER' | 'ADMIN';
-  respondentName: string;
+  userName: string;
 }
 
 interface SupportTicket {
@@ -39,6 +41,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
   const [reply, setReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   if (!ticket) return null;
 
@@ -65,6 +68,32 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
       });
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = async () => {
+    try {
+      if(user.role === 'partner'){
+       const res= await axiosInstance.put(`/support/partner/issues/${ticket.id}/close`);
+       if(res.status === 200){
+        onClose();
+      }
+      }else if(user.role === 'admin'){
+        const res= await axiosInstance.put(`/support/admin/issues/${ticket.id}/close`);
+        if(res.status === 200){
+        onClose();
+      }
+      }
+      
+    } catch (error) {
+      console.error('Error closing ticket:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to close ticket. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      onClose();
     }
   };
 
@@ -137,13 +166,13 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                       <div key={response.id} className="p-4 bg-gray-50 rounded-lg">
                         <div className="flex justify-between items-start mb-2">
                           <div>
-                            <p className="font-medium">{response.respondentName}</p>
+                            {/* <p className="font-medium">{user.role == response.userType}</p> */}
                             <p className="text-sm text-gray-600">
                               {format(new Date(response.createdAt), 'MMM dd, yyyy HH:mm')}
                             </p>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            {response.respondentType}
+                            {user.role.toUpperCase() == response.userType.toUpperCase() ? user.name : response.userType}
                           </Badge>
                         </div>
                         <p className="text-gray-900 whitespace-pre-wrap">{response.message}</p>
@@ -167,6 +196,9 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                     rows={3}
                     disabled={isSubmitting}
                   />
+                    
+                  </div>
+                  <div className='flex mt-5 justify-between'>
                   <Button 
                     onClick={handleReply}
                     className="bg-brand-primary hover:bg-brand-primary/90"
@@ -174,7 +206,15 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                   >
                     {isSubmitting ? 'Sending...' : 'Send Reply'}
                   </Button>
+                  <Button 
+                    onClick={handleClose}
+                    className="bg-red-400 hover:bg-red-500"
+                    disabled={user.role === 'client'}
+                  >
+                    Close
+                  </Button>
                 </div>
+                
               </CardContent>
             </Card>
           )}
