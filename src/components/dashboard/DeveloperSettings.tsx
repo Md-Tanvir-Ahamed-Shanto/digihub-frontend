@@ -36,7 +36,10 @@ const DeveloperSettings = () => {
   });
 
   const handleUpdateCredentials = async () => {
-    if (!developerCredentials.currentPassword || !developerCredentials.newPassword) {
+    if (
+      !developerCredentials.currentPassword ||
+      !developerCredentials.newPassword
+    ) {
       toast({
         title: "Error",
         description: "Please fill in all password fields.",
@@ -45,7 +48,9 @@ const DeveloperSettings = () => {
       return;
     }
 
-    if (developerCredentials.newPassword !== developerCredentials.confirmPassword) {
+    if (
+      developerCredentials.newPassword !== developerCredentials.confirmPassword
+    ) {
       toast({
         title: "Error",
         description: "New passwords do not match.",
@@ -54,30 +59,54 @@ const DeveloperSettings = () => {
       return;
     }
 
-    const response = await axiosInstance.post("/partner/update-credentials", {
-      email: developerCredentials.email,
-      currentPassword: developerCredentials.currentPassword,
-      password: developerCredentials.newPassword,
-    });
+    try {
+      const response = await axiosInstance.post("/partner/update-credentials", {
+        email: developerCredentials.email,
+        currentPassword: developerCredentials.currentPassword,
+        password: developerCredentials.newPassword,
+      });
 
-    if (response.status === 200) {
-      toast({
-        title: "Credentials Updated",
-        description: `${response.data.message}`,
-      });
-      setDeveloperCredentials((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-      return;
-    } else {
-      toast({
-        title: "Error",
-        description: `${response.data.message}`,
-      });
-      return;
+      // Check for successful response
+      if (response.status === 200) {
+        toast({
+          title: "Credentials Updated",
+          description: `${response.data.message}`,
+        });
+        // Clear password fields on successful update
+        setDeveloperCredentials((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+      }
+    } catch (error) {
+      // Handle API errors
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        toast({
+          title: "Error",
+          description:
+            error.response.data.message ||
+            "An error occurred while updating credentials.",
+          variant: "destructive",
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        toast({
+          title: "Network Error",
+          description:
+            "No response from server. Please check your internet connection.",
+          variant: "destructive",
+        });
+      } else {
+        // Something else happened while setting up the request
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

@@ -53,31 +53,54 @@ const AdminSettings = () => {
       });
       return;
     }
-
-    const response = await axiosInstance.post("/admin/update-credentials", {
-      email: adminCredentials.email,
-      currentPassword: adminCredentials.currentPassword,
-      password: adminCredentials.newPassword,
-    });
-
-    if (response.status === 200) {
-      toast({
-        title: "Credentials Updated",
-        description: `${response.data.message}`,
+    try {
+      const response = await axiosInstance.post("/admin/update-credentials", {
+        email: adminCredentials.email,
+        currentPassword: adminCredentials.currentPassword,
+        password: adminCredentials.newPassword,
       });
-      setAdminCredentials((prev) => ({
-        ...prev,
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      }));
-      return;
-    } else {
-      toast({
-        title: "Error",
-        description: `${response.data.message}`,
-      });
-      return;
+
+      // Check for successful response
+      if (response.status === 200) {
+        toast({
+          title: "Credentials Updated",
+          description: `${response.data.message}`,
+        });
+        // Clear password fields on successful update
+        setAdminCredentials((prev) => ({
+          ...prev,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        }));
+      }
+    } catch (error) {
+      // Handle API errors
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        toast({
+          title: "Error",
+          description:
+            error.response.data.message ||
+            "An error occurred while updating credentials.",
+          variant: "destructive",
+        });
+      } else if (error.request) {
+        // Request was made but no response received
+        toast({
+          title: "Network Error",
+          description:
+            "No response from server. Please check your internet connection.",
+          variant: "destructive",
+        });
+      } else {
+        // Something else happened while setting up the request
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
