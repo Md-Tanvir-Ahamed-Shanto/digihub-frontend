@@ -807,6 +807,7 @@ console.log("all projects", projects)
         open={viewPartnerOpen}
         onOpenChange={setViewPartnerOpen}
         partner={selectedPartner}
+        fetchPartners={fetchPartners}
       />
       <AddPartnerModal 
         open={addPartnerOpen}

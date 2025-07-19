@@ -74,6 +74,11 @@ const WithdrawalRequestModal = ({ isOpen, onClose, fetchWithdrawals, availableBa
                 title: "Withdrawal Requested",
                 description: "Your withdrawal request has been submitted.",
             });
+            setFormData({
+                amount: '',
+                type: '',
+                note: ''
+            });
             onClose();
             fetchWithdrawals();
         } else {
