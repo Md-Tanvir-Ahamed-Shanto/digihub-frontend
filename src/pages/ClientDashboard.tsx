@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,8 +50,91 @@ import ManageSubscriptionModal from "@/components/dashboard/ManageSubscriptionMo
 import RaiseIssueModal from "@/components/dashboard/RaiseIssueModal";
 import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
 import ClientSettings from "@/components/dashboard/ClientSettings";
-import { format } from "date-fns";
 import axiosInstance from "@/api/axios";
+import axios from "axios";
+import { format } from 'date-fns';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+
+// --- Stripe Initialization (Load outside component for performance) ---
+// Ensure NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is correctly set in your .env.local
+// const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+//     ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+//     : Promise.reject(new Error("Stripe Publishable Key is not set."));
+
+// const stripePromise = loadStripe("sdfsdf");
+const API_BASE_URL = 'http://localhost:3000/api';
+
+// --- PaymentForm Component (handles Stripe PaymentElement) ---
+const CheckoutForm = ({ clientSecret, onPaymentSuccess, onPaymentError, paymentStatus, setPaymentStatus }) => {
+    const stripe = useStripe();
+    const elements = useElements();
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        if (!stripe || !elements) {
+            // Stripe.js has not yet loaded.
+            return;
+        }
+
+        setPaymentStatus('processing');
+        onPaymentError(null); // Clear previous errors
+
+        const { error: submitError } = await elements.submit();
+        if (submitError) {
+            setPaymentStatus('error');
+            onPaymentError(submitError.message);
+            return;
+        }
+
+        try {
+            const { paymentIntent, error } = await stripe.confirmPayment({
+                elements,
+                clientSecret,
+                confirmParams: {
+                    return_url: `${window.location.origin}/dashboard/client/profile`, // Adjust this URL as needed post-payment
+                },
+                redirect: 'if_required' // Crucial for handling 3D Secure etc.
+            });
+
+            if (error) {
+                setPaymentStatus('error');
+                onPaymentError(error.message);
+            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+                setPaymentStatus('success');
+                onPaymentSuccess(paymentIntent);
+            } else {
+                setPaymentStatus('idle');
+                onPaymentError(`Unexpected payment intent status: ${paymentIntent?.status}`);
+            }
+        } catch (error) {
+            console.error("Stripe confirmPayment error:", error);
+            setPaymentStatus('error');
+            onPaymentError(error.message);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <PaymentElement />
+            <button
+                type="submit"
+                className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-200
+                           ${!stripe || paymentStatus === 'processing'
+                             ? 'bg-blue-400 cursor-not-allowed'
+                             : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                disabled={!stripe || paymentStatus === 'processing'}
+            >
+                {paymentStatus === 'processing' ? 'Processing...' : 'Pay Now'}
+            </button>
+            {paymentStatus === 'error' && <p className="text-red-500 text-sm mt-2">{paymentStatus.message}</p>}
+        </form>
+    );
+};
+
+
+
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -65,7 +148,6 @@ const ClientDashboard = () => {
     amount: "",
     description: "",
   });
-  const [manageSubscriptionOpen, setManageSubscriptionOpen] = useState(false);
   const [raiseIssueOpen, setRaiseIssueOpen] = useState(false);
   const [supportTicketOpen, setSupportTicketOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
@@ -78,6 +160,127 @@ const ClientDashboard = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+ const [subscription, setSubscription] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [isManageSubscriptionOpen, setManageSubscriptionOpen] = useState(false); // Controls modal/dialog visibility
+    const [clientSecret, setClientSecret] = useState(null);
+    const [paymentRequestError, setPaymentRequestError] = useState(null);
+    const [paymentStatus, setPaymentStatus] = useState('idle'); // idle | processing | success | error
+
+        const getStatusText = (status) => {
+        switch (status) {
+            case 'COMPLETED': return 'Paid';
+            case 'ACTIVE': return 'Active';
+            case 'PENDING': return 'Pending';
+            case 'FAILED': return 'Failed';
+            case 'INACTIVE': return 'Inactive';
+            case 'CANCELLED': return 'Cancelled';
+            case 'EXPIRED': return 'Expired';
+            case 'No Subscription': return 'No Subscription';
+            default: return status;
+        }
+    };
+
+    const fetchSubscriptionData = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const token = localStorage.getItem('token'); // Get your auth token
+            const response = await axios.get(`${API_BASE_URL}/subscriptions/my`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setSubscription(response.data);
+            setLoading(false);
+        } catch (err) {
+            setError(err);
+            setLoading(false);
+            if (err.response && err.response.status === 404) {
+                setSubscription(null); // Explicitly set to null if no subscription found
+            } else {
+                console.error("Error fetching subscription:", err.response?.data?.message || err.message);
+                alert("Error fetching subscription: " + (err.response?.data?.message || "Failed to load subscription details."));
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchSubscriptionData();
+    }, [fetchSubscriptionData]);
+
+
+    // Function to initiate Stripe Payment Intent creation
+    const initiatePayment = async () => {
+        setPaymentStatus('processing');
+        setPaymentRequestError(null);
+        try {
+            const token = localStorage.getItem('token');
+            // If client has no subscription, create a temporary one (if your backend allows)
+            // Or ensure they've selected a plan first before calling this.
+            // For now, assuming if subscription is null, we implicitly assume they want to buy the default $75 plan
+            // The backend's create-subscription-payment-intent needs the subscription ID.
+            // If it's a new subscription, you might need an admin route or a different client route to *create* the subscription first,
+            // then proceed to pay.
+            // For simplicity, this assumes the subscription record already exists (even if PENDING/INACTIVE).
+            // If `subscription` is null here, it means `getMyMaintenanceSubscription` returned 404.
+            // In a real app, you might route them to a "choose plan" page.
+            // For this flow, we will assume an initial subscription record is created by admin or on signup.
+            // If subscription is null, alert user to contact support or select a plan first.
+            if (!subscription || !subscription.id) {
+                alert("Please contact support to initiate your subscription or select a plan.");
+                setPaymentStatus('idle');
+                return;
+            }
+
+            const response = await axios.post(
+                `${API_BASE_URL}/payments/create-subscription-payment-intent`,
+                { maintenanceSubscriptionId: subscription.id },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setClientSecret(response.data.clientSecret);
+            setPaymentStatus('idle'); // Ready for client-side payment
+        } catch (err) {
+            console.error("Error initiating payment:", err);
+            setPaymentStatus('error');
+            setPaymentRequestError(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
+            alert("Payment Initiation Failed: " + (err.response?.data?.message || "Could not prepare payment. Please try again."));
+        }
+    };
+
+    const handlePaymentSuccess = (paymentIntent) => {
+        console.log("Payment successful:", paymentIntent);
+        fetchSubscriptionData(); // Re-fetch to update UI after successful payment (webhook will update DB)
+        setClientSecret(null); // Clear client secret
+        alert("Payment Successful! Your subscription has been updated.");
+        setTimeout(() => setManageSubscriptionOpen(false), 1000); // Close modal after delay
+    };
+
+    const handlePaymentError = (errorMessage) => {
+        console.error("Payment failed:", errorMessage);
+        // Error message already displayed by CheckoutForm
+    };
+
+    if (error && error.response && error.response.status !== 404) {
+        return (
+            <div className="text-center p-8 text-red-600">
+                <p className="mb-4">Error: {error.response?.data?.message || "Failed to load subscription data."}</p>
+                <button
+                    onClick={fetchSubscriptionData}
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                >
+                    Retry
+                </button>
+            </div>
+        );
+    }
+
+    const hasActiveSubscription = subscription && subscription.status === 'ACTIVE';
+    const isPendingOrInactive = subscription && (subscription.status === 'PENDING' || subscription.status === 'INACTIVE' || subscription.status === 'EXPIRED');
+    const noSubscription = !subscription;
+
+
+
+
 
   const handleLogout = () => {
     logout();
@@ -873,80 +1076,201 @@ console.log("user", user)
 
       case "maintenance":
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-900">
-              Maintenance Subscription
-            </h2>
-            <Card className="border-brand-gray-200">
-              <CardHeader>
-                <CardTitle className="text-brand-primary">
-                  Monthly Maintenance Plan
-                </CardTitle>
-                <CardDescription>
-                  $75/month – includes 24/7 uptime monitoring, backups, and
-                  minor updates
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <p className="font-medium text-gray-900">Current Status</p>
-                    <p className="text-sm text-gray-600">
-                      Active until August 15, 2025
-                    </p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">Active</Badge>
-                </div>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="font-medium">Auto-renewal</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setManageSubscriptionOpen(true)}
-                    >
-                      Manage
-                    </Button>
-                  </div>
-                  <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <span className="font-medium">Payment Method</span>
-                    <span className="text-sm text-gray-600">**** 4242</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+        //     <div className="p-4 md:p-8 max-w-4xl mx-auto">
+        //     <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+        //         Maintenance Subscription
+        //     </h2>
 
-            {/* Payment History */}
-            <Card className="border-brand-gray-200">
-              <CardHeader>
-                <CardTitle>Payment History</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-brand-gray-200">
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Receipt</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow className="border-brand-gray-200">
-                      <TableCell>2025-07-01</TableCell>
-                      <TableCell>$75.00</TableCell>
-                      <TableCell>{getStatusBadge("Paid")}</TableCell>
-                      <TableCell className="text-right">
-                        <Button variant="ghost" size="sm">
-                          <Download className="w-4 h-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </div>
+        //     <div className="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
+        //         <h3 className="text-xl font-bold text-blue-600 mb-3">
+        //             Monthly Maintenance Plan
+        //         </h3>
+        //         <p className="text-gray-600 mb-5">
+        //             ${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month – includes 24/7 uptime monitoring, backups, and
+        //             minor updates
+        //         </p>
+
+        //         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 border-b pb-4">
+        //             <div>
+        //                 <p className="font-semibold text-gray-700">Current Status</p>
+        //                 {hasActiveSubscription && (
+        //                     <p className="text-sm text-gray-500 mt-1">
+        //                         Active until {subscription.nextBillingDate ? format(new Date(subscription.nextBillingDate), 'MMMM dd, yyyy') : 'N/A'}
+        //                     </p>
+        //                 )}
+        //                 {isPendingOrInactive && (
+        //                     <p className="text-sm text-orange-600 mt-1">
+        //                         {subscription.status === 'PENDING' ? 'Payment pending or initial setup required.' :
+        //                          subscription.status === 'INACTIVE' ? 'Inactive. Please renew.' :
+        //                          subscription.status === 'EXPIRED' ? 'Expired. Please renew.' : ''}
+        //                     </p>
+        //                 )}
+        //                 {noSubscription && (
+        //                     <p className="text-sm text-gray-500 mt-1">No active subscription found.</p>
+        //                 )}
+        //             </div>
+        //             <span className={`px-3 py-1 rounded-full text-xs font-semibold mt-3 sm:mt-0
+        //                 ${(hasActiveSubscription) ? 'bg-green-100 text-green-700' :
+        //                   (isPendingOrInactive) ? 'bg-yellow-100 text-yellow-700' :
+        //                   'bg-red-100 text-red-700'}`
+        //             }>
+        //                 {getStatusText(subscription?.status || 'No Subscription')}
+        //             </span>
+        //         </div>
+
+        //         <div className="flex flex-col gap-3">
+        //             {hasActiveSubscription && (
+        //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+        //                     <span className="font-semibold text-gray-700">Auto-renewal</span>
+        //                     <button
+        //                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+        //                         onClick={() => setManageSubscriptionOpen(true)}
+        //                     >
+        //                         Manage
+        //                     </button>
+        //                 </div>
+        //             )}
+        //              {noSubscription || isPendingOrInactive ? (
+        //                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-md">
+        //                     <span className="font-semibold text-blue-700">Get Started!</span>
+        //                     <button
+        //                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+        //                         onClick={() => setManageSubscriptionOpen(true)}
+        //                     >
+        //                         {noSubscription ? 'Subscribe Now' : 'Renew Subscription'}
+        //                     </button>
+        //                 </div>
+        //              ) : null}
+
+        //             {hasActiveSubscription && (
+        //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+        //                     <span className="font-semibold text-gray-700">Payment Method</span>
+        //                     <span className="text-gray-500">**** 4242</span> {/* Static for now, typically fetched from Stripe Customer object */}
+        //                 </div>
+        //             )}
+        //         </div>
+        //     </div>
+
+        //     {/* Payment History */}
+        //     <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+        //         <h3 className="text-xl font-bold text-gray-800 mb-4">Payment History</h3>
+        //         <div className="overflow-x-auto">
+        //             <table className="min-w-full divide-y divide-gray-200">
+        //                 <thead className="bg-gray-50">
+        //                     <tr>
+        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+        //                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
+        //                     </tr>
+        //                 </thead>
+        //                 <tbody className="bg-white divide-y divide-gray-200">
+        //                     {subscription && subscription.payments && subscription.payments.length > 0 ? (
+        //                         subscription.payments.map((payment) => (
+        //                             <tr key={payment.id}>
+        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{payment.paidAt ? format(new Date(payment.paidAt), 'yyyy-MM-dd') : 'N/A'}</td>
+        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${payment.amount?.toFixed(2) || '0.00'}</td>
+        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getStatusText(payment.status)}</td>
+        //                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+        //                                     {payment.status === 'COMPLETED' ? (
+        //                                         <button className="text-blue-600 hover:text-blue-900 focus:outline-none">
+        //                                             Download
+        //                                         </button>
+        //                                     ) : (
+        //                                         <span className="text-gray-400">-</span>
+        //                                     )}
+        //                                 </td>
+        //                             </tr>
+        //                         ))
+        //                     ) : (
+        //                         <tr>
+        //                             <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+        //                                 No payment history found.
+        //                             </td>
+        //                         </tr>
+        //                     )}
+        //                 </tbody>
+        //             </table>
+        //         </div>
+        //     </div>
+
+        //     {/* Manage/Payment Dialog (Tailwind CSS Modal) */}
+        //     {isManageSubscriptionOpen && (
+        //         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+        //             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md animate-fade-in-up">
+        //                 <div className="flex justify-between items-center mb-5">
+        //                     <h3 className="text-xl font-bold text-gray-800">
+        //                         {noSubscription ? 'Subscribe to Maintenance Plan' : (hasActiveSubscription ? 'Manage Subscription' : 'Renew Subscription')}
+        //                     </h3>
+        //                     <button
+        //                         onClick={() => {
+        //                             setManageSubscriptionOpen(false);
+        //                             setClientSecret(null); // Clear client secret when closing
+        //                             setPaymentRequestError(null);
+        //                             setPaymentStatus('idle');
+        //                         }}
+        //                         className="text-gray-500 hover:text-gray-700 text-2xl"
+        //                     >
+        //                         &times;
+        //                     </button>
+        //                 </div>
+        //                 <p className="text-gray-600 mb-5">
+        //                     {noSubscription ? (
+        //                         `Start your monthly maintenance plan for $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month.`
+        //                     ) : (
+        //                         `Your current plan is $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month. Manage auto-renewal or make a payment.`
+        //                     )}
+        //                 </p>
+
+        //                 {!clientSecret ? (
+        //                     <>
+        //                         <div className="mb-6">
+        //                             <p className="font-bold text-lg text-gray-700 mb-1">Total Amount Due:</p>
+        //                             <p className="text-3xl font-bold text-blue-600">
+        //                                 ${(subscription?.pricePerMonth?.toNumber() * (1 + GST_RATE)).toFixed(2) || (75 * (1 + GST_RATE)).toFixed(2)} BDT
+        //                                 <span className="text-sm font-normal text-gray-500 ml-2"> (incl. {GST_RATE * 100}% GST)</span>
+        //                             </p>
+        //                             {paymentRequestError && (
+        //                                 <p className="text-red-500 text-sm mt-3">{paymentRequestError}</p>
+        //                             )}
+        //                             {/* Display a message if no subscription exists for starting payment */}
+        //                             {noSubscription && (
+        //                                 <p className="text-sm text-red-500 mt-3">
+        //                                     A subscription record must exist to process payment. Please contact support.
+        //                                 </p>
+        //                             )}
+        //                         </div>
+        //                         <div className="text-right">
+        //                             <button
+        //                                 type="button"
+        //                                 onClick={initiatePayment}
+        //                                 className={`px-6 py-3 rounded-md font-semibold transition-colors duration-200
+        //                                            ${paymentStatus === 'processing' || noSubscription // Disable if no subscription or processing
+        //                                              ? 'bg-blue-400 cursor-not-allowed'
+        //                                              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+        //                                 disabled={paymentStatus === 'processing' || noSubscription} // Disable if no subscription
+        //                             >
+        //                                 {paymentStatus === 'processing' ? 'Processing...' : (noSubscription ? 'Subscription Required' : 'Make Next Payment')}
+        //                             </button>
+        //                         </div>
+        //                     </>
+        //                 ) : (
+        //                     <Elements stripe={stripePromise} options={{ clientSecret }}>
+        //                         <CheckoutForm
+        //                             clientSecret={clientSecret}
+        //                             onPaymentSuccess={handlePaymentSuccess}
+        //                             onPaymentError={handlePaymentError}
+        //                             paymentStatus={paymentStatus}
+        //                             setPaymentStatus={setPaymentStatus}
+        //                         />
+        //                     </Elements>
+        //                 )}
+        //             </div>
+        //         </div>
+        //     )}
+        // </div>
+
+        <div>Ntg</div>
         );
 
       case "support":
@@ -1174,10 +1498,10 @@ console.log("user", user)
         amount={paymentDetails.amount}
         description={paymentDetails.description}
       />
-      <ManageSubscriptionModal
+      {/* <ManageSubscriptionModal
         isOpen={manageSubscriptionOpen}
         onClose={() => setManageSubscriptionOpen(false)}
-      />
+      /> */}
       <RaiseIssueModal
         open={raiseIssueOpen}
         onClose={() => setRaiseIssueOpen(false)}
