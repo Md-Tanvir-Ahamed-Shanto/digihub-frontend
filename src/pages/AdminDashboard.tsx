@@ -67,7 +67,6 @@ import ViewPartnerModal from "@/components/admin/ViewPartnerModal";
 import AddPartnerModal from "@/components/admin/AddPartnerModal";
 import WebsiteContentManager from "@/components/admin/website/WebsiteContentManager";
 import SubmissionsPanel from "@/components/admin/SubmissionsPanel";
-import PagesManager from "@/components/admin/PagesManager";
 import AdminSettings from "@/components/admin/AdminSettings";
 import axiosInstance from "@/api/axios";
 import { format } from "date-fns";
@@ -189,77 +188,59 @@ const AdminDashboard = () => {
     { id: "feedback", label: "Feedback", icon: MessageSquare },
     { id: "websites", label: "Websites", icon: Globe },
     { id: "submissions", label: "Submissions", icon: Mail },
-    { id: "pages", label: "Pages", icon: FileText },
     { id: "settings", label: "Settings", icon: Cog },
   ];
+
+  const totalProject = projects.reduce((acc, project) => {
+    acc.total = (acc.total || 0) + 1;
+    acc.revenue = (acc.revenue || 0) + project.revenue;
+    acc.gst = (acc.gst || 0) + project.gst;
+    acc.profit = (acc.profit || 0) + project.profit;
+    return acc;
+  }, {});
 
   const kpiData = [
     {
       title: "Total Projects",
-      value: "24",
+      value: totalProject.total || 0,
       change: "+12%",
       icon: FolderOpen,
       color: "text-blue-600",
     },
     {
       title: "Total Revenue",
-      value: "$48,500",
+      value: totalProject.revenue || 0,
       change: "+8%",
       icon: DollarSign,
       color: "text-green-600",
     },
     {
       title: "GST Collected",
-      value: "$4,230",
+      value: totalProject.gst || 0,
       change: "+15%",
       icon: TrendingUp,
       color: "text-purple-600",
     },
     {
       title: "Profit After Expenses",
-      value: "$12,340",
+      value: totalProject.profit || 0,
       change: "+5%",
       icon: TrendingUp,
       color: "text-emerald-600",
     },
   ];
 
-  const revenueData = [
-    { month: "Jan", revenue: 12500 },
-    { month: "Feb", revenue: 15800 },
-    { month: "Mar", revenue: 18200 },
-    { month: "Apr", revenue: 22100 },
-    { month: "May", revenue: 19800 },
-    { month: "Jun", revenue: 25400 },
-    { month: "Jul", revenue: 28900 },
-  ];
+  const revenueData = projects.map((project) => ({
+    month: project.createdAt.slice(0, 7),
+    revenue: project.revenue,
+  }));
 
-  const recentActivity = [
-    {
-      type: "Project Update",
-      description: "Health Coach CRM milestone completed",
-      time: "2 hours ago",
-      status: "success",
-    },
-    {
-      type: "Payment Received",
-      description: "$1,100 from Sarah Johnson",
-      time: "4 hours ago",
-      status: "success",
-    },
-    {
-      type: "New Lead",
-      description: "E-commerce site project submitted",
-      time: "6 hours ago",
-      status: "pending",
-    },
-    {
-      type: "Partner Assignment",
-      description: "TechPro assigned to CRM project",
-      time: "1 day ago",
-      status: "info",
-    },
-  ];
+  const recentActivity = projects.map((project) => ({
+    type: "Project Update",
+    description: project.title,
+    time: project.createdAt,
+    status: project.status,
+  }));
 
   const getStatusBadge = (status: string) => {
     switch (status) {
