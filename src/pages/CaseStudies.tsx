@@ -9,26 +9,17 @@ import axiosInstance from '@/api/axios';
 import { useToast } from '@/hooks/use-toast';
 
 interface CaseStudy {
-  id: number;
+  id: string;
   title: string;
-  industry: string;
   client: string;
+  description: string;
+  image: string | null;
   challenge: string;
   solution: string;
-  results: {
-    efficiency: string;
-    growth: string;
-    satisfaction: string;
-  };
-  features: string[];
-  timeline: string;
-  investment: string;
-  roi: string;
-  rating: number;
-  feedback: string;
-  image: string;
-  tags: string[];
-  color: string;
+  results: string;
+  technologies: string[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 const CaseStudies = () => {
@@ -60,7 +51,7 @@ const CaseStudies = () => {
 
   const filteredCaseStudies = selectedFilter === 'All' 
     ? caseStudies 
-    : caseStudies.filter(study => study.industry === selectedFilter);
+    : caseStudies.filter(study => study.client === selectedFilter);
 
   return (
     <div className="min-h-screen bg-white">
@@ -85,8 +76,7 @@ const CaseStudies = () => {
         </div>
       </section>
 
-      {/* Filter Section */}
-      <section className="py-8 bg-white border-b border-brand-gray-200">
+      {/* <section className="py-8 bg-white border-b border-brand-gray-200">
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap items-center justify-center gap-4">
             <div className="flex items-center space-x-2 text-brand-gray-600">
@@ -108,10 +98,10 @@ const CaseStudies = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Case Studies Grid */}
-      <section className="py-20">
+      <section className="py-5">
         <div className="container mx-auto px-4">
           {isLoading ? (
             <div className="text-center py-12">
@@ -124,81 +114,46 @@ const CaseStudies = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
-              {filteredCaseStudies.map((study, index) => (
+              {filteredCaseStudies.map((study) => (
                 <div
                   key={study.id}
                   className="bg-white border border-brand-gray-200 rounded-3xl overflow-hidden hover:shadow-2xl transition-all duration-500 group animate-slide-up"
-                  style={{animationDelay: `${index * 0.1}s`}}
                 >
-                  {/* Project Image */}
-                  <div 
-                    className="aspect-video bg-cover bg-center"
-                    style={{
-                      backgroundImage: `url(${study.image})`
-                    }}
-                  >
-                    <div className="w-full h-full bg-gradient-to-t from-black/60 to-transparent flex items-end p-6">
-                      <div className={`px-3 py-1 bg-gradient-to-r ${study.color} text-white text-sm font-medium rounded-full`}>
-                        {study.industry}
+                  {study.image && (
+                    <div className="aspect-video bg-cover bg-center relative">
+                      <img src={`${import.meta.env.VITE_API_URL || ''}${study.image}`} alt={study.title} className="w-full h-full object-cover" />
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6">
+                        <div className="px-3 py-1 bg-brand-primary/80 text-white text-sm font-medium rounded-full inline-block">
+                          {study.client}
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="p-6">
-                    {/* Header */}
-                    <div className="mb-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center space-x-1">
-                          {[...Array(study.rating)].map((_, i) => (
-                            <Star key={i} className="w-4 h-4 fill-brand-accent text-brand-accent" />
-                          ))}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="w-4 h-4 text-brand-success" />
-                          <span className="text-sm text-brand-success font-medium">{study.roi}</span>
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-brand-gray-900 mb-2 font-poppins group-hover:text-brand-primary transition-colors">
-                        {study.title}
-                      </h3>
-                      <p className="text-brand-gray-600 text-sm">{study.challenge}</p>
-                    </div>
+                    <h3 className="text-xl font-bold text-brand-gray-900 mb-2 font-poppins group-hover:text-brand-primary transition-colors">
+                      {study.title}
+                    </h3>
+                    <p className="text-brand-gray-600 text-sm mb-4">{study.challenge}</p>
 
-                    {/* Results Preview */}
                     <div className="mb-4 p-4 bg-brand-gray-50 rounded-xl">
-                      <h4 className="font-semibold text-brand-gray-900 mb-2 text-sm">Key Results</h4>
-                      <div className="space-y-1">
-                        <div className="flex items-center space-x-2">
-                          <Clock className="w-3 h-3 text-brand-primary" />
-                          <span className="text-xs text-brand-gray-600">{study.results.efficiency}</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <TrendingUp className="w-3 h-3 text-brand-success" />
-                          <span className="text-xs text-brand-gray-600">{study.results.growth}</span>
-                        </div>
-                      </div>
+                      <h4 className="font-semibold text-brand-gray-900 mb-2 text-sm">Results</h4>
+                      <p className="text-sm text-brand-gray-600">{study.results}</p>
                     </div>
 
-                    {/* Technology Stack */}
                     <div className="mb-6">
-                      <h4 className="font-semibold text-brand-gray-900 mb-2 text-sm">Solution Stack</h4>
+                      <h4 className="font-semibold text-brand-gray-900 mb-2 text-sm">Technologies Used</h4>
                       <div className="flex flex-wrap gap-1">
-                        {study.tags.slice(0, 3).map((tag, i) => (
+                        {study.technologies.map((tech, i) => (
                           <span key={i} className="px-2 py-1 bg-brand-primary/10 text-brand-primary text-xs rounded font-medium">
-                            {tag}
+                            {tech}
                           </span>
                         ))}
-                        {study.tags.length > 3 && (
-                          <span className="px-2 py-1 bg-brand-gray-100 text-brand-gray-600 text-xs rounded">
-                            +{study.tags.length - 3}
-                          </span>
-                        )}
                       </div>
                     </div>
 
-                    {/* Action Button */}
                     <Link to={`/case-studies/${study.id}`}>
-                      <button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all duration-300 group-hover:scale-105 flex items-center justify-center">
+                      <button className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center">
                         View Success Story
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </button>
