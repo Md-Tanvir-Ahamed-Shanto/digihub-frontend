@@ -91,8 +91,16 @@ const ViewLeadModal = ({ open, onOpenChange, lead }: ViewLeadModalProps) => {
                 <p className="text-gray-600">{lead.budgetRange}</p>
               </div>
               <div>
+                <h4 className="font-medium mb-2">Partner Offer Cost</h4>
+                <p className="text-gray-600">{lead.partnerProposedCost}</p>
+              </div>
+              <div>
                 <h4 className="font-medium mb-2">Timeline</h4>
                 <p className="text-gray-600">{lead.timeline}</p>
+              </div>
+              <div>
+                <h4 className="font-medium mb-2">Partner Notes</h4>
+                <p className="text-gray-600">{lead.partnerNotes}</p>
               </div>
             </CardContent>
           </Card>

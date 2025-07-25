@@ -50,7 +50,7 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
     try {
       await axiosInstance.put(`/lead/${lead.id}/assign-partner`, {
         partnerId: selectedPartner,
-        budget: budgetForPartner,
+        partnerProposedCost: budgetForPartner,
         timeline: timelineForPartner,
         notes,
       });

@@ -72,11 +72,11 @@ const CreateClientOfferModal = ({
             <CardContent className="space-y-3">
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Partner Cost: $4,000</span>
+                <span className="font-medium">Partner Cost: ${lead?.partnerProposedCost}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Partner Timeline: 3-4 weeks</span>
+                <span className="font-medium">Partner Timeline: {lead?.timeline}</span>
               </div>
             </CardContent>
           </Card>
@@ -84,7 +84,7 @@ const CreateClientOfferModal = ({
           {/* Client Offer Input */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="budgetForClient">Budget for Client</Label>
+              <Label htmlFor="budgetForClient">Admin Margin</Label>
               <Input
                 id="budgetForClient"
                 value={budgetForClient}

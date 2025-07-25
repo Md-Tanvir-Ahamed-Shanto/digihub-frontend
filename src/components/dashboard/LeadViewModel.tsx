@@ -63,8 +63,20 @@ const LeadViewModal = ({ isOpen, onClose, lead }: LeadViewModalProps) => {
                     <p className="font-semibold">{format(lead.updatedAt, 'yyyy-MM-dd')}</p>
                   </div>
                  <div>
-                   <p className="text-sm text-gray-600">Your Proposed Cost</p>
-                    <p className="font-semibold">{lead.partnerProposedCost || 'To be determined'}</p>
+                   {
+                     lead.status === 'PARTNER_OFFER_PROPOSED' ? (
+                      <div>
+                        <p className="text-sm text-gray-600">Your Proposed Cost</p>
+                        <p className="font-semibold">{lead.partnerProposedCost || 'To be determined'}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-gray-600">Admin Offer Cost</p>
+                        <p className="font-semibold">{lead.partnerProposedCost || 'To be determined'}</p>
+                      </div>
+                    )
+                   }
+
                  </div>
                   <div>
                     <p className="text-sm text-gray-600">Timeline</p>
