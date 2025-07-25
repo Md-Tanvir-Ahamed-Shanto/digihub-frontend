@@ -666,8 +666,8 @@ console.log("user", user)
     const milestone = milestones.find((m) => m.id === milestoneId);
     if (milestone) {
       setPaymentDetails({
-        amount: milestone.amount,
-        description: `${milestone.project} - ${milestone.title}`,
+        amount: milestone.clientCost,
+        description: `pay for ${milestone.title}`,
       });
       setPaymentGatewayOpen(true);
     }

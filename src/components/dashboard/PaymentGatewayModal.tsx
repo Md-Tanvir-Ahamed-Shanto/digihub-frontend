@@ -63,18 +63,6 @@ const PaymentGatewayModal = ({ isOpen, onClose, amount, description }: PaymentGa
                 <p className="text-sm text-gray-600">Secure payment with credit/debit cards</p>
               </CardContent>
             </Card>
-            
-            <Card className="cursor-pointer hover:border-brand-primary transition-colors" onClick={() => handlePayment('PayPal')}>
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-3 text-lg">
-                  <Wallet className="w-6 h-6 text-blue-500" />
-                  PayPal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-gray-600">Pay with your PayPal account</p>
-              </CardContent>
-            </Card>
           </div>
           
           <Button variant="outline" onClick={onClose} className="w-full">
