@@ -57,7 +57,7 @@ const InvoicePreview = ({ invoiceData, onAutoDownload }) => {
           <p>${invoiceData.client.address}</p>
           <p>Phone: ${invoiceData.client.phone}</p>
           <p>Email: ${invoiceData.client.email}</p>
-          ${invoiceData.project.name ? `<p><strong>Project:</strong> ${invoiceData.project.name}</p>` : ''}
+          ${invoiceData.project.name ? `<p><strong>Item:</strong> ${invoiceData.project.name}</p>` : ''}
           ${invoiceData.milestone.name ? `<p><strong>Milestone:</strong> ${invoiceData.milestone.name}</p>` : ''}
         </div>
 
@@ -210,7 +210,7 @@ const InvoicePreview = ({ invoiceData, onAutoDownload }) => {
           <p className="text-gray-600">{invoiceData.client.address}</p>
           <p className="text-gray-600">Phone: {invoiceData.client.phone}</p>
           <p className="text-gray-600">Email: {invoiceData.client.email}</p>
-          {invoiceData.project.name && <p className="text-gray-600"><strong>Project:</strong> {invoiceData.project.name}</p>}
+          {invoiceData.project.name && <p className="text-gray-600"><strong>Item:</strong> {invoiceData.project.name}</p>}
           {invoiceData.milestone.name && <p className="text-gray-600"><strong>Milestone:</strong> {invoiceData.milestone.name}</p>}
         </div>
 
@@ -325,7 +325,7 @@ const generateInvoiceFromData = (data, autoDownload = false) => {
         <p>${data.client.address}</p>
         <p>Phone: ${data.client.phone}</p>
         <p>Email: ${data.client.email}</p>
-        ${data.project.name ? `<p><strong>Project:</strong> ${data.project.name}</p>` : ''}
+        ${data.project.name ? `<p><strong>Item:</strong> ${data.project.name}</p>` : ''}
         ${data.milestone.name ? `<p><strong>Milestone:</strong> ${data.milestone.name}</p>` : ''}
       </div>
 
@@ -418,10 +418,10 @@ const GenerateInvoice = () => {
       { description: '', quantity: 1, rate: '0.00', amount: '0.00' }
     ],
     companyInfo: {
-      name: 'Your Company Name',
-      address: '123 Business Street\nCity, State 12345',
-      phone: '+1 (555) 123-4567',
-      email: 'info@yourcompany.com'
+      name: '',
+      address: '',
+      phone: '',
+      email: ''
     }
   });
 
@@ -661,31 +661,31 @@ const GenerateInvoice = () => {
 
             {/* Client Information */}
             <div className="bg-green-50 p-6 rounded-lg shadow-inner border border-green-200">
-              <h2 className="text-xl font-semibold mb-4 text-green-800">Client Information</h2>
+              <h2 className="text-xl font-semibold mb-4 text-green-800">To Information</h2>
               <div className="space-y-4">
                 <input
                   type="text"
-                  placeholder="Client Name"
+                  placeholder="To Name"
                   value={invoice.client.name}
                   onChange={(e) => handleInputChange('client', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <input
                   type="email"
-                  placeholder="Client Email"
+                  placeholder="To Email"
                   value={invoice.client.email}
                   onChange={(e) => handleInputChange('client', 'email', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <input
                   type="text"
-                  placeholder="Client Phone"
+                  placeholder="To Phone"
                   value={invoice.client.phone}
                   onChange={(e) => handleInputChange('client', 'phone', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <textarea
-                  placeholder="Client Address"
+                  placeholder="to Address"
                   value={invoice.client.address}
                   onChange={(e) => handleInputChange('client', 'address', e.target.value)}
                   rows={3}
@@ -696,29 +696,29 @@ const GenerateInvoice = () => {
 
             {/* Project & Milestone */}
             <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
-              <h2 className="text-xl font-semibold mb-4 text-purple-800">Project & Milestone</h2>
+              <h2 className="text-xl font-semibold mb-4 text-purple-800">Items</h2>
               <div className="space-y-4">
                 <input
                   type="text"
-                  placeholder="Project Name"
+                  placeholder="Item Name"
                   value={invoice.project.name}
                   onChange={(e) => handleInputChange('project', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
                 />
                 <textarea
-                  placeholder="Project Description"
+                  placeholder="Item Description"
                   value={invoice.project.description}
                   onChange={(e) => handleInputChange('project', 'description', e.target.value)}
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
                 />
-                <input
+                {/* <input
                   type="text"
                   placeholder="Milestone Name (Optional)"
                   value={invoice.milestone.name}
                   onChange={(e) => handleInputChange('milestone', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
-                />
+                /> */}
               </div>
             </div>
           </div>
@@ -727,17 +727,17 @@ const GenerateInvoice = () => {
           <div className="space-y-6">
             {/* Company Information */}
             <div className="bg-yellow-50 p-6 rounded-lg shadow-inner border border-yellow-200">
-              <h2 className="text-xl font-semibold mb-4 text-yellow-800">Company Information</h2>
+              <h2 className="text-xl font-semibold mb-4 text-yellow-800">From Information</h2>
               <div className="space-y-4">
                 <input
                   type="text"
-                  placeholder="Company Name"
+                  placeholder="From Name"
                   value={invoice.companyInfo.name}
                   onChange={(e) => handleInputChange('companyInfo', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200"
                 />
                 <textarea
-                  placeholder="Company Address"
+                  placeholder="From Address"
                   value={invoice.companyInfo.address}
                   onChange={(e) => handleInputChange('companyInfo', 'address', e.target.value)}
                   rows={3}

@@ -160,127 +160,6 @@ const ClientDashboard = () => {
   const { logout, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
- const [subscription, setSubscription] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [isManageSubscriptionOpen, setManageSubscriptionOpen] = useState(false); // Controls modal/dialog visibility
-    const [clientSecret, setClientSecret] = useState(null);
-    const [paymentRequestError, setPaymentRequestError] = useState(null);
-    const [paymentStatus, setPaymentStatus] = useState('idle'); // idle | processing | success | error
-
-        const getStatusText = (status) => {
-        switch (status) {
-            case 'COMPLETED': return 'Paid';
-            case 'ACTIVE': return 'Active';
-            case 'PENDING': return 'Pending';
-            case 'FAILED': return 'Failed';
-            case 'INACTIVE': return 'Inactive';
-            case 'CANCELLED': return 'Cancelled';
-            case 'EXPIRED': return 'Expired';
-            case 'No Subscription': return 'No Subscription';
-            default: return status;
-        }
-    };
-
-    const fetchSubscriptionData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const token = localStorage.getItem('token'); // Get your auth token
-            const response = await axios.get(`${API_BASE_URL}/subscriptions/my`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            setSubscription(response.data);
-            setLoading(false);
-        } catch (err) {
-            setError(err);
-            setLoading(false);
-            if (err.response && err.response.status === 404) {
-                setSubscription(null); // Explicitly set to null if no subscription found
-            } else {
-                console.error("Error fetching subscription:", err.response?.data?.message || err.message);
-                alert("Error fetching subscription: " + (err.response?.data?.message || "Failed to load subscription details."));
-            }
-        }
-    }, []);
-
-    useEffect(() => {
-        fetchSubscriptionData();
-    }, [fetchSubscriptionData]);
-
-
-    // Function to initiate Stripe Payment Intent creation
-    const initiatePayment = async () => {
-        setPaymentStatus('processing');
-        setPaymentRequestError(null);
-        try {
-            const token = localStorage.getItem('token');
-            // If client has no subscription, create a temporary one (if your backend allows)
-            // Or ensure they've selected a plan first before calling this.
-            // For now, assuming if subscription is null, we implicitly assume they want to buy the default $75 plan
-            // The backend's create-subscription-payment-intent needs the subscription ID.
-            // If it's a new subscription, you might need an admin route or a different client route to *create* the subscription first,
-            // then proceed to pay.
-            // For simplicity, this assumes the subscription record already exists (even if PENDING/INACTIVE).
-            // If `subscription` is null here, it means `getMyMaintenanceSubscription` returned 404.
-            // In a real app, you might route them to a "choose plan" page.
-            // For this flow, we will assume an initial subscription record is created by admin or on signup.
-            // If subscription is null, alert user to contact support or select a plan first.
-            if (!subscription || !subscription.id) {
-                alert("Please contact support to initiate your subscription or select a plan.");
-                setPaymentStatus('idle');
-                return;
-            }
-
-            const response = await axios.post(
-                `${API_BASE_URL}/payments/create-subscription-payment-intent`,
-                { maintenanceSubscriptionId: subscription.id },
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-            setClientSecret(response.data.clientSecret);
-            setPaymentStatus('idle'); // Ready for client-side payment
-        } catch (err) {
-            console.error("Error initiating payment:", err);
-            setPaymentStatus('error');
-            setPaymentRequestError(err.response?.data?.message || 'Failed to initiate payment. Please try again.');
-            alert("Payment Initiation Failed: " + (err.response?.data?.message || "Could not prepare payment. Please try again."));
-        }
-    };
-
-    const handlePaymentSuccess = (paymentIntent) => {
-        console.log("Payment successful:", paymentIntent);
-        fetchSubscriptionData(); // Re-fetch to update UI after successful payment (webhook will update DB)
-        setClientSecret(null); // Clear client secret
-        alert("Payment Successful! Your subscription has been updated.");
-        setTimeout(() => setManageSubscriptionOpen(false), 1000); // Close modal after delay
-    };
-
-    const handlePaymentError = (errorMessage) => {
-        console.error("Payment failed:", errorMessage);
-        // Error message already displayed by CheckoutForm
-    };
-
-    if (error && error.response && error.response.status !== 404) {
-        return (
-            <div className="text-center p-8 text-red-600">
-                <p className="mb-4">Error: {error.response?.data?.message || "Failed to load subscription data."}</p>
-                <button
-                    onClick={fetchSubscriptionData}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-                >
-                    Retry
-                </button>
-            </div>
-        );
-    }
-
-    const hasActiveSubscription = subscription && subscription.status === 'ACTIVE';
-    const isPendingOrInactive = subscription && (subscription.status === 'PENDING' || subscription.status === 'INACTIVE' || subscription.status === 'EXPIRED');
-    const noSubscription = !subscription;
-
-
-
-
 
   const handleLogout = () => {
     logout();
@@ -1270,7 +1149,14 @@ console.log("user", user)
         //     )}
         // </div>
 
-        <div>Ntg</div>
+        <div className="text-center p-8">
+            <h2 className="text-2xl font-bold text-gray-900">
+                comming soon
+            </h2>
+            <p className="text-gray-600">
+                We are working hard to bring you the best features.
+            </p>
+        </div>
         );
 
       case "support":
