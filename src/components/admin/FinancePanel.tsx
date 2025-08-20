@@ -97,16 +97,17 @@ const FinancePanel = () => {
   const fetchFinancialData = async () => {
     setIsLoading(true);
     try {
-      const [expensesRes, gstRes] = await Promise.all([
+      const [expensesRes, gstRes, revenueRes] = await Promise.all([
         axiosInstance.get('/expenses'),
         axiosInstance.get('/gst-reports'),
+        axiosInstance.get('/revenue')
       ]);
 
       setExpenses(expensesRes.data);
-      setGstReports(   
-        gstRes.data
-      );
-      const totalRevenue = revenueData.reduce((sum, item) => sum + item.amount, 0);
+      setGstReports(gstRes.data);
+      setRevenueData(revenueRes.data);
+
+      const totalRevenue = revenueRes.data.reduce((sum, item) => sum + item.amount, 0);
       const totalExpenses = expensesRes.data.reduce((sum, item) => sum + item.amount, 0);
       const gstCollected = gstRes.data.reduce((sum, item) => sum + item.gstCollected, 0);
 
@@ -173,7 +174,9 @@ const FinancePanel = () => {
       setIsLoading(false);
     }
   };
-
+// revenueRes
+//   axiosInstance.get('/revenue')
+//        setRevenueData(revenueRes.data);
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

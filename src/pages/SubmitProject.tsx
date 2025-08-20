@@ -188,11 +188,11 @@ const SubmitProject = () => {
                   <Label htmlFor="projectDescription">Project Description *</Label>
                   <Textarea id="projectDescription" value={formData.projectDescription} onChange={e => handleInputChange('projectDescription', e.target.value)} placeholder="Describe what you want to build, who will use it, and what problems it should solve..." rows={5} required className="border-brand-gray-300 focus:border-brand-primary" />
                 </div>
-
+{/* 
                 <div className="space-y-2">
                   <Label htmlFor="features">Key Features Required</Label>
                   <Textarea id="features" value={formData.features} onChange={e => handleInputChange('features', e.target.value)} placeholder="List the main features you need (e.g., user registration, payment processing, reporting dashboard...)" rows={4} className="border-brand-gray-300 focus:border-brand-primary" />
-                </div>
+                </div> */}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div className="space-y-2">
