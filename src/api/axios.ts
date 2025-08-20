@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create a custom Axios instance
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_API_URL || 'http://localhost:5000/api', // Use your backend API URL
+  baseURL: import.meta.env.VITE_BACKEND_API_URL || 'https://api.digihub.com.au/api', // Use your backend API URL
   headers: {
     'Content-Type': 'application/json',
   },
