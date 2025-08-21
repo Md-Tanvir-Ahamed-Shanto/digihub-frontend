@@ -180,37 +180,6 @@ const PartnerDashboard = () => {
     }
   };
 
-  const earnings = [
-    {
-      project: "Corporate Website",
-      milestone: "CMS Integration",
-      amount: "$250",
-      datePaid: "2024-06-30",
-      status: "Paid",
-    },
-    {
-      project: "E-commerce App",
-      milestone: "User Authentication",
-      amount: "$350",
-      datePaid: "2024-07-03",
-      status: "Paid",
-    },
-    {
-      project: "Real Estate CRM",
-      milestone: "Database Schema",
-      amount: "$300",
-      datePaid: "2024-07-05",
-      status: "Paid",
-    },
-    {
-      project: "Real Estate CRM",
-      milestone: "Dashboard UI",
-      amount: "$400",
-      datePaid: null,
-      status: "Pending",
-    },
-  ];
-
   const notifications = [
     {
       type: "Project Assigned",
@@ -735,6 +704,47 @@ const PartnerDashboard = () => {
     </div>
   );
 
+  // Add state for earnings data
+  const [earningsData, setEarningsData] = useState({
+    totalEarned: 0,
+    pendingAmount: 0,
+    availableBalance: 0,
+    withdrawals: []
+  });
+
+  // Add earnings fetch function
+  const fetchEarnings = async () => {
+    try {
+      const response = await axiosInstance.get('/partner/earnings');
+      const data = response.data;
+      
+      // Calculate totals
+      const totalEarned = data.withdrawals?.reduce((sum, payment) => 
+        payment.status === 'Paid' ? sum + parseFloat(payment.amount.replace('$', '')) : sum, 0);
+      
+      const pendingAmount = data.withdrawals?.reduce((sum, payment) => 
+        payment.status === 'Pending' ? sum + parseFloat(payment.amount.replace('$', '')) : sum, 0);
+
+      setEarningsData({
+        totalEarned,
+        pendingAmount,
+        availableBalance: totalEarned - pendingAmount,
+        withdrawals: data.withdrawals
+      });
+    } catch (error) {
+      console.error('Error fetching earnings:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch earnings data',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchEarnings();
+  }, []);
+
   const renderEarnings = () => (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-900">Earnings</h2>
@@ -748,7 +758,9 @@ const PartnerDashboard = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Total Earned
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$1,200</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${earningsData.totalEarned.toLocaleString()}
+                </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
@@ -761,7 +773,9 @@ const PartnerDashboard = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Pending Amount
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$400</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${earningsData.pendingAmount.toLocaleString()}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
             </div>
@@ -774,7 +788,9 @@ const PartnerDashboard = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Available Balance
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$950</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${earningsData.availableBalance.toLocaleString()}
+                </p>
               </div>
               <Wallet className="w-8 h-8 text-blue-600" />
             </div>
@@ -803,27 +819,44 @@ const PartnerDashboard = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {earnings.map((earning, index) => (
-                  <TableRow key={index}>
-                    <TableCell className="font-medium">
-                      {earning.project}
+                {earningsData.withdrawals.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4">
+                      No payment history found
                     </TableCell>
-                    <TableCell>{earning.milestone}</TableCell>
-                    <TableCell className="font-semibold text-green-600">
-                      {earning.amount}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {earning.datePaid || "Pending"}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(earning.status)}</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  earningsData.withdrawals.map((payment, index) => (
+                    <TableRow key={index}>
+                      <TableCell className="font-medium">
+                        {payment.project}
+                      </TableCell>
+                      <TableCell>{payment.milestone}</TableCell>
+                      <TableCell className="font-semibold text-green-600">
+                        {payment.amount}
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {payment.datePaid ? format(new Date(payment.datePaid), 'MMM dd, yyyy') : 'Pending'}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(payment.status)}</TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
         </CardContent>
       </Card>
     </div>
+  );
+
+  // Calculate withdrawal totals
+  const totalWithdrawn = withdrawals.reduce((total, withdrawal) => 
+    withdrawal.status === "COMPLETED" ? total + parseFloat(withdrawal.amount) : total, 0
+  );
+
+  const pendingWithdrawalAmount = withdrawals.reduce((total, withdrawal) => 
+    withdrawal.status === "PENDING" ? total + parseFloat(withdrawal.amount) : total, 0
   );
 
   const renderWithdrawals = () => (
@@ -843,9 +876,11 @@ const PartnerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Total Earned
+                  Total Withdrawn
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$1,200</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${totalWithdrawn.toLocaleString()}
+                </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
             </div>
@@ -856,9 +891,11 @@ const PartnerDashboard = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">
-                  Pending Amount
+                  Pending Withdrawals
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$400</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${pendingWithdrawalAmount.toLocaleString()}
+                </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
             </div>
@@ -871,7 +908,9 @@ const PartnerDashboard = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Available Balance
                 </p>
-                <p className="text-2xl font-bold text-gray-900">$950</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  ${(earningsData.availableBalance - pendingWithdrawalAmount).toLocaleString()}
+                </p>
               </div>
               <Wallet className="w-8 h-8 text-blue-600" />
             </div>
@@ -887,38 +926,57 @@ const PartnerDashboard = () => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="hidden sm:table-cell">
-                    Request Date
-                  </TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Paid Date
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {withdrawals.map((withdrawal) => (
-                  <TableRow key={withdrawal.id}>
-                    <TableCell className="font-semibold">
-                      {withdrawal.amount}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(withdrawal.status)}</TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {format(withdrawal.requestedAt, "yyyy-MM-dd")}
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      {withdrawal.processedAt
-                        ? format(withdrawal.processedAt, "yyyy-MM-dd")
-                        : "N/A"}
-                    </TableCell>
+            {withdrawals.length === 0 ? (
+              <div className="p-6 text-center text-gray-500">
+                No withdrawal history available
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden sm:table-cell">
+                      Request Date
+                    </TableHead>
+                    <TableHead className="hidden md:table-cell">
+                      Paid Date
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {withdrawals.map((withdrawal) => (
+                    <TableRow key={withdrawal.id}>
+                      <TableCell className="font-semibold">
+                        ${parseFloat(withdrawal.amount).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={`${withdrawal.status === "COMPLETED" 
+                            ? "bg-green-100 text-green-800" 
+                            : withdrawal.status === "PENDING" 
+                            ? "bg-yellow-100 text-yellow-800" 
+                            : withdrawal.status === "REJECTED" 
+                            ? "bg-red-100 text-red-800" 
+                            : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {withdrawal.status.charAt(0) + withdrawal.status.slice(1).toLowerCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {format(new Date(withdrawal.createdAt), "MMM dd, yyyy")}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {withdrawal.updatedAt && withdrawal.status === "COMPLETED"
+                          ? format(new Date(withdrawal.updatedAt), "MMM dd, yyyy")
+                          : "N/A"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -1230,7 +1288,7 @@ const PartnerDashboard = () => {
         isOpen={withdrawalRequestOpen}
         onClose={() => setWithdrawalRequestOpen(false)}
         fetchWithdrawals={fetchWithdrawals}
-        availableBalance={1000}
+        availableBalance={earningsData.availableBalance}
       />
     </div>
   );

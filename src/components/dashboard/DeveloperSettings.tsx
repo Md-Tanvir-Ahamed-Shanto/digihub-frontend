@@ -1,24 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Settings,
-  Mail,
   Shield,
-  Database,
+  CreditCard,
   Save,
-  TestTube,
   CheckCircle,
   AlertCircle,
-  Download,
-  Globe,
-  Upload,
-  Image,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -35,7 +29,44 @@ const DeveloperSettings = () => {
     confirmPassword: "",
   });
 
+  const [paymentDetails, setPaymentDetails] = useState({
+    bankName: "",
+    accountName: "",
+    accountNo: "",
+    routingNo: "",
+    paypalEmail: "",
+  });
+  const [hasPaymentDetails, setHasPaymentDetails] = useState(false);
+  const [isLoadingPayment, setIsLoadingPayment] = useState(true);
+
+  // Fetch payment details on component load
+  useEffect(() => {
+    const fetchPaymentDetails = async () => {
+      if (!user?.id) {
+        setIsLoadingPayment(false);
+        return;
+      }
+      try {
+        const response = await axiosInstance.get(
+          `/payment-details/${user.id}`
+        );
+        if (response.data && response.data.data) {
+          setPaymentDetails(response.data.data);
+          setHasPaymentDetails(true);
+        }
+      } catch (error) {
+        console.error("No existing payment details found:", error);
+        setHasPaymentDetails(false);
+      } finally {
+        setIsLoadingPayment(false);
+      }
+    };
+
+    fetchPaymentDetails();
+  }, [user]);
+
   const handleUpdateCredentials = async () => {
+    // Existing credentials update logic
     if (
       !developerCredentials.currentPassword ||
       !developerCredentials.newPassword
@@ -66,13 +97,11 @@ const DeveloperSettings = () => {
         password: developerCredentials.newPassword,
       });
 
-      // Check for successful response
       if (response.status === 200) {
         toast({
           title: "Credentials Updated",
           description: `${response.data.message}`,
         });
-        // Clear password fields on successful update
         setDeveloperCredentials((prev) => ({
           ...prev,
           currentPassword: "",
@@ -81,9 +110,7 @@ const DeveloperSettings = () => {
         }));
       }
     } catch (error) {
-      // Handle API errors
       if (error.response) {
-        // Server responded with a status other than 2xx
         toast({
           title: "Error",
           description:
@@ -92,7 +119,6 @@ const DeveloperSettings = () => {
           variant: "destructive",
         });
       } else if (error.request) {
-        // Request was made but no response received
         toast({
           title: "Network Error",
           description:
@@ -100,13 +126,58 @@ const DeveloperSettings = () => {
           variant: "destructive",
         });
       } else {
-        // Something else happened while setting up the request
         toast({
           title: "Error",
           description: "An unexpected error occurred. Please try again.",
           variant: "destructive",
         });
       }
+    }
+  };
+
+  const handleUpdatePaymentDetails = async (e) => {
+    e.preventDefault();
+
+    if (!paymentDetails.accountNo) {
+      return toast({
+        title: "Error",
+        description: "Account number is a required field.",
+        variant: "destructive",
+      });
+    }
+
+    try {
+      if (hasPaymentDetails) {
+        // Update existing details (PUT)
+        await axiosInstance.put(
+          `/payment-details/${user.id}`,
+          paymentDetails
+        );
+        toast({
+          title: "Payment Details Updated",
+          description: "Your payment information has been successfully updated.",
+        });
+      } else {
+        // Create new details (POST)
+        await axiosInstance.post(
+          `/payment-details/${user.id}`,
+          paymentDetails
+        );
+        toast({
+          title: "Payment Details Saved",
+          description: "Your payment information has been successfully saved.",
+        });
+        setHasPaymentDetails(true); // Now we know details exist
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description:
+          error.response?.data?.message ||
+          "An error occurred while saving payment details.",
+        variant: "destructive",
+      });
+      console.error(error);
     }
   };
 
@@ -119,12 +190,16 @@ const DeveloperSettings = () => {
       </div>
 
       <Tabs defaultValue="credentials" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-auto">
+        <TabsList className="grid w-full grid-cols-2 h-auto">
           <TabsTrigger value="credentials" className="text-xs sm:text-sm">
             Partner Account
           </TabsTrigger>
+          <TabsTrigger value="payment" className="text-xs sm:text-sm">
+            Payment Details
+          </TabsTrigger>
         </TabsList>
 
+        {/* Partner Credentials Tab Content */}
         <TabsContent value="credentials" className="space-y-4 sm:space-y-6">
           <Card>
             <CardHeader>
@@ -211,6 +286,93 @@ const DeveloperSettings = () => {
                 <Save className="w-4 h-4 mr-2" />
                 Update Credentials
               </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Payment Details Tab Content */}
+        <TabsContent value="payment" className="space-y-4 sm:space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-blue-600" />
+                Payment Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoadingPayment ? (
+                <div className="flex justify-center items-center h-48">
+                  <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
+                </div>
+              ) : (
+                <form onSubmit={handleUpdatePaymentDetails} className="space-y-4">
+                  <div>
+                    <Label htmlFor="accountNo">Account Number *</Label>
+                    <Input
+                      id="accountNo"
+                      name="accountNo"
+                      value={paymentDetails.accountNo}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({ ...prev, accountNo: e.target.value }))
+                      }
+                      placeholder="Enter bank account number"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="accountName">Account Name</Label>
+                    <Input
+                      id="accountName"
+                      name="accountName"
+                      value={paymentDetails.accountName}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({ ...prev, accountName: e.target.value }))
+                      }
+                      placeholder="Enter account holder's name"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="bankName">Bank Name</Label>
+                    <Input
+                      id="bankName"
+                      name="bankName"
+                      value={paymentDetails.bankName}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({ ...prev, bankName: e.target.value }))
+                      }
+                      placeholder="e.g., Chase Bank"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="routingNo">Routing Number</Label>
+                    <Input
+                      id="routingNo"
+                      name="routingNo"
+                      value={paymentDetails.routingNo}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({ ...prev, routingNo: e.target.value }))
+                      }
+                      placeholder="e.g., 021000021"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="paypalEmail">PayPal Email</Label>
+                    <Input
+                      id="paypalEmail"
+                      name="paypalEmail"
+                      type="email"
+                      value={paymentDetails.paypalEmail}
+                      onChange={(e) =>
+                        setPaymentDetails((prev) => ({ ...prev, paypalEmail: e.target.value }))
+                      }
+                      placeholder="your.email@paypal.com"
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    <Save className="w-4 h-4 mr-2" />
+                    {hasPaymentDetails ? "Update Payment Details" : "Save Payment Details"}
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
