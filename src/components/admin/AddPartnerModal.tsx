@@ -32,6 +32,12 @@ const AddPartnerModal = ({ open, onOpenChange, onPartnerAdded }: AddPartnerModal
     'JavaScript',
     'React',
     'Node.js',
+    'Next.js',
+    'Vue.js',
+    'Angular',
+    'TypeScript',
+    'laravel',
+    'django',
     'Python',
     'Java',
     'PHP',
@@ -50,6 +56,13 @@ const AddPartnerModal = ({ open, onOpenChange, onPartnerAdded }: AddPartnerModal
     'Technology',
     'Entertainment',
     'Travel',
+    'Sports',
+    'agency',
+    'Non-profit',
+    'Government',
+    'Hospitality',
+    'custom website',
+    'e-learning',
     'Other'
   ];
 
@@ -124,7 +137,7 @@ const AddPartnerModal = ({ open, onOpenChange, onPartnerAdded }: AddPartnerModal
             />
           </div>
 
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
@@ -134,7 +147,7 @@ const AddPartnerModal = ({ open, onOpenChange, onPartnerAdded }: AddPartnerModal
               placeholder="Enter temporary password"
               required
             />
-          </div>
+          </div> */}
           
           <div className="space-y-2">
             <Label htmlFor="skillSet">Skills</Label>
