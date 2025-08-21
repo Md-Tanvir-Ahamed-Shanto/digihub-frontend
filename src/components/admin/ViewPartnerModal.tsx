@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dialog,
   DialogContent,
@@ -15,14 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
 import {
   DollarSign,
-  Calendar,
-  User,
-  CreditCard,
   Clock,
   CheckCircle,
+  CreditCard,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
@@ -42,35 +42,29 @@ const ViewPartnerModal = ({
   fetchPartners,
 }: ViewPartnerModalProps) => {
   const { toast } = useToast();
-  console.log("partner view", partner);
   if (!partner) return null;
 
-  const paymentDetails = {
-    bankName: "Chase Bank",
-    accountNumber: "****-****-****-1234",
-    routingNumber: "021000021",
-    paypalEmail: "partner@techpro.com",
-    preferredMethod: "Bank Transfer",
-  };
+  const handleStatusUpdate = async (requestId: string, newStatus: string) => {
+    try {
+      const response = await axiosInstance.put(
+        `/withdrawal/admin/${requestId}/process`,
+        { status: newStatus }
+      );
 
-  const handleStatusUpdate = async (requestId: number, newStatus: string) => {
-    const response = await axiosInstance.put(
-      `/withdrawal/admin/${requestId}/process`,
-      { status: newStatus }
-    );
-
-    if (response.status === 200) {
-      toast({
-        title: "Status Updated",
-        description: `Withdrawal request status updated to ${newStatus}`,
-      });
-      fetchPartners();
-      onOpenChange(false);
-    } else {
+      if (response.status === 200) {
+        toast({
+          title: "Status Updated",
+          description: `Withdrawal request status updated to ${newStatus}`,
+        });
+        fetchPartners();
+        onOpenChange(false);
+      }
+    } catch (error) {
       toast({
         title: "Status Update Failed",
         description: `Withdrawal request status update failed`,
       });
+      console.error("Error updating status:", error);
     }
   };
 
@@ -95,6 +89,31 @@ const ViewPartnerModal = ({
     }
   };
 
+  const deletePartner = async () => {
+    const isConfirmed = window.confirm(
+      "Are you sure you want to delete this partner? This action cannot be undone."
+    );
+
+    if (isConfirmed) {
+      try {
+        await axiosInstance.delete(`/partner/${partner.id}`);
+        toast({
+          title: "Partner Deleted",
+          description: `${partner.name} has been successfully deleted.`,
+        });
+        fetchPartners(); 
+        onOpenChange(false); // Close the modal
+      } catch (error) {
+        toast({
+          title: "Deletion Failed",
+          description: "An error occurred while deleting the partner.",
+          variant: "destructive",
+        });
+        console.error("Error deleting partner:", error);
+      }
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -106,7 +125,6 @@ const ViewPartnerModal = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Partner Overview */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-4">
@@ -117,7 +135,7 @@ const ViewPartnerModal = ({
                       Current Balance
                     </p>
                     <p className="text-xl font-bold text-green-600">
-                      {partner.availableBalance}
+                      ${partner.availableBalance}
                     </p>
                   </div>
                 </div>
@@ -132,7 +150,12 @@ const ViewPartnerModal = ({
                     <p className="text-sm font-medium text-gray-600">
                       Pending Withdrawals
                     </p>
-                    <p className="text-xl font-bold text-yellow-600">$1,700</p>
+                    <p className="text-xl font-bold text-yellow-600">
+                      $
+                      {partner.withdrawals
+                        .filter((req) => req.status === "PENDING")
+                        .reduce((sum, req) => sum + parseFloat(req.amount), 0)}
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -153,51 +176,55 @@ const ViewPartnerModal = ({
             </Card>
           </div>
 
-          {/* Payment Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <CreditCard className="w-5 h-5 mr-2" />
-                Payment Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Bank Name</p>
-                  <p className="text-sm">{paymentDetails.bankName}</p>
+          {partner.paymentDetails && partner.paymentDetails.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <CreditCard className="w-5 h-5 mr-2" />
+                  Payment Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Bank Name
+                    </p>
+                    <p className="text-sm">{partner.paymentDetails[0].bankName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Account Name
+                    </p>
+                    <p className="text-sm">{partner.paymentDetails[0].accountName}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Account Number
+                    </p>
+                    <p className="text-sm">{partner.paymentDetails[0].accountNo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      Routing Number
+                    </p>
+                    <p className="text-sm">{partner.paymentDetails[0].routingNo}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">
+                      PayPal Email
+                    </p>
+                    <p className="text-sm">{partner.paymentDetails[0].paypalEmail}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Account Number
-                  </p>
-                  <p className="text-sm">{paymentDetails.accountNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    Routing Number
-                  </p>
-                  <p className="text-sm">{paymentDetails.routingNumber}</p>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-600">
-                    PayPal Email
-                  </p>
-                  <p className="text-sm">{paymentDetails.paypalEmail}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-600">
-                  Preferred Payment Method
-                </p>
-                <p className="text-sm font-semibold text-blue-600">
-                  {paymentDetails.preferredMethod}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <p className="text-center text-gray-400">
+              No payment details available.
+            </p>
+          )}
 
-          {/* Withdrawal Requests */}
           {partner.withdrawals.length > 0 ? (
             <Card>
               <CardHeader>
@@ -215,7 +242,7 @@ const ViewPartnerModal = ({
                           <div>
                             <p className="font-medium">${request.amount}</p>
                             <p className="text-sm text-gray-600">
-                              {format(request.requestedAt, "yyyy-MM-dd")}
+                              {format(new Date(request.createdAt), "yyyy-MM-dd")}
                             </p>
                           </div>
                           <div>
@@ -257,8 +284,13 @@ const ViewPartnerModal = ({
             </p>
           )}
 
-          {/* Actions */}
-          <div className="flex justify-end pt-4 border-t">
+          <div className="flex justify-between pt-4 border-t">
+            
+              <Button onClick={deletePartner} variant="destructive">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Partner
+              </Button>
+           
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
