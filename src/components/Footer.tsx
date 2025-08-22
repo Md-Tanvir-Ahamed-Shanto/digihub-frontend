@@ -23,33 +23,33 @@ const Footer = () => {
     }],
     services: [{
       label: 'Custom Web Apps',
-      href: '/services/web-development'
+      href: '#/services/web-development'
     }, {
       label: 'SaaS Platforms',
-      href: '/services/saas'
+      href: '#/services/saas'
     }, {
       label: 'Admin Dashboards',
-      href: '/services/dashboards'
+      href: '#/services/dashboards'
     }],
     support: [{
       label: 'Help Center',
-      href: '/help'
+      href: '#/help'
     }, {
       label: 'Documentation',
-      href: '/docs'
+      href: '#/docs'
     }, {
       label: 'Case Studies',
       href: '/case-studies'
     }],
     legal: [{
       label: 'Privacy Policy',
-      href: '/privacy'
+      href: '#/privacy'
     }, {
       label: 'Terms of Service',
-      href: '/terms'
+      href: '#/terms'
     }, {
       label: 'GDPR Compliance',
-      href: '/gdpr'
+      href: '#/gdpr'
     }]
   };
   const socialLinks = [{
@@ -157,7 +157,7 @@ const Footer = () => {
                 <div className="w-10 h-10 bg-brand-primary/20 rounded-lg flex items-center justify-center">
                   <Mail className="w-5 h-5 text-brand-primary" />
                 </div>
-                <span className="text-brand-gray-300">hello@DIGIHUB AUST.com</span>
+                <span className="text-brand-gray-300">hello@digihub.com.au</span>
               </div>
               <div className="flex mt-2 items-center space-x-3">
                 <div className="w-10 h-10 bg-brand-secondary/20 rounded-lg flex items-center justify-center">
@@ -173,27 +173,11 @@ const Footer = () => {
               </div>
             </div>
 
-        {/* Newsletter Section */}
-        {/* <div className="border-t border-brand-gray-700 mt-16 pt-12">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-            <div>
-              <h4 className="text-xl font-bold text-white mb-2 font-poppins">Stay Updated</h4>
-              <p className="text-brand-gray-300">Get the latest insights on web application development and industry trends.</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input type="email" placeholder="Enter your email" className="flex-1 px-4 py-3 bg-brand-gray-800 border border-brand-gray-600 rounded-xl text-white placeholder:text-brand-gray-400 focus:outline-none focus:border-brand-primary transition-colors" />
-              <button className="bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 hover:shadow-lg">
-                Subscribe
-              </button>
-            </div>
-          </div>
-        </div> */}
-
         {/* Bottom Section */}
         <div className="border-t border-brand-gray-700 mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <p className="text-brand-gray-400 text-sm">
-              © {currentYear} DIGIHUB AUST: Digital Solutions Hub. All rights reserved.
+              © {currentYear} DIGIHUB. All rights reserved.
             </p>
 
             {/* Social Links */}

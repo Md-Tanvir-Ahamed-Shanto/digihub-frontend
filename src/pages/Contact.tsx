@@ -41,7 +41,7 @@ const Contact = () => {
     {
       icon: Mail,
       title: 'Email Us',
-      details: 'hello@beglagencyface.com',
+      details: 'hello@digihub.com.au',
       description: 'Send us an email anytime',
       color: 'from-brand-primary to-brand-primary/80'
     },
@@ -242,9 +242,9 @@ const Contact = () => {
                   For urgent project inquiries or technical support, reach out directly:
                 </p>
                 <div className="space-y-4">
-                  <a href="mailto:hello@beglagencyface.com" className="flex items-center space-x-3 text-white hover:text-brand-accent transition-colors">
+                  <a href="mailto:hello@digihub.com.au" className="flex items-center space-x-3 text-white hover:text-brand-accent transition-colors">
                     <Mail className="w-5 h-5" />
-                    <span>hello@beglagencyface.com</span>
+                    <span>hello@digihub.com.au</span>
                   </a>
                   <a href="tel:+61123456789" className="flex items-center space-x-3 text-white hover:text-brand-accent transition-colors">
                     <Phone className="w-5 h-5" />

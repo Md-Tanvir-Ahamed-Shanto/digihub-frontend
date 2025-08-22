@@ -17,7 +17,7 @@ const ContactPageManager = () => {
     contactInfo: {
       address: '123 Business Street, City, State 12345',
       phone: '+1 (555) 123-4567',
-      email: 'hello@DIGIHUB AUST.com',
+      email: 'hello@digihub.com.au',
       workingHours: 'Monday - Friday: 9:00 AM - 6:00 PM'
     },
     officeLocations: [
