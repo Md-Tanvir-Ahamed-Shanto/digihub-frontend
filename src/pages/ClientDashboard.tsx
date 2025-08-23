@@ -414,10 +414,10 @@ const ClientDashboard = () => {
   const handleDownloadInvoice = async (invoice) => {
     try {
       const invoiceData = {
-        invoiceNumber: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
         companyInfo: {
           name: "DIGIHUB",
-          address: "123 Business Street\nTech Park\nDhaka, Bangladesh",
+          address: "123 Business Street\nTech Park\nSydney, Australia",
           phone: "+880 1234567890",
           email: "info@digihub.com",
         },
@@ -464,7 +464,7 @@ const ClientDashboard = () => {
 
       toast({
         title: "Success",
-        description: `Invoice ${invoice.id} has been generated for download.`,
+        description: `Invoice ${invoice.invoiceNumber} has been generated for download.`,
       });
     } catch (error) {
       toast({
@@ -979,11 +979,11 @@ const ClientDashboard = () => {
                     <TableBody>
                       {invoices.map((invoice) => (
                         <TableRow
-                          key={invoice.id}
+                          key={invoice.invoiceNumber}
                           className="border-brand-gray-200"
                         >
                           <TableCell className="font-medium">
-                            {invoice.id}
+                            {invoice.invoiceNumber}
                           </TableCell>
                           <TableCell>
                             {invoice.project?.name || "N/A"}

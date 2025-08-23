@@ -28,11 +28,12 @@ const InvoicePanel = () => {
   const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
   const [invoices, setInvoices] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isViewingInvoice, setIsViewingInvoice] = useState<string | null>(null);
+  const [isDownloadingInvoice, setIsDownloadingInvoice] = useState<string | null>(null);
 
   useEffect(() => {
     fetchInvoices();
   }, []);
-console.log("invoice in panel", invoices)
   const fetchInvoices = async () => {
     try {
       const response = await axiosInstance.get('/invoice');
@@ -49,10 +50,11 @@ console.log("invoice in panel", invoices)
   };
 
   const handleDownloadInvoice = async (invoice) => {
+    setIsDownloadingInvoice(invoice.invoiceNumber);
     try {
       // Generate invoice HTML
        const invoiceData = {
-        invoiceNumber: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
         companyInfo: {
           name: 'DIGIHUB',
           address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
@@ -97,7 +99,7 @@ console.log("invoice in panel", invoices)
 
       toast({
         title: "Success",
-        description: `Invoice ${invoice.id} has been generated for download.`,
+        description: `Invoice ${invoice.invoiceNumber} has been generated for download.`,
       });
     } catch (error) {
       toast({
@@ -105,14 +107,17 @@ console.log("invoice in panel", invoices)
         description: "Failed to generate invoice",
         variant: "destructive"
       });
+    } finally {
+      setIsDownloadingInvoice(null);
     }
   };
 
   const handleViewInvoice = async (invoice) => {
- try {
+    setIsViewingInvoice(invoice.invoiceNumber);
+    try {
       // Generate invoice HTML
       const invoiceData = {
-        invoiceNumber: invoice.id,
+        invoiceNumber: invoice.invoiceNumber,
         companyInfo: {
           name: 'DIGIHUB',
           address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
@@ -157,6 +162,8 @@ console.log("invoice in panel", invoices)
         description: "Failed to generate invoice",
         variant: "destructive"
       });
+    } finally {
+      setIsViewingInvoice(null);
     }
   };
 
@@ -347,44 +354,53 @@ console.log("invoice in panel", invoices)
               <TableBody>
                 {filteredInvoices.map((invoice) => (
                   <TableRow key={invoice.id}>
-                    <TableCell className="font-medium">{invoice.id}</TableCell>
-                    <TableCell>{invoice.project?.name || 'N/A'}</TableCell>
-                    <TableCell className="hidden md:table-cell">{invoice.client?.name || 'N/A'}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      <span className="text-sm text-gray-600">{invoice.milestone?.title || 'N/A'}</span>
-                    </TableCell>
-                    <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
-                    {
-                      invoice.gstEnabled ? (
-                      <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
-                      ) : (
-                        <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
-                      )
-                    }
-                    <TableCell className="font-medium">${(invoice.totalAmount || 0).toLocaleString()}</TableCell>
-                    <TableCell>{getStatusBadge(invoice.status || 'N/A')}</TableCell>
-                    <TableCell className="hidden lg:table-cell">
-                      {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleViewInvoice(invoice)}
-                        >
-                          <Eye className="w-3 h-3" />
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDownloadInvoice(invoice)}
-                        >
-                          <Download className="w-3 h-3" />
-                        </Button>
-                       
-                      </div>
-                    </TableCell>
+                    <TableCell className="font-medium">{invoice.invoiceNumber}</TableCell>
+              <TableCell>{invoice.project?.name || 'N/A'}</TableCell>
+              <TableCell className="hidden md:table-cell">{invoice.client?.name || 'N/A'}</TableCell>
+              <TableCell className="hidden lg:table-cell">
+                <span className="text-sm text-gray-600">{invoice.milestone?.title || 'N/A'}</span>
+              </TableCell>
+              <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
+              {
+                invoice.gstEnabled ? (
+                <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
+                ) : (
+                  <TableCell className="hidden sm:table-cell">${(invoice.gstAmount || 0)}</TableCell>
+                )
+              }
+              <TableCell className="font-medium">${(invoice.totalAmount || 0).toLocaleString()}</TableCell>
+              <TableCell>{getStatusBadge(invoice.status || 'N/A')}</TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
+              </TableCell>
+              <TableCell>
+                <div className="flex space-x-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleViewInvoice(invoice)}
+                    disabled={isViewingInvoice === invoice.invoiceNumber}
+                  >
+                    {isViewingInvoice === invoice.invoiceNumber ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Eye className="w-3 h-3" />
+                    )}
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => handleDownloadInvoice(invoice)}
+                    disabled={isDownloadingInvoice === invoice.invoiceNumber}
+                  >
+                    {isDownloadingInvoice === invoice.invoiceNumber ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Download className="w-3 h-3" />
+                    )}
+                  </Button>
+                </div>
+              </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
