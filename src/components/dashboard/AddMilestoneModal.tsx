@@ -153,7 +153,7 @@ const AddMilestoneModal = ({ isOpen, onClose, onSuccess }: AddMilestoneModalProp
               />
             </div>
             <div>
-              <Label htmlFor="timeline">Timeline</Label>
+              <Label htmlFor="timeline">Timeline (days)</Label>
               <Input
                 id="timeline"
                 value={timeline}

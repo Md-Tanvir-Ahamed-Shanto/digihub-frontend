@@ -18,7 +18,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {Loader2,
+import {
+  Loader2,
   User,
   FolderOpen,
   FileText,
@@ -52,9 +53,14 @@ import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
 import ClientSettings from "@/components/dashboard/ClientSettings";
 import axiosInstance from "@/api/axios";
 import axios from "axios";
-import { format } from 'date-fns';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-stripe-js';
+import { format } from "date-fns";
+import { loadStripe } from "@stripe/stripe-js";
+import {
+  Elements,
+  useStripe,
+  useElements,
+  PaymentElement,
+} from "@stripe/react-stripe-js";
 
 // --- Stripe Initialization (Load outside component for performance) ---
 // Ensure NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is correctly set in your .env.local
@@ -63,82 +69,92 @@ import { Elements, useStripe, useElements, PaymentElement } from '@stripe/react-
 //     : Promise.reject(new Error("Stripe Publishable Key is not set."));
 
 // const stripePromise = loadStripe("sdfsdf");
-const API_BASE_URL = 'http://localhost:3000/api';
+const API_BASE_URL = "http://localhost:3000/api";
 
 // --- PaymentForm Component (handles Stripe PaymentElement) ---
-const CheckoutForm = ({ clientSecret, onPaymentSuccess, onPaymentError, paymentStatus, setPaymentStatus }) => {
-    const stripe = useStripe();
-    const elements = useElements();
+const CheckoutForm = ({
+  clientSecret,
+  onPaymentSuccess,
+  onPaymentError,
+  paymentStatus,
+  setPaymentStatus,
+}) => {
+  const stripe = useStripe();
+  const elements = useElements();
 
-    const handleSubmit = async (event) => {
-        event.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
 
-        if (!stripe || !elements) {
-            // Stripe.js has not yet loaded.
-            return;
-        }
+    if (!stripe || !elements) {
+      // Stripe.js has not yet loaded.
+      return;
+    }
 
-        setPaymentStatus('processing');
-        onPaymentError(null); // Clear previous errors
+    setPaymentStatus("processing");
+    onPaymentError(null); // Clear previous errors
 
-        const { error: submitError } = await elements.submit();
-        if (submitError) {
-            setPaymentStatus('error');
-            onPaymentError(submitError.message);
-            return;
-        }
+    const { error: submitError } = await elements.submit();
+    if (submitError) {
+      setPaymentStatus("error");
+      onPaymentError(submitError.message);
+      return;
+    }
 
-        try {
-            const { paymentIntent, error } = await stripe.confirmPayment({
-                elements,
-                clientSecret,
-                confirmParams: {
-                    return_url: `${window.location.origin}/dashboard/client/profile`, // Adjust this URL as needed post-payment
-                },
-                redirect: 'if_required' // Crucial for handling 3D Secure etc.
-            });
+    try {
+      const { paymentIntent, error } = await stripe.confirmPayment({
+        elements,
+        clientSecret,
+        confirmParams: {
+          return_url: `${window.location.origin}/dashboard/client/profile`, // Adjust this URL as needed post-payment
+        },
+        redirect: "if_required", // Crucial for handling 3D Secure etc.
+      });
 
-            if (error) {
-                setPaymentStatus('error');
-                onPaymentError(error.message);
-            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                setPaymentStatus('success');
-                onPaymentSuccess(paymentIntent);
-            } else {
-                setPaymentStatus('idle');
-                onPaymentError(`Unexpected payment intent status: ${paymentIntent?.status}`);
-            }
-        } catch (error) {
-            console.error("Stripe confirmPayment error:", error);
-            setPaymentStatus('error');
-            onPaymentError(error.message);
-        }
-    };
+      if (error) {
+        setPaymentStatus("error");
+        onPaymentError(error.message);
+      } else if (paymentIntent && paymentIntent.status === "succeeded") {
+        setPaymentStatus("success");
+        onPaymentSuccess(paymentIntent);
+      } else {
+        setPaymentStatus("idle");
+        onPaymentError(
+          `Unexpected payment intent status: ${paymentIntent?.status}`
+        );
+      }
+    } catch (error) {
+      console.error("Stripe confirmPayment error:", error);
+      setPaymentStatus("error");
+      onPaymentError(error.message);
+    }
+  };
 
-    return (
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <PaymentElement />
-            <button
-                type="submit"
-                className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-200
-                           ${!stripe || paymentStatus === 'processing'
-                             ? 'bg-blue-400 cursor-not-allowed'
-                             : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                disabled={!stripe || paymentStatus === 'processing'}
-            >
-                {paymentStatus === 'processing' ? 'Processing...' : 'Pay Now'}
-            </button>
-            {paymentStatus === 'error' && <p className="text-red-500 text-sm mt-2">{paymentStatus.message}</p>}
-        </form>
-    );
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <PaymentElement />
+      <button
+        type="submit"
+        className={`w-full px-4 py-2 rounded-md font-semibold transition-colors duration-200
+                           ${
+                             !stripe || paymentStatus === "processing"
+                               ? "bg-blue-400 cursor-not-allowed"
+                               : "bg-blue-600 hover:bg-blue-700 text-white"
+                           }`}
+        disabled={!stripe || paymentStatus === "processing"}
+      >
+        {paymentStatus === "processing" ? "Processing..." : "Pay Now"}
+      </button>
+      {paymentStatus === "error" && (
+        <p className="text-red-500 text-sm mt-2">{paymentStatus.message}</p>
+      )}
+    </form>
+  );
 };
-
-
 
 const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
+
   // Modal states
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [projectDetailsOpen, setProjectDetailsOpen] = useState(false);
@@ -155,6 +171,9 @@ const ClientDashboard = () => {
   const [isLoadingTickets, setIsLoadingTickets] = useState(true);
   const [offer, setOffer] = useState([]);
   const [projects, setProjects] = useState([]);
+  const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
+  const [isRejectingOffer, setIsRejectingOffer] = useState(false);
+  const [processingOfferId, setProcessingOfferId] = useState(null);
   // const [milestones, setMilestones] = useState([]);
 
   const { logout, user } = useAuth();
@@ -174,7 +193,6 @@ const ClientDashboard = () => {
     try {
       const response = await axiosInstance.get(`/client/my-leads`);
       setOffer(response?.data?.data);
-  
     } catch (error) {
       console.error("Error fetching offer:", error);
     }
@@ -182,10 +200,10 @@ const ClientDashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await axiosInstance.get(`/project/client`,{
+      const response = await axiosInstance.get(`/project/client`, {
         params: {
-          clientId: user?.id
-        }
+          clientId: user?.id,
+        },
       });
       setProjects(response?.data);
     } catch (error) {
@@ -204,22 +222,22 @@ const ClientDashboard = () => {
   const offers = offer?.filter(
     (item) => item.status === "OFFER_SENT_TO_CLIENT"
   );
-  const pendingProjects = offer?.filter(
-    (item) => item.status === "PENDING"
-  );
-console.log("project", projects)
+  const pendingProjects = offer?.filter((item) => item.status === "PENDING");
+  console.log("project", projects);
 
   const fetchSupportTickets = async () => {
     try {
       setIsLoadingTickets(true);
-      const response = await axiosInstance.get(`/support/client/${user?.id}/issues`);
+      const response = await axiosInstance.get(
+        `/support/client/${user?.id}/issues`
+      );
       setSupportTickets(response.data.data);
     } catch (error) {
-      console.error('Error fetching support tickets:', error);
+      console.error("Error fetching support tickets:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch support tickets',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to fetch support tickets",
+        variant: "destructive",
       });
     } finally {
       setIsLoadingTickets(false);
@@ -228,38 +246,40 @@ console.log("project", projects)
 
   const handleCreateIssue = async (issueData) => {
     try {
-      await axiosInstance.post('/support/issues', issueData);
+      await axiosInstance.post("/support/issues", issueData);
       toast({
-        title: 'Success',
-        description: 'Support ticket created successfully',
+        title: "Success",
+        description: "Support ticket created successfully",
       });
       fetchSupportTickets();
       setRaiseIssueOpen(false);
     } catch (error) {
-      console.error('Error creating support ticket:', error);
+      console.error("Error creating support ticket:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to create support ticket',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to create support ticket",
+        variant: "destructive",
       });
     }
   };
 
   const handleTicketReply = async (ticketId, message) => {
     try {
-      await axiosInstance.post(`/support/client/issues/${ticketId}/reply`, { message });
+      await axiosInstance.post(`/support/client/issues/${ticketId}/reply`, {
+        message,
+      });
       toast({
-        title: 'Success',
-        description: 'Reply sent successfully',
+        title: "Success",
+        description: "Reply sent successfully",
       });
       fetchSupportTickets();
       setSupportTicketOpen(false);
     } catch (error) {
-      console.error('Error sending reply:', error);
+      console.error("Error sending reply:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to send reply',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to send reply",
+        variant: "destructive",
       });
     }
   };
@@ -270,7 +290,7 @@ console.log("project", projects)
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'support') {
+    if (activeTab === "support") {
       fetchSupportTickets();
     }
   }, [activeTab]);
@@ -293,10 +313,16 @@ console.log("project", projects)
     { id: "support", label: "Support", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ];
-const activeProject = projects?.filter((item) => item.status === "ACTIVE");
-const pendingOffer = projects?.filter((item) => item.status === "OFFER_SENT_TO_CLIENT");  
-const paymentDue = activeProject?.filter((item) => item.paymentStatus === "PAYMENT_DUE");
-const completedProject = activeProject?.filter((item) => item.status === "COMPLETED");
+  const activeProject = projects?.filter((item) => item.status === "ACTIVE");
+  const pendingOffer = projects?.filter(
+    (item) => item.status === "OFFER_SENT_TO_CLIENT"
+  );
+  const paymentDue = activeProject?.filter(
+    (item) => item.paymentStatus === "PAYMENT_DUE"
+  );
+  const completedProject = activeProject?.filter(
+    (item) => item.status === "COMPLETED"
+  );
   // Mock data
   const dashboardStats = [
     {
@@ -325,7 +351,6 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
     },
   ];
 
-
   const [milestones, setMilestones] = useState([]);
   const [isLoadingMilestones, setIsLoadingMilestones] = useState(true);
 
@@ -338,11 +363,16 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
         const response = await axiosInstance.get(
           `/milestone/client/projects/${project.id}/milestones`
         );
-        if (response.data.milestones && Array.isArray(response.data.milestones)) {
-          const projectMilestones = response.data.milestones.map(milestone => ({
-            ...milestone,
-            projectName: project.name || project.title
-          }));
+        if (
+          response.data.milestones &&
+          Array.isArray(response.data.milestones)
+        ) {
+          const projectMilestones = response.data.milestones.map(
+            (milestone) => ({
+              ...milestone,
+              projectName: project.name || project.title,
+            })
+          );
           milestonesData.push(...projectMilestones);
         }
       }
@@ -351,7 +381,8 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
     } catch (error) {
       toast({
         title: "Error fetching milestones",
-        description: error.response?.data?.message || "Failed to load milestones",
+        description:
+          error.response?.data?.message || "Failed to load milestones",
       });
     } finally {
       setIsLoadingMilestones(false);
@@ -367,13 +398,13 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
 
   const fetchInvoices = async () => {
     try {
-      const response = await axiosInstance.get('/invoice/client');
+      const response = await axiosInstance.get("/invoice/client");
       setInvoices(response.data);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to fetch invoices",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -385,34 +416,39 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
       const invoiceData = {
         invoiceNumber: invoice.id,
         companyInfo: {
-          name: 'DIGIHUB',
-          address: '123 Business Street\nTech Park\nDhaka, Bangladesh',
-          phone: '+880 1234567890',
-          email: 'info@digihub.com'
+          name: "DIGIHUB",
+          address: "123 Business Street\nTech Park\nDhaka, Bangladesh",
+          phone: "+880 1234567890",
+          email: "info@digihub.com",
         },
         client: user,
         project: invoice.project,
         milestone: invoice.milestone,
-        items: [{
-          description: invoice.milestone?.title || invoice.project?.name || 'Project Services',
-          quantity: 1,
-          rate: invoice.amount,
-          amount: invoice.amount
-        }],
+        items: [
+          {
+            description:
+              invoice.milestone?.title ||
+              invoice.project?.name ||
+              "Project Services",
+            quantity: 1,
+            rate: invoice.amount,
+            amount: invoice.amount,
+          },
+        ],
         amount: invoice.amount,
         gstEnabled: invoice.gstEnabled,
         gstAmount: invoice.gstAmount,
         totalAmount: invoice.totalAmount,
         status: invoice.status,
-        dueDate: invoice.dueDate
+        dueDate: invoice.dueDate,
       };
 
-      const printWindow = window.open('', '_blank');
+      const printWindow = window.open("", "_blank");
       if (!printWindow) {
         toast({
           title: "Error",
           description: "Please allow pop-ups to download the invoice",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
@@ -434,59 +470,59 @@ const completedProject = activeProject?.filter((item) => item.status === "COMPLE
       toast({
         title: "Error",
         description: "Failed to generate invoice",
-        variant: "destructive"
+        variant: "destructive",
       });
-    };
+    }
   };
-console.log("user", user)
+  console.log("user", user);
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      "PENDING": {
+      PENDING: {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
-      "APPROVED": {
+      APPROVED: {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      "OFFER_SENT_TO_CLIENT": {
+      OFFER_SENT_TO_CLIENT: {
         variant: "secondary" as const,
         className: "bg-blue-100 text-blue-800",
       },
-      "OFFER_ACCEPTED_BY_CLIENT": {
+      OFFER_ACCEPTED_BY_CLIENT: {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      "ACTIVE": {
+      ACTIVE: {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      "COMPLETED": {
+      COMPLETED: {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
-      "PAID": {
+      PAID: {
         variant: "secondary" as const,
         className: "bg-green-100 text-green-800",
       },
-      "UNPAID": {
+      UNPAID: {
         variant: "secondary" as const,
         className: "bg-red-100 text-red-800",
       },
-      "PENDING_PAYMENT": {
+      PENDING_PAYMENT: {
         variant: "secondary" as const,
         className: "bg-yellow-100 text-yellow-800",
       },
-      "RESPONDED": {
+      RESPONDED: {
         variant: "secondary" as const,
         className: "bg-blue-100 text-blue-800",
       },
-      "OPEN": {
+      OPEN: {
         variant: "secondary" as const,
         className: "bg-yellow-100 text-yellow-800",
       },
-      "CLOSED": {
+      CLOSED: {
         variant: "secondary" as const,
         className: "bg-gray-100 text-gray-800",
       },
@@ -505,6 +541,8 @@ console.log("user", user)
 
   const handleAcceptOffer = async (offerId: number) => {
     try {
+      setIsAcceptingOffer(true);
+      setProcessingOfferId(offerId);
       const response = await axiosInstance.post(`/lead/${offerId}/accept-offer`);
       if(response.status === 200) {
         toast({
@@ -519,11 +557,16 @@ console.log("user", user)
         title: "Error",
         description: "An error occurred while accepting the offer.",
       });
+    } finally {
+      setIsAcceptingOffer(false);
+      setProcessingOfferId(null);
     }
   };
 
   const handleRejectOffer = async (offerId: number) => {
     try {
+      setIsRejectingOffer(true);
+      setProcessingOfferId(offerId);
       const response = await axiosInstance.post(`/lead/${offerId}/reject-offer`);
       if(response.status === 200) {
         toast({
@@ -538,6 +581,9 @@ console.log("user", user)
         title: "Error",
         description: "An error occurred while rejecting the offer.",
       });
+    } finally {
+      setIsRejectingOffer(false);
+      setProcessingOfferId(null);
     }
   };
 
@@ -561,7 +607,6 @@ console.log("user", user)
     setSelectedTicket(ticket);
     setSupportTicketOpen(true);
   };
-
 
   const renderContent = () => {
     switch (activeTab) {
@@ -648,7 +693,7 @@ console.log("user", user)
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
-            {(projects?.length  === 0) &&( pendingProjects?.length === 0) ? (
+            {projects?.length === 0 && pendingProjects?.length === 0 ? (
               <div className="flex justify-center items-center">
                 <p className="text-gray-600 text-center text-lg">
                   No projects found!
@@ -667,7 +712,7 @@ console.log("user", user)
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                                              {pendingProjects?.map((project) => (
+                      {pendingProjects?.map((project) => (
                         <TableRow
                           key={project.id}
                           className="border-brand-gray-200"
@@ -735,7 +780,6 @@ console.log("user", user)
                           </TableCell>
                         </TableRow>
                       ))}
-
                     </TableBody>
                   </Table>
                 </CardContent>
@@ -785,16 +829,36 @@ console.log("user", user)
                           variant="outline"
                           onClick={() => handleRejectOffer(offer.id)}
                           className="border-red-300 text-red-600 hover:bg-red-50"
+                          disabled={isRejectingOffer || isAcceptingOffer}
                         >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
+                          {isRejectingOffer && processingOfferId === offer.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              Rejecting...
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Reject
+                            </>
+                          )}
                         </Button>
                         <Button
                           onClick={() => handleAcceptOffer(offer.id)}
                           className="bg-green-600 hover:bg-green-700 text-white"
+                          disabled={isRejectingOffer || isAcceptingOffer}
                         >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Accept
+                          {isAcceptingOffer && processingOfferId === offer.id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                              Accepting...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Accept
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
@@ -850,10 +914,16 @@ console.log("user", user)
                                 <span>{milestone.duration} days</span>
                               </div>
                             )}
-                              {milestone.invoices[0]?.dueDate && (
+                            {milestone.invoices[0]?.dueDate && (
                               <div className="flex items-center gap-1">
                                 <Calendar className="w-4 h-4 text-blue-600" />
-                                <span>Due: {format(milestone.invoices[0]?.dueDate, "MMM d, yyyy")}</span>
+                                <span>
+                                  Due:{" "}
+                                  {format(
+                                    milestone.invoices[0]?.dueDate,
+                                    "MMM d, yyyy"
+                                  )}
+                                </span>
                               </div>
                             )}
                           </div>
@@ -915,22 +985,28 @@ console.log("user", user)
                           <TableCell className="font-medium">
                             {invoice.id}
                           </TableCell>
-                          <TableCell>{invoice.project?.name || 'N/A'}</TableCell>
-                          <TableCell>{invoice.milestone?.title || 'N/A'}</TableCell>
-                          <TableCell>${(invoice.amount || 0).toLocaleString()}</TableCell>
-                          <TableCell>${(invoice.gstAmount || 0).toLocaleString()}</TableCell>
+                          <TableCell>
+                            {invoice.project?.name || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            {invoice.milestone?.title || "N/A"}
+                          </TableCell>
+                          <TableCell>
+                            ${(invoice.amount || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            ${(invoice.gstAmount || 0).toLocaleString()}
+                          </TableCell>
                           <TableCell className="font-medium text-green-600">
                             ${(invoice.totalAmount || 0).toLocaleString()}
                           </TableCell>
                           <TableCell>
-                            <Badge
-                              className=""
-                            >
-                              {invoice.status}
-                            </Badge>
+                            <Badge className="">{invoice.status}</Badge>
                           </TableCell>
                           <TableCell>
-                            {invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'Not set'}
+                            {invoice.dueDate
+                              ? new Date(invoice.dueDate).toLocaleDateString()
+                              : "Not set"}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
@@ -955,208 +1031,206 @@ console.log("user", user)
 
       case "maintenance":
         return (
-        //     <div className="p-4 md:p-8 max-w-4xl mx-auto">
-        //     <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
-        //         Maintenance Subscription
-        //     </h2>
+          //     <div className="p-4 md:p-8 max-w-4xl mx-auto">
+          //     <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6">
+          //         Maintenance Subscription
+          //     </h2>
 
-        //     <div className="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
-        //         <h3 className="text-xl font-bold text-blue-600 mb-3">
-        //             Monthly Maintenance Plan
-        //         </h3>
-        //         <p className="text-gray-600 mb-5">
-        //             ${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month – includes 24/7 uptime monitoring, backups, and
-        //             minor updates
-        //         </p>
+          //     <div className="bg-white shadow-lg rounded-lg p-6 mb-6 border border-gray-200">
+          //         <h3 className="text-xl font-bold text-blue-600 mb-3">
+          //             Monthly Maintenance Plan
+          //         </h3>
+          //         <p className="text-gray-600 mb-5">
+          //             ${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month – includes 24/7 uptime monitoring, backups, and
+          //             minor updates
+          //         </p>
 
-        //         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 border-b pb-4">
-        //             <div>
-        //                 <p className="font-semibold text-gray-700">Current Status</p>
-        //                 {hasActiveSubscription && (
-        //                     <p className="text-sm text-gray-500 mt-1">
-        //                         Active until {subscription.nextBillingDate ? format(new Date(subscription.nextBillingDate), 'MMMM dd, yyyy') : 'N/A'}
-        //                     </p>
-        //                 )}
-        //                 {isPendingOrInactive && (
-        //                     <p className="text-sm text-orange-600 mt-1">
-        //                         {subscription.status === 'PENDING' ? 'Payment pending or initial setup required.' :
-        //                          subscription.status === 'INACTIVE' ? 'Inactive. Please renew.' :
-        //                          subscription.status === 'EXPIRED' ? 'Expired. Please renew.' : ''}
-        //                     </p>
-        //                 )}
-        //                 {noSubscription && (
-        //                     <p className="text-sm text-gray-500 mt-1">No active subscription found.</p>
-        //                 )}
-        //             </div>
-        //             <span className={`px-3 py-1 rounded-full text-xs font-semibold mt-3 sm:mt-0
-        //                 ${(hasActiveSubscription) ? 'bg-green-100 text-green-700' :
-        //                   (isPendingOrInactive) ? 'bg-yellow-100 text-yellow-700' :
-        //                   'bg-red-100 text-red-700'}`
-        //             }>
-        //                 {getStatusText(subscription?.status || 'No Subscription')}
-        //             </span>
-        //         </div>
+          //         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-5 border-b pb-4">
+          //             <div>
+          //                 <p className="font-semibold text-gray-700">Current Status</p>
+          //                 {hasActiveSubscription && (
+          //                     <p className="text-sm text-gray-500 mt-1">
+          //                         Active until {subscription.nextBillingDate ? format(new Date(subscription.nextBillingDate), 'MMMM dd, yyyy') : 'N/A'}
+          //                     </p>
+          //                 )}
+          //                 {isPendingOrInactive && (
+          //                     <p className="text-sm text-orange-600 mt-1">
+          //                         {subscription.status === 'PENDING' ? 'Payment pending or initial setup required.' :
+          //                          subscription.status === 'INACTIVE' ? 'Inactive. Please renew.' :
+          //                          subscription.status === 'EXPIRED' ? 'Expired. Please renew.' : ''}
+          //                     </p>
+          //                 )}
+          //                 {noSubscription && (
+          //                     <p className="text-sm text-gray-500 mt-1">No active subscription found.</p>
+          //                 )}
+          //             </div>
+          //             <span className={`px-3 py-1 rounded-full text-xs font-semibold mt-3 sm:mt-0
+          //                 ${(hasActiveSubscription) ? 'bg-green-100 text-green-700' :
+          //                   (isPendingOrInactive) ? 'bg-yellow-100 text-yellow-700' :
+          //                   'bg-red-100 text-red-700'}`
+          //             }>
+          //                 {getStatusText(subscription?.status || 'No Subscription')}
+          //             </span>
+          //         </div>
 
-        //         <div className="flex flex-col gap-3">
-        //             {hasActiveSubscription && (
-        //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-        //                     <span className="font-semibold text-gray-700">Auto-renewal</span>
-        //                     <button
-        //                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
-        //                         onClick={() => setManageSubscriptionOpen(true)}
-        //                     >
-        //                         Manage
-        //                     </button>
-        //                 </div>
-        //             )}
-        //              {noSubscription || isPendingOrInactive ? (
-        //                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-md">
-        //                     <span className="font-semibold text-blue-700">Get Started!</span>
-        //                     <button
-        //                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
-        //                         onClick={() => setManageSubscriptionOpen(true)}
-        //                     >
-        //                         {noSubscription ? 'Subscribe Now' : 'Renew Subscription'}
-        //                     </button>
-        //                 </div>
-        //              ) : null}
+          //         <div className="flex flex-col gap-3">
+          //             {hasActiveSubscription && (
+          //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+          //                     <span className="font-semibold text-gray-700">Auto-renewal</span>
+          //                     <button
+          //                         className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50"
+          //                         onClick={() => setManageSubscriptionOpen(true)}
+          //                     >
+          //                         Manage
+          //                     </button>
+          //                 </div>
+          //             )}
+          //              {noSubscription || isPendingOrInactive ? (
+          //                 <div className="flex justify-between items-center p-3 bg-blue-50 rounded-md">
+          //                     <span className="font-semibold text-blue-700">Get Started!</span>
+          //                     <button
+          //                         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+          //                         onClick={() => setManageSubscriptionOpen(true)}
+          //                     >
+          //                         {noSubscription ? 'Subscribe Now' : 'Renew Subscription'}
+          //                     </button>
+          //                 </div>
+          //              ) : null}
 
-        //             {hasActiveSubscription && (
-        //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
-        //                     <span className="font-semibold text-gray-700">Payment Method</span>
-        //                     <span className="text-gray-500">**** 4242</span> {/* Static for now, typically fetched from Stripe Customer object */}
-        //                 </div>
-        //             )}
-        //         </div>
-        //     </div>
+          //             {hasActiveSubscription && (
+          //                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded-md">
+          //                     <span className="font-semibold text-gray-700">Payment Method</span>
+          //                     <span className="text-gray-500">**** 4242</span> {/* Static for now, typically fetched from Stripe Customer object */}
+          //                 </div>
+          //             )}
+          //         </div>
+          //     </div>
 
-        //     {/* Payment History */}
-        //     <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
-        //         <h3 className="text-xl font-bold text-gray-800 mb-4">Payment History</h3>
-        //         <div className="overflow-x-auto">
-        //             <table className="min-w-full divide-y divide-gray-200">
-        //                 <thead className="bg-gray-50">
-        //                     <tr>
-        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-        //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-        //                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
-        //                     </tr>
-        //                 </thead>
-        //                 <tbody className="bg-white divide-y divide-gray-200">
-        //                     {subscription && subscription.payments && subscription.payments.length > 0 ? (
-        //                         subscription.payments.map((payment) => (
-        //                             <tr key={payment.id}>
-        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{payment.paidAt ? format(new Date(payment.paidAt), 'yyyy-MM-dd') : 'N/A'}</td>
-        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${payment.amount?.toFixed(2) || '0.00'}</td>
-        //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getStatusText(payment.status)}</td>
-        //                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-        //                                     {payment.status === 'COMPLETED' ? (
-        //                                         <button className="text-blue-600 hover:text-blue-900 focus:outline-none">
-        //                                             Download
-        //                                         </button>
-        //                                     ) : (
-        //                                         <span className="text-gray-400">-</span>
-        //                                     )}
-        //                                 </td>
-        //                             </tr>
-        //                         ))
-        //                     ) : (
-        //                         <tr>
-        //                             <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
-        //                                 No payment history found.
-        //                             </td>
-        //                         </tr>
-        //                     )}
-        //                 </tbody>
-        //             </table>
-        //         </div>
-        //     </div>
+          //     {/* Payment History */}
+          //     <div className="bg-white shadow-lg rounded-lg p-6 border border-gray-200">
+          //         <h3 className="text-xl font-bold text-gray-800 mb-4">Payment History</h3>
+          //         <div className="overflow-x-auto">
+          //             <table className="min-w-full divide-y divide-gray-200">
+          //                 <thead className="bg-gray-50">
+          //                     <tr>
+          //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+          //                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+          //                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Receipt</th>
+          //                     </tr>
+          //                 </thead>
+          //                 <tbody className="bg-white divide-y divide-gray-200">
+          //                     {subscription && subscription.payments && subscription.payments.length > 0 ? (
+          //                         subscription.payments.map((payment) => (
+          //                             <tr key={payment.id}>
+          //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{payment.paidAt ? format(new Date(payment.paidAt), 'yyyy-MM-dd') : 'N/A'}</td>
+          //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${payment.amount?.toFixed(2) || '0.00'}</td>
+          //                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{getStatusText(payment.status)}</td>
+          //                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+          //                                     {payment.status === 'COMPLETED' ? (
+          //                                         <button className="text-blue-600 hover:text-blue-900 focus:outline-none">
+          //                                             Download
+          //                                         </button>
+          //                                     ) : (
+          //                                         <span className="text-gray-400">-</span>
+          //                                     )}
+          //                                 </td>
+          //                             </tr>
+          //                         ))
+          //                     ) : (
+          //                         <tr>
+          //                             <td colSpan={4} className="px-6 py-4 text-center text-sm text-gray-500">
+          //                                 No payment history found.
+          //                             </td>
+          //                         </tr>
+          //                     )}
+          //                 </tbody>
+          //             </table>
+          //         </div>
+          //     </div>
 
-        //     {/* Manage/Payment Dialog (Tailwind CSS Modal) */}
-        //     {isManageSubscriptionOpen && (
-        //         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-        //             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md animate-fade-in-up">
-        //                 <div className="flex justify-between items-center mb-5">
-        //                     <h3 className="text-xl font-bold text-gray-800">
-        //                         {noSubscription ? 'Subscribe to Maintenance Plan' : (hasActiveSubscription ? 'Manage Subscription' : 'Renew Subscription')}
-        //                     </h3>
-        //                     <button
-        //                         onClick={() => {
-        //                             setManageSubscriptionOpen(false);
-        //                             setClientSecret(null); // Clear client secret when closing
-        //                             setPaymentRequestError(null);
-        //                             setPaymentStatus('idle');
-        //                         }}
-        //                         className="text-gray-500 hover:text-gray-700 text-2xl"
-        //                     >
-        //                         &times;
-        //                     </button>
-        //                 </div>
-        //                 <p className="text-gray-600 mb-5">
-        //                     {noSubscription ? (
-        //                         `Start your monthly maintenance plan for $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month.`
-        //                     ) : (
-        //                         `Your current plan is $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month. Manage auto-renewal or make a payment.`
-        //                     )}
-        //                 </p>
+          //     {/* Manage/Payment Dialog (Tailwind CSS Modal) */}
+          //     {isManageSubscriptionOpen && (
+          //         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+          //             <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md animate-fade-in-up">
+          //                 <div className="flex justify-between items-center mb-5">
+          //                     <h3 className="text-xl font-bold text-gray-800">
+          //                         {noSubscription ? 'Subscribe to Maintenance Plan' : (hasActiveSubscription ? 'Manage Subscription' : 'Renew Subscription')}
+          //                     </h3>
+          //                     <button
+          //                         onClick={() => {
+          //                             setManageSubscriptionOpen(false);
+          //                             setClientSecret(null); // Clear client secret when closing
+          //                             setPaymentRequestError(null);
+          //                             setPaymentStatus('idle');
+          //                         }}
+          //                         className="text-gray-500 hover:text-gray-700 text-2xl"
+          //                     >
+          //                         &times;
+          //                     </button>
+          //                 </div>
+          //                 <p className="text-gray-600 mb-5">
+          //                     {noSubscription ? (
+          //                         `Start your monthly maintenance plan for $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month.`
+          //                     ) : (
+          //                         `Your current plan is $${subscription?.pricePerMonth?.toFixed(2) || '75.00'}/month. Manage auto-renewal or make a payment.`
+          //                     )}
+          //                 </p>
 
-        //                 {!clientSecret ? (
-        //                     <>
-        //                         <div className="mb-6">
-        //                             <p className="font-bold text-lg text-gray-700 mb-1">Total Amount Due:</p>
-        //                             <p className="text-3xl font-bold text-blue-600">
-        //                                 ${(subscription?.pricePerMonth?.toNumber() * (1 + GST_RATE)).toFixed(2) || (75 * (1 + GST_RATE)).toFixed(2)} BDT
-        //                                 <span className="text-sm font-normal text-gray-500 ml-2"> (incl. {GST_RATE * 100}% GST)</span>
-        //                             </p>
-        //                             {paymentRequestError && (
-        //                                 <p className="text-red-500 text-sm mt-3">{paymentRequestError}</p>
-        //                             )}
-        //                             {/* Display a message if no subscription exists for starting payment */}
-        //                             {noSubscription && (
-        //                                 <p className="text-sm text-red-500 mt-3">
-        //                                     A subscription record must exist to process payment. Please contact support.
-        //                                 </p>
-        //                             )}
-        //                         </div>
-        //                         <div className="text-right">
-        //                             <button
-        //                                 type="button"
-        //                                 onClick={initiatePayment}
-        //                                 className={`px-6 py-3 rounded-md font-semibold transition-colors duration-200
-        //                                            ${paymentStatus === 'processing' || noSubscription // Disable if no subscription or processing
-        //                                              ? 'bg-blue-400 cursor-not-allowed'
-        //                                              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-        //                                 disabled={paymentStatus === 'processing' || noSubscription} // Disable if no subscription
-        //                             >
-        //                                 {paymentStatus === 'processing' ? 'Processing...' : (noSubscription ? 'Subscription Required' : 'Make Next Payment')}
-        //                             </button>
-        //                         </div>
-        //                     </>
-        //                 ) : (
-        //                     <Elements stripe={stripePromise} options={{ clientSecret }}>
-        //                         <CheckoutForm
-        //                             clientSecret={clientSecret}
-        //                             onPaymentSuccess={handlePaymentSuccess}
-        //                             onPaymentError={handlePaymentError}
-        //                             paymentStatus={paymentStatus}
-        //                             setPaymentStatus={setPaymentStatus}
-        //                         />
-        //                     </Elements>
-        //                 )}
-        //             </div>
-        //         </div>
-        //     )}
-        // </div>
+          //                 {!clientSecret ? (
+          //                     <>
+          //                         <div className="mb-6">
+          //                             <p className="font-bold text-lg text-gray-700 mb-1">Total Amount Due:</p>
+          //                             <p className="text-3xl font-bold text-blue-600">
+          //                                 ${(subscription?.pricePerMonth?.toNumber() * (1 + GST_RATE)).toFixed(2) || (75 * (1 + GST_RATE)).toFixed(2)} BDT
+          //                                 <span className="text-sm font-normal text-gray-500 ml-2"> (incl. {GST_RATE * 100}% GST)</span>
+          //                             </p>
+          //                             {paymentRequestError && (
+          //                                 <p className="text-red-500 text-sm mt-3">{paymentRequestError}</p>
+          //                             )}
+          //                             {/* Display a message if no subscription exists for starting payment */}
+          //                             {noSubscription && (
+          //                                 <p className="text-sm text-red-500 mt-3">
+          //                                     A subscription record must exist to process payment. Please contact support.
+          //                                 </p>
+          //                             )}
+          //                         </div>
+          //                         <div className="text-right">
+          //                             <button
+          //                                 type="button"
+          //                                 onClick={initiatePayment}
+          //                                 className={`px-6 py-3 rounded-md font-semibold transition-colors duration-200
+          //                                            ${paymentStatus === 'processing' || noSubscription // Disable if no subscription or processing
+          //                                              ? 'bg-blue-400 cursor-not-allowed'
+          //                                              : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+          //                                 disabled={paymentStatus === 'processing' || noSubscription} // Disable if no subscription
+          //                             >
+          //                                 {paymentStatus === 'processing' ? 'Processing...' : (noSubscription ? 'Subscription Required' : 'Make Next Payment')}
+          //                             </button>
+          //                         </div>
+          //                     </>
+          //                 ) : (
+          //                     <Elements stripe={stripePromise} options={{ clientSecret }}>
+          //                         <CheckoutForm
+          //                             clientSecret={clientSecret}
+          //                             onPaymentSuccess={handlePaymentSuccess}
+          //                             onPaymentError={handlePaymentError}
+          //                             paymentStatus={paymentStatus}
+          //                             setPaymentStatus={setPaymentStatus}
+          //                         />
+          //                     </Elements>
+          //                 )}
+          //             </div>
+          //         </div>
+          //     )}
+          // </div>
 
-        <div className="text-center p-8">
-            <h2 className="text-2xl font-bold text-gray-900">
-                comming soon
-            </h2>
+          <div className="text-center p-8">
+            <h2 className="text-2xl font-bold text-gray-900">comming soon</h2>
             <p className="text-gray-600">
-                We are working hard to bring you the best features.
+              We are working hard to bring you the best features.
             </p>
-        </div>
+          </div>
         );
 
       case "support":
@@ -1399,6 +1473,9 @@ console.log("user", user)
         onClose={() => setSupportTicketOpen(false)}
         ticket={selectedTicket}
         onReply={handleTicketReply}
+        fetchTickets={function (): Promise<void> {
+          throw new Error("Function not implemented.");
+        }}
       />
     </div>
   );
@@ -1406,10 +1483,8 @@ console.log("user", user)
 
 export default ClientDashboard;
 
-
 const generateInvoiceHTML = (invoice) => {
-  console.log("invoice", invoice)
-
+  console.log("invoice", invoice);
 
   return `
     <!DOCTYPE html>
@@ -1439,7 +1514,7 @@ const generateInvoiceHTML = (invoice) => {
         </div>
         <div class="company-info">
           <h2>${invoice.companyInfo.name}</h2>
-          <p>${invoice.companyInfo.address.replace(/\n/g, '<br/>')}</p>
+          <p>${invoice.companyInfo.address.replace(/\n/g, "<br/>")}</p>
           <p>Phone: ${invoice.companyInfo.phone}</p>
           <p>Email: ${invoice.companyInfo.email}</p>
         </div>
@@ -1447,7 +1522,9 @@ const generateInvoiceHTML = (invoice) => {
 
       <div class="invoice-details">
         <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <p><strong>Due Date:</strong> ${new Date(invoice.dueDate).toLocaleDateString()}</p>
+        <p><strong>Due Date:</strong> ${new Date(
+          invoice.dueDate
+        ).toLocaleDateString()}</p>
         <div class="status status-${invoice.status.toLowerCase()}">
           ${invoice.status}
         </div>
@@ -1455,8 +1532,12 @@ const generateInvoiceHTML = (invoice) => {
 
       <div class="client-info">
         <h3>Bill To:</h3>
-        <p>${invoice.client?.name || invoice.client?.email.charAt(0).toUpperCase() || ''}</p>
-        <p>${invoice.client?.email || ''}</p>
+        <p>${
+          invoice.client?.name ||
+          invoice.client?.email.charAt(0).toUpperCase() ||
+          ""
+        }</p>
+        <p>${invoice.client?.email || ""}</p>
       </div>
 
       <table>
@@ -1469,20 +1550,28 @@ const generateInvoiceHTML = (invoice) => {
           </tr>
         </thead>
         <tbody>
-          ${invoice.items.map(item => `
+          ${invoice.items
+            .map(
+              (item) => `
             <tr>
               <td>${item.description}</td>
               <td>${item.quantity}</td>
               <td>${item.rate}</td>
               <td>${item.amount}</td>
             </tr>
-          `).join('')}
+          `
+            )
+            .join("")}
         </tbody>
       </table>
 
       <div class="total-section">
         <p><strong>Subtotal:</strong> ${invoice.amount}</p>
-        ${invoice.gstEnabled ? `<p><strong>GST:</strong> ${invoice.gstAmount}</p>` : ''}
+        ${
+          invoice.gstEnabled
+            ? `<p><strong>GST:</strong> ${invoice.gstAmount}</p>`
+            : ""
+        }
         <h3>Total: ${invoice.totalAmount}</h3>
       </div>
     </body>
