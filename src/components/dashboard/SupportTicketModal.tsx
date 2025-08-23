@@ -20,6 +20,12 @@ interface SupportResponse {
 }
 
 interface SupportTicket {
+  client: {
+    name: string;
+  };
+  partner: {
+    name: string;
+  };
   id: number;
   subject: string;
   description: string;
@@ -29,6 +35,7 @@ interface SupportTicket {
   projectId: number;
   projectName: string;
   responses: SupportResponse[];
+  
 }
 
 interface SupportTicketModalProps {
@@ -36,11 +43,13 @@ interface SupportTicketModalProps {
   onClose: () => void;
   ticket: SupportTicket | null;
   onReply: (ticketId: number, message: string) => Promise<void>;
+  fetchTickets: () => Promise<void>;
 }
 
-const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketModalProps) => {
+const SupportTicketModal = ({ open, onClose, ticket, onReply ,fetchTickets}: SupportTicketModalProps) => {
   const [reply, setReply] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -72,8 +81,6 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
     }
   };
 
-  const [isClosing, setIsClosing] = useState(false);
-
   const handleClose = async () => {
     setIsClosing(true);
     try {
@@ -85,6 +92,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
             description: 'Ticket closed successfully',
           });
           onClose();
+          fetchTickets();
         }
       } else if(user.role === 'admin'){
         const res = await axiosInstance.put(`/support/admin/issues/${ticket.id}/close`);
@@ -94,6 +102,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
             description: 'Ticket closed successfully',
           });
           onClose();
+          fetchTickets();
         }
       }
     } catch (error) {
@@ -130,6 +139,8 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
     return <Badge variant="secondary" className={config.className}>{status}</Badge>;
   };
 
+  console.log("ticket ",ticket)
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -163,6 +174,20 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                     <p className="text-sm text-gray-600">Project</p>
                     <p className="font-semibold">{ticket.projectName}</p>
                   </div>
+                {
+                  user.role === 'admin' && (
+                    <>
+                      <div>
+                    <p className="text-sm text-gray-600">Client</p>
+                    <p className="font-semibold">{ticket?.client?.name}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Partner</p>
+                    <p className="font-semibold">{ticket?.partner?.name}</p>
+                  </div>
+                    </>
+                  )
+                }
                 </div>
                 
                 <div className="mt-4 p-4 bg-gray-50 rounded-lg">

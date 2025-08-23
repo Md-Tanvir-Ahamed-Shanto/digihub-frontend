@@ -949,6 +949,7 @@ const AdminDashboard = () => {
         open={supportTicketOpen}
         onClose={() => setSupportTicketOpen(false)}
         ticket={selectedTicket}
+        fetchTickets={fetchSupportTickets}
         onReply={handleTicketReply}
       />
     </div>

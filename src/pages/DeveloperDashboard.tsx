@@ -1283,6 +1283,7 @@ const PartnerDashboard = () => {
         onClose={() => setSupportTicketOpen(false)}
         ticket={selectedTicket}
         onReply={handleTicketReply}
+        fetchTickets={fetchSupportTickets}
       />
       <WithdrawalRequestModal
         isOpen={withdrawalRequestOpen}
