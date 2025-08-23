@@ -54,6 +54,24 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
     }
   };
 
+  const handleDelete = async (projectId: string) => {
+    try {
+      const response = await axiosInstance.delete(`/project/${projectId}`);
+      if(response.status === 200) {
+        toast({
+          title: 'Project deleted',
+          description: 'Project has been deleted successfully'
+        })
+        fetchProject();
+      }
+    } catch (error) {
+      toast({
+        title: 'Error deleting project',
+        description: 'Project could not be deleted'
+      })
+    }
+  }
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -178,6 +196,9 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
               onMarkComplete(project.id);
             }}>
               Mark as Complete
+            </Button>
+            <Button variant="destructive" onClick={() => handleDelete(project.id)}>
+              Delete
             </Button>
           </div>
         </DialogContent>

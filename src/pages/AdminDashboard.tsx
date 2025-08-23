@@ -627,13 +627,17 @@ const renderClients = () => (
                     <TableCell>
                       <div className="flex space-x-2">
 
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleViewLead(lead)}
-                          >
-                            <Eye className="w-3 h-3" />
-                          </Button>
+                         {
+                          lead.status === "ACCEPTED_AND_CONVERTED" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleViewProject(lead)}
+                            >
+                              <Eye className="w-3 h-3" />
+                            </Button>
+                          )
+                         }
                         
                         {lead.status === "PENDING" && (
                           <Button
