@@ -194,7 +194,7 @@ const FinancePanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                <p className="text-2xl font-bold text-gray-900">${financialSummary.totalRevenue.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">${financialSummary.totalRevenue?.toLocaleString()}</p>
                 <p className="text-sm text-green-600">+8% from last month</p>
               </div>
               <DollarSign className="w-8 h-8 text-green-600" />
@@ -207,7 +207,7 @@ const FinancePanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">GST Balance</p>
-                <p className="text-2xl font-bold text-gray-900">${financialSummary.gstBalance.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">${financialSummary.gstBalance?.toLocaleString()}</p>
                 <p className="text-sm text-purple-600">+15% from last month</p>
               </div>
               <Receipt className="w-8 h-8 text-purple-600" />
@@ -220,7 +220,7 @@ const FinancePanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Expenses</p>
-                <p className="text-2xl font-bold text-gray-900">${financialSummary.totalExpenses.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">${financialSummary.totalExpenses?.toLocaleString()}</p>
                 <p className="text-sm text-red-600">+3% from last month</p>
               </div>
               <TrendingDown className="w-8 h-8 text-red-600" />
@@ -233,7 +233,7 @@ const FinancePanel = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Net Income</p>
-                <p className="text-2xl font-bold text-gray-900">${financialSummary.netIncome.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-gray-900">${financialSummary.netIncome?.toLocaleString()}</p>
                 <p className="text-sm text-green-600">+12% from last month</p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
@@ -258,7 +258,7 @@ const FinancePanel = () => {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
-                <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} />
+                <Tooltip formatter={(value) => [`$${value?.toLocaleString()}`, 'Revenue']} />
                 <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={2} />
               </LineChart>
             </ResponsiveContainer>
