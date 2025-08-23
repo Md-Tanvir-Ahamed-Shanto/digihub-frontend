@@ -917,6 +917,7 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
         open={viewLeadOpen}
         onOpenChange={setViewLeadOpen}
         lead={selectedLead}
+        fetchLeads={fetchLeads}
       />
       <AddLeadModal open={addLeadOpen} onOpenChange={setAddLeadOpen} />
       <AssignLeadModal

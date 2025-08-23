@@ -6,14 +6,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, User, Mail, Phone, Globe, FileText } from 'lucide-react';
 import { format } from 'date-fns';
+import axiosInstance from '@/api/axios';
+import { toast } from '@/hooks/use-toast';
 
 interface ViewLeadModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead: any;
+  fetchLeads: () => void;
 }
 
-const ViewLeadModal = ({ open, onOpenChange, lead }: ViewLeadModalProps) => {
+const ViewLeadModal = ({ open, onOpenChange, lead,fetchLeads }: ViewLeadModalProps) => {
   if (!lead) return null;
 
   const getStatusColor = (status: string) => {
@@ -23,6 +26,24 @@ const ViewLeadModal = ({ open, onOpenChange, lead }: ViewLeadModalProps) => {
       case 'ACCEPTED': return 'bg-green-100 text-green-800 border-green-200';
       case 'ACCEPTED_AND_CONVERTED': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleDeleteLead = async (leadId: string) => {
+    try {
+      await axiosInstance.delete(`/lead/${leadId}`);
+      fetchLeads();
+      toast({
+        title: "Success",
+        description: "Lead deleted successfully",
+      });
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error deleting lead:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete lead",
+      });
     }
   };
 
@@ -110,8 +131,8 @@ const ViewLeadModal = ({ open, onOpenChange, lead }: ViewLeadModalProps) => {
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
-            <Button>
-              Convert to Project
+            <Button variant="destructive" onClick={() => handleDeleteLead(lead.id)}>
+              Delete
             </Button>
           </div>
         </div>
