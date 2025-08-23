@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface ProjectSubmissionModalProps {
   open: boolean;
@@ -23,23 +25,49 @@ const ProjectSubmissionModal = ({ open, onOpenChange }: ProjectSubmissionModalPr
   });
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Project submission:', formData);
     
-    toast({
-      title: "Project Submitted Successfully",
-      description: "Your project has been submitted for review. We'll contact you within 24 hours.",
-    });
-    
-    onOpenChange(false);
-    setFormData({
-      projectName: '',
-      description: '',
-      budget: '',
-      timeline: '',
-      category: ''
-    });
+    if (!formData.projectName || !formData.description || !formData.category) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axiosInstance.post('/projects/submit', formData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Project Submitted Successfully",
+          description: "Your project has been submitted for review. We'll contact you within 24 hours.",
+        });
+        
+        onOpenChange(false);
+        setFormData({
+          projectName: '',
+          description: '',
+          budget: '',
+          timeline: '',
+          category: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error submitting project:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit project. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -125,11 +153,27 @@ const ProjectSubmissionModal = ({ open, onOpenChange }: ProjectSubmissionModalPr
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90">
-              Submit Project
+            <Button 
+              type="submit" 
+              className="bg-brand-primary hover:bg-brand-primary/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Project'
+              )}
             </Button>
           </div>
         </form>

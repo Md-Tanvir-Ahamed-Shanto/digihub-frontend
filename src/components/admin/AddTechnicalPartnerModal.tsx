@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface AddTechnicalPartnerModalProps {
   open: boolean;
@@ -14,6 +16,7 @@ interface AddTechnicalPartnerModalProps {
 }
 
 const AddTechnicalPartnerModal = ({ open, onOpenChange }: AddTechnicalPartnerModalProps) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -39,28 +42,40 @@ const AddTechnicalPartnerModal = ({ open, onOpenChange }: AddTechnicalPartnerMod
     'Other'
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('New technical partner:', formData);
+    setIsSubmitting(true);
     
-    toast({
-      title: "Technical Partner Added",
-      description: `Technical partner "${formData.name}" has been added successfully.`
-    });
-    
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      location: '',
-      specialization: '',
-      experience: '',
-      portfolio: '',
-      notes: ''
-    });
-    
-    onOpenChange(false);
+    try {
+      await axiosInstance.post('/technical-partners', formData);
+      
+      toast({
+        title: "Success",
+        description: `Technical partner "${formData.name}" has been added successfully.`
+      });
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        location: '',
+        specialization: '',
+        experience: '',
+        portfolio: '',
+        notes: ''
+      });
+      
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to add technical partner. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -174,11 +189,18 @@ const AddTechnicalPartnerModal = ({ open, onOpenChange }: AddTechnicalPartnerMod
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90">
-              Add Partner
+            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Partner'
+              )}
             </Button>
           </div>
         </form>

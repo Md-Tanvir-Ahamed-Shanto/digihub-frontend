@@ -19,6 +19,7 @@ import {
   Globe,
   Upload,
   Image,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +29,8 @@ const AdminSettings = () => {
   const { toast } = useToast();
   const { user } = useAuth();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [adminCredentials, setAdminCredentials] = useState({
     email: user?.email,
     currentPassword: "",
@@ -36,6 +39,7 @@ const AdminSettings = () => {
   });
 
   const handleUpdateCredentials = async () => {
+    setIsSubmitting(true);
     if (!adminCredentials.currentPassword || !adminCredentials.newPassword) {
       toast({
         title: "Error",
@@ -75,6 +79,7 @@ const AdminSettings = () => {
         }));
       }
     } catch (error) {
+      setIsSubmitting(false);
       // Handle API errors
       if (error.response) {
         // Server responded with a status other than 2xx
@@ -101,6 +106,8 @@ const AdminSettings = () => {
           variant: "destructive",
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -201,9 +208,22 @@ const AdminSettings = () => {
                 </div>
               </div>
 
-              <Button onClick={handleUpdateCredentials} className="w-full">
-                <Save className="w-4 h-4 mr-2" />
-                Update Credentials
+              <Button 
+                onClick={handleUpdateCredentials} 
+                className="w-full" 
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Credentials
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>

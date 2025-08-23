@@ -3,8 +3,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CreditCard, Calendar, AlertTriangle } from 'lucide-react';
+import { CreditCard, Calendar, AlertTriangle, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+import { useState } from 'react';
 
 interface ManageSubscriptionModalProps {
   isOpen: boolean;
@@ -13,12 +15,66 @@ interface ManageSubscriptionModalProps {
 
 const ManageSubscriptionModal = ({ isOpen, onClose }: ManageSubscriptionModalProps) => {
   const { toast } = useToast();
+  const [isUpdatingPayment, setIsUpdatingPayment] = useState(false);
+  const [isViewingHistory, setIsViewingHistory] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
-  const handleAction = (action: string) => {
-    toast({
-      title: "Action Processed",
-      description: `Your ${action} request has been processed successfully.`
-    });
+  const handleUpdatePayment = async () => {
+    setIsUpdatingPayment(true);
+    try {
+      const response = await axiosInstance.post('/subscription/update-payment');
+      toast({
+        title: "Payment Method Updated",
+        description: "Your payment method has been updated successfully."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update payment method.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdatingPayment(false);
+    }
+  };
+
+  const handleViewHistory = async () => {
+    setIsViewingHistory(true);
+    try {
+      const response = await axiosInstance.get('/subscription/billing-history');
+      toast({
+        title: "Billing History",
+        description: "Redirecting to billing history..."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to fetch billing history.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsViewingHistory(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true);
+    try {
+      const response = await axiosInstance.post('/subscription/cancel');
+      toast({
+        title: "Subscription Cancelled",
+        description: "Your subscription has been cancelled successfully."
+      });
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to cancel subscription.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
   return (
@@ -63,20 +119,40 @@ const ManageSubscriptionModal = ({ isOpen, onClose }: ManageSubscriptionModalPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button 
               variant="outline" 
-              onClick={() => handleAction('update payment method')}
+              onClick={handleUpdatePayment}
               className="flex items-center gap-2"
+              disabled={isUpdatingPayment}
             >
-              <CreditCard className="w-4 h-4" />
-              Update Payment Method
+              {isUpdatingPayment ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                <>
+                  <CreditCard className="w-4 h-4" />
+                  Update Payment Method
+                </>
+              )}
             </Button>
             
             <Button 
               variant="outline" 
-              onClick={() => handleAction('billing history')}
+              onClick={handleViewHistory}
               className="flex items-center gap-2"
+              disabled={isViewingHistory}
             >
-              <Calendar className="w-4 h-4" />
-              View Billing History
+              {isViewingHistory ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Loading...
+                </>
+              ) : (
+                <>
+                  <Calendar className="w-4 h-4" />
+                  View Billing History
+                </>
+              )}
             </Button>
           </div>
           
@@ -91,9 +167,17 @@ const ManageSubscriptionModal = ({ isOpen, onClose }: ManageSubscriptionModalPro
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  onClick={() => handleAction('cancel subscription')}
+                  onClick={handleCancelSubscription}
+                  disabled={isCancelling}
                 >
-                  Cancel
+                  {isCancelling ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Cancelling...
+                    </>
+                  ) : (
+                    'Cancel'
+                  )}
                 </Button>
               </div>
             </CardContent>

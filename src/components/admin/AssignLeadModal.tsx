@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Star, Users } from 'lucide-react';
+import { Star, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axiosInstance from '@/api/axios';
 
@@ -26,6 +26,7 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
   const [budgetForPartner, setBudgetForPartner] = useState('');
   const [timelineForPartner, setTimelineForPartner] = useState('');
   const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [partners, setPartners] = useState([]);
 
   const fetchPartners = async () => {
@@ -46,6 +47,7 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
   const handleAssign = async () => {
     if (!selectedPartner) return;
     
+    setIsSubmitting(true);
     const partner = partners.find(p => p.id === selectedPartner);
     try {
       await axiosInstance.put(`/lead/${lead.id}/assign-partner`, {
@@ -64,9 +66,11 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
       console.error('Error assigning lead:', error);
       toast({
         title: "Error Assigning Lead",
-        description: "There was an issue assigning the lead. Please try again.",
+        description: error.response?.data?.message || "There was an issue assigning the lead. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -166,11 +170,18 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
 
           {/* Actions */}
           <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button onClick={handleAssign} disabled={!selectedPartner}>
-              Assign Partner
+            <Button onClick={handleAssign} disabled={!selectedPartner || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                'Assign Partner'
+              )}
             </Button>
           </div>
         </div>

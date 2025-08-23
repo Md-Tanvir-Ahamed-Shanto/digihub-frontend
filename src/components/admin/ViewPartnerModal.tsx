@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Dialog,
   DialogContent,
@@ -23,10 +21,12 @@ import {
   CheckCircle,
   CreditCard,
   Trash2,
+  Loader2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import axiosInstance from "@/api/axios";
+import { useState } from "react";
 
 interface ViewPartnerModalProps {
   open: boolean;
@@ -36,15 +36,19 @@ interface ViewPartnerModalProps {
 }
 
 const ViewPartnerModal = ({
+
   open,
   onOpenChange,
   partner,
   fetchPartners,
 }: ViewPartnerModalProps) => {
   const { toast } = useToast();
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   if (!partner) return null;
 
   const handleStatusUpdate = async (requestId: string, newStatus: string) => {
+    setIsUpdating(true);
     try {
       const response = await axiosInstance.put(
         `/withdrawal/admin/${requestId}/process`,
@@ -65,6 +69,8 @@ const ViewPartnerModal = ({
         description: `Withdrawal request status update failed`,
       });
       console.error("Error updating status:", error);
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -90,6 +96,7 @@ const ViewPartnerModal = ({
   };
 
   const deletePartner = async () => {
+    setIsDeleting(true);
     const isConfirmed = window.confirm(
       "Are you sure you want to delete this partner? This action cannot be undone."
     );
@@ -110,6 +117,8 @@ const ViewPartnerModal = ({
           variant: "destructive",
         });
         console.error("Error deleting partner:", error);
+      } finally {
+        setIsDeleting(false);
       }
     }
   };
@@ -256,21 +265,29 @@ const ViewPartnerModal = ({
 
                       {request.status === "PENDING" && (
                         <div className="flex items-center space-x-2">
-                          <Select
-                            onValueChange={(value) =>
-                              handleStatusUpdate(request.id, value)
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue placeholder="Update Status" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="COMPLETED">
-                                Mark Paid
-                              </SelectItem>
-                              <SelectItem value="CANCELED">Reject</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {isUpdating ? (
+                            <div className="flex items-center space-x-2">
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span className="text-sm">Updating...</span>
+                            </div>
+                          ) : (
+                            <Select
+                              onValueChange={(value) =>
+                                handleStatusUpdate(request.id, value)
+                              }
+                              disabled={isDeleting}
+                            >
+                              <SelectTrigger className="w-32">
+                                <SelectValue placeholder="Update Status" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="COMPLETED">
+                                  Mark Paid
+                                </SelectItem>
+                                <SelectItem value="CANCELED">Reject</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          )}
                         </div>
                       )}
                     </div>
@@ -286,12 +303,29 @@ const ViewPartnerModal = ({
 
           <div className="flex justify-between pt-4 border-t">
             
-              <Button onClick={deletePartner} variant="destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Partner
+              <Button 
+                onClick={deletePartner} 
+                variant="destructive" 
+                disabled={isDeleting || isUpdating}
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Partner
+                  </>
+                )}
               </Button>
            
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isDeleting || isUpdating}
+            >
               Close
             </Button>
           </div>

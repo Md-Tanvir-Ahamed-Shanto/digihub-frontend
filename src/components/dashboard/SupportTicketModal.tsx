@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface SupportResponse {
   userType: string;
@@ -71,20 +72,30 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
     }
   };
 
+  const [isClosing, setIsClosing] = useState(false);
+
   const handleClose = async () => {
+    setIsClosing(true);
     try {
       if(user.role === 'partner'){
-       const res= await axiosInstance.put(`/support/partner/issues/${ticket.id}/close`);
-       if(res.status === 200){
-        onClose();
-      }
-      }else if(user.role === 'admin'){
-        const res= await axiosInstance.put(`/support/admin/issues/${ticket.id}/close`);
+        const res = await axiosInstance.put(`/support/partner/issues/${ticket.id}/close`);
         if(res.status === 200){
-        onClose();
+          toast({
+            title: 'Success',
+            description: 'Ticket closed successfully',
+          });
+          onClose();
+        }
+      } else if(user.role === 'admin'){
+        const res = await axiosInstance.put(`/support/admin/issues/${ticket.id}/close`);
+        if(res.status === 200){
+          toast({
+            title: 'Success',
+            description: 'Ticket closed successfully',
+          });
+          onClose();
+        }
       }
-      }
-      
     } catch (error) {
       console.error('Error closing ticket:', error);
       toast({
@@ -93,7 +104,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
         variant: 'destructive'
       });
     } finally {
-      onClose();
+      setIsClosing(false);
     }
   };
 
@@ -204,14 +215,28 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply }: SupportTicketMod
                     className="bg-brand-primary hover:bg-brand-primary/90"
                     disabled={!reply.trim() || isSubmitting || user.role === 'admin'}
                   >
-                    {isSubmitting ? 'Sending...' : 'Send Reply'}
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      'Send Reply'
+                    )}
                   </Button>
                   <Button 
                     onClick={handleClose}
                     className="bg-red-400 hover:bg-red-500"
-                    disabled={user.role === 'client'}
+                    disabled={user.role === 'client' || isClosing}
                   >
-                    Close
+                    {isClosing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Closing...
+                      </>
+                    ) : (
+                      'Close'
+                    )}
                   </Button>
                 </div>
                 

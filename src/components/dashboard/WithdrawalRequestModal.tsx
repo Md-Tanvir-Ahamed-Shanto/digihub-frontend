@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast'; // Corrected import for toast directly
 import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface WithdrawalRequestModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const WithdrawalRequestModal = ({ isOpen, onClose, fetchWithdrawals, availableBa
     type: 'PAYPAL', // Default type
     note: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -53,6 +55,7 @@ const WithdrawalRequestModal = ({ isOpen, onClose, fetchWithdrawals, availableBa
     }
 
     try {
+        setIsSubmitting(true);
         // Only send fields that are part of your current Withdrawal model schema
         const payload = {
             amount: requestedAmount,
@@ -96,6 +99,8 @@ const WithdrawalRequestModal = ({ isOpen, onClose, fetchWithdrawals, availableBa
             description: error.response?.data?.message || "An error occurred while processing your request.",
             variant: "destructive"
         });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -171,11 +176,18 @@ const WithdrawalRequestModal = ({ isOpen, onClose, fetchWithdrawals, availableBa
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              Submit Request
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Request'
+              )}
             </Button>
           </div>
         </form>

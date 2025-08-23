@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface TechnicalPartner {
   id: number;
@@ -26,9 +28,10 @@ interface AssignDeveloperModalProps {
 const AssignDeveloperModal = ({ open, onOpenChange, project, developers }: AssignDeveloperModalProps) => {
   const [selectedPartner, setSelectedPartner] = useState('');
   const [fixedBudget, setFixedBudget] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedPartner) {
@@ -49,17 +52,33 @@ const AssignDeveloperModal = ({ open, onOpenChange, project, developers }: Assig
       return;
     }
 
-    const partner = developers.find(d => d.id === parseInt(selectedPartner));
+    setIsSubmitting(true);
 
-    toast({
-      title: "Technical Partner Assigned",
-      description: `${partner?.name} has been assigned to ${project?.name} with a fixed budget of $${parseInt(fixedBudget).toLocaleString()}.`,
-    });
-    
-    // Reset form
-    setSelectedPartner('');
-    setFixedBudget('');
-    onOpenChange(false);
+    try {
+      const partner = developers.find(d => d.id === parseInt(selectedPartner));
+      await axiosInstance.post(`/projects/${project.id}/assign`, {
+        partnerId: parseInt(selectedPartner),
+        fixedBudget: parseFloat(fixedBudget)
+      });
+
+      toast({
+        title: "Success",
+        description: `${partner?.name} has been assigned to ${project?.name} with a fixed budget of $${parseInt(fixedBudget).toLocaleString()}.`,
+      });
+      
+      // Reset form
+      setSelectedPartner('');
+      setFixedBudget('');
+      onOpenChange(false);
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to assign technical partner. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const availablePartners = developers.filter(dev => dev.status === 'Active' || dev.status === 'Available');
@@ -118,15 +137,27 @@ const AssignDeveloperModal = ({ open, onOpenChange, project, developers }: Assig
           )}
           
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button 
               type="submit" 
               className="bg-brand-accent hover:bg-brand-accent/90"
-              disabled={!selectedPartner || availablePartners.length === 0}
+              disabled={!selectedPartner || availablePartners.length === 0 || isSubmitting}
             >
-              Assign Partner
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Assigning...
+                </>
+              ) : (
+                'Assign Partner'
+              )}
             </Button>
           </div>
         </form>

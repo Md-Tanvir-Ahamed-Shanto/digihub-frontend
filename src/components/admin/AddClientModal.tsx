@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface AddClientModalProps {
   open: boolean;
@@ -37,26 +39,51 @@ const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
     'Other'
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('New client:', formData);
     
-    toast({
-      title: "Client Added",
-      description: `Client "${formData.name}" has been added successfully.`
-    });
-    
-    // Reset form
-    setFormData({
-      name: '',
-      company: '',
-      email: '',
-      phone: '',
-      industry: '',
-      notes: ''
-    });
-    
-    onOpenChange(false);
+    if (!formData.name || !formData.company || !formData.email) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axiosInstance.post('/clients', formData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Client Added",
+          description: `Client "${formData.name}" has been added successfully.`
+        });
+        
+        setFormData({
+          name: '',
+          company: '',
+          email: '',
+          phone: '',
+          industry: '',
+          notes: ''
+        });
+        
+        onOpenChange(false);
+      }
+    } catch (error) {
+      console.error('Error adding client:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add client. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -150,11 +177,27 @@ const AddClientModal = ({ open, onOpenChange }: AddClientModalProps) => {
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90">
-              Add Client
+            <Button 
+              type="submit" 
+              className="bg-brand-primary hover:bg-brand-primary/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Client'
+              )}
             </Button>
           </div>
         </form>

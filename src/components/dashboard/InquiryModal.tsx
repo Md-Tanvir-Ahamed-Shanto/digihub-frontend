@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface InquiryModalProps {
   open: boolean;
@@ -20,6 +22,7 @@ const InquiryModal = ({ open, onOpenChange }: InquiryModalProps) => {
     message: '',
     priority: 'normal'
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const projects = [
@@ -27,22 +30,43 @@ const InquiryModal = ({ open, onOpenChange }: InquiryModalProps) => {
     { id: '2', name: 'Booking System' }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Inquiry submission:', formData);
     
-    toast({
-      title: "Inquiry Submitted",
-      description: "Your inquiry has been sent to the development team. You'll receive a response within 24 hours.",
-    });
-    
-    onOpenChange(false);
-    setFormData({
-      project: '',
-      subject: '',
-      message: '',
-      priority: 'normal'
-    });
+    if (!formData.project || !formData.subject || !formData.message) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axiosInstance.post('/inquiries', formData);
+      
+      toast({
+        title: "Inquiry Submitted",
+        description: "Your inquiry has been sent to the development team. You'll receive a response within 24 hours.",
+      });
+      
+      onOpenChange(false);
+      setFormData({
+        project: '',
+        subject: '',
+        message: '',
+        priority: 'normal'
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to submit inquiry. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -111,11 +135,27 @@ const InquiryModal = ({ open, onOpenChange }: InquiryModalProps) => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-primary hover:bg-brand-primary/90">
-              Submit Inquiry
+            <Button 
+              type="submit" 
+              className="bg-brand-primary hover:bg-brand-primary/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Inquiry'
+              )}
             </Button>
           </div>
         </form>

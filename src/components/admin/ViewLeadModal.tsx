@@ -110,10 +110,6 @@ const ViewLeadModal = ({ open, onOpenChange, lead }: ViewLeadModalProps) => {
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
-            <Button variant="outline">
-              <FileText className="w-4 h-4 mr-2" />
-              Generate Quote
-            </Button>
             <Button>
               Convert to Project
             </Button>

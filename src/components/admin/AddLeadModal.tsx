@@ -7,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface AddLeadModalProps {
   open: boolean;
@@ -26,23 +28,52 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
     timeline: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Lead Added",
-      description: `New lead from ${formData.clientName} has been added successfully.`,
-    });
-    onOpenChange(false);
-    setFormData({
-      clientName: '',
-      email: '',
-      phone: '',
-      company: '',
-      projectType: '',
-      description: '',
-      budget: '',
-      timeline: ''
-    });
+    
+    if (!formData.clientName || !formData.email || !formData.description) {
+      toast({
+        title: 'Error',
+        description: 'Please fill in all required fields',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await axiosInstance.post('/leads', formData);
+      
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Lead Added",
+          description: `New lead from ${formData.clientName} has been added successfully.`,
+        });
+        
+        onOpenChange(false);
+        setFormData({
+          clientName: '',
+          email: '',
+          phone: '',
+          company: '',
+          projectType: '',
+          description: '',
+          budget: '',
+          timeline: ''
+        });
+      }
+    } catch (error) {
+      console.error('Error adding lead:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add lead. Please try again.',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -158,11 +189,26 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              Add Lead
+            <Button 
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Lead'
+              )}
             </Button>
           </div>
         </form>

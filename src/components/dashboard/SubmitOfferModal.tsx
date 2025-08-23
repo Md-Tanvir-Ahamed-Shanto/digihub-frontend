@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface Project {
   id: number;
@@ -28,25 +29,37 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
   const [cost, setCost] = useState('');
   const [timeline, setTimeline] = useState('');
   const [description, setDescription] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const response = await axiosInstance.post(`/partner/leads/${project.id}/submit-offer`, {
-      proposedCost: Number(cost),
-      timeline: timeline,
-      notes: description
-    });
-    if (response.status === 200) {
-      toast({
-        title: "Offer Submitted",
-        description: "Your project offer has been submitted successfully."
+    try {
+      setIsSubmitting(true);
+      const response = await axiosInstance.post(`/partner/leads/${project.id}/submit-offer`, {
+        proposedCost: Number(cost),
+        timeline: timeline,
+        notes: description
       });
-      fetchLead()
-      setCost('');
-      setTimeline('');
-      setDescription('');
-      onClose();
+      if (response.status === 200) {
+        toast({
+          title: "Offer Submitted",
+          description: "Your project offer has been submitted successfully."
+        });
+        fetchLead()
+        setCost('');
+        setTimeline('');
+        setDescription('');
+        onClose();
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to submit offer",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -105,11 +118,18 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
           </div>
           
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              Submit Offer
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Offer'
+              )}
             </Button>
           </div>
         </form>

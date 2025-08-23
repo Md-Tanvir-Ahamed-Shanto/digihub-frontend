@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import axiosInstance from '@/api/axios';
+import { Loader2 } from 'lucide-react';
 
 interface Project {
   title: string;
@@ -133,7 +134,12 @@ console.log("projectId", projectId)
           </div>
           
           <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
             <Button 
@@ -141,7 +147,14 @@ console.log("projectId", projectId)
               className="bg-brand-primary hover:bg-brand-primary/90"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Issue'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Submitting...
+                </>
+              ) : (
+                'Submit Issue'
+              )}
             </Button>
           </div>
         </form>

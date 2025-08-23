@@ -268,10 +268,6 @@ const ServiceCalculator = () => {
               {/* Actions */}
               <div className="space-y-2">
                 <Button onClick={generateQuote} className="w-full" variant="outline">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Generate Quote
-                </Button>
-                <Button onClick={generateQuote} className="w-full" variant="outline">
                   <Download className="w-4 h-4 mr-2" />
                   Download PDF
                 </Button>

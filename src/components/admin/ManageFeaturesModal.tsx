@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Service, Feature } from '@/services/serviceData';
-import { Edit, Eye } from 'lucide-react';
+import { Edit, Eye, Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
+import { toast } from '@/hooks/use-toast';
 
 interface ManageFeaturesModalProps {
   open: boolean;
@@ -19,6 +21,7 @@ interface ManageFeaturesModalProps {
 const ManageFeaturesModal = ({ open, onOpenChange, service, features }: ManageFeaturesModalProps) => {
   const [editingFeature, setEditingFeature] = useState<Feature | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!service) return null;
 
@@ -256,11 +259,50 @@ const ManageFeaturesModal = ({ open, onOpenChange, service, features }: ManageFe
                   </p>
                 </div>
                 <div className="flex space-x-2">
-                  <Button onClick={() => setEditingFeature(null)} variant="outline" className="flex-1">
+                  <Button 
+                    onClick={() => setEditingFeature(null)} 
+                    variant="outline" 
+                    className="flex-1"
+                    disabled={isSubmitting}
+                  >
                     Cancel
                   </Button>
-                  <Button className="flex-1">
-                    Save Changes
+                  <Button 
+                    className="flex-1" 
+                    disabled={isSubmitting}
+                    onClick={async () => {
+                      setIsSubmitting(true);
+                      try {
+                        await axiosInstance.put(`/features/${editingFeature.id}`, {
+                          name: (document.getElementById('feature-name') as HTMLInputElement).value,
+                          description: (document.getElementById('feature-description') as HTMLInputElement).value
+                        });
+                        
+                        toast({
+                          title: 'Success',
+                          description: 'Feature updated successfully.'
+                        });
+                        
+                        setEditingFeature(null);
+                      } catch (error: any) {
+                        toast({
+                          title: 'Error',
+                          description: error.response?.data?.message || 'Failed to update feature. Please try again.',
+                          variant: 'destructive'
+                        });
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      'Save Changes'
+                    )}
                   </Button>
                 </div>
               </div>

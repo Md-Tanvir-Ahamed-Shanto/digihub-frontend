@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Clock, AlertTriangle } from 'lucide-react';
+import { CheckCircle, Clock, AlertTriangle, Loader2 } from 'lucide-react';
+import axiosInstance from '@/api/axios';
 
 interface UpdateProgressModalProps {
   open: boolean;
@@ -20,30 +21,41 @@ const UpdateProgressModal = ({ open, onOpenChange, project }: UpdateProgressModa
   const [progressUpdate, setProgressUpdate] = useState('');
   const [hoursWorked, setHoursWorked] = useState('');
   const [blockers, setBlockers] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    console.log('Progress update:', {
-      project: project?.name,
-      taskStatus,
-      progressUpdate,
-      hoursWorked,
-      blockers
-    });
-    
-    toast({
-      title: "Progress Updated",
-      description: "Your progress update has been submitted successfully.",
-    });
-    
-    onOpenChange(false);
-    // Reset form
-    setTaskStatus('in-progress');
-    setProgressUpdate('');
-    setHoursWorked('');
-    setBlockers('');
+    try {
+      const response = await axiosInstance.post(`/projects/${project.id}/progress`, {
+        taskStatus,
+        progressUpdate,
+        hoursWorked: parseInt(hoursWorked),
+        blockers: blockers || undefined
+      });
+      
+      toast({
+        title: "Progress Updated",
+        description: "Your progress update has been submitted successfully.",
+      });
+      
+      onOpenChange(false);
+      // Reset form
+      setTaskStatus('in-progress');
+      setProgressUpdate('');
+      setHoursWorked('');
+      setBlockers('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to update progress. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!project) return null;
@@ -139,11 +151,27 @@ const UpdateProgressModal = ({ open, onOpenChange, project }: UpdateProgressModa
           )}
 
           <div className="flex justify-end space-x-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" className="bg-brand-secondary hover:bg-brand-secondary/90">
-              Submit Update
+            <Button 
+              type="submit" 
+              className="bg-brand-secondary hover:bg-brand-secondary/90"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                'Submit Update'
+              )}
             </Button>
           </div>
         </form>
