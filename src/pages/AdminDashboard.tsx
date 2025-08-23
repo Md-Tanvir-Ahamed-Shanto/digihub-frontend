@@ -193,11 +193,15 @@ const AdminDashboard = () => {
 
   const totalProject = projects.reduce((acc, project) => {
     acc.total = (acc.total || 0) + 1;
-    acc.revenue = (acc.revenue || 0) + project.revenue;
-    acc.gst = (acc.gst || 0) + project.gst;
-    acc.profit = (acc.profit || 0) + project.profit;
+    acc.offerPrice = (parseInt(acc.offerPrice) || 0) + parseInt(project.offerPrice);
+    acc.partnerCost = (parseInt(acc.partnerCost) || 0) + parseInt(project.partnerCost);
+    acc.adminMargin = (parseInt(acc.adminMargin) || 0) + parseInt(project.adminMargin);
     return acc;
   }, {});
+
+  console.log("totalProject", totalProject);
+
+const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
 
   const kpiData = [
     {
@@ -209,25 +213,25 @@ const AdminDashboard = () => {
     },
     {
       title: "Total Revenue",
-      value: totalProject.revenue || 0,
+      value: totalProject.adminMargin || 0,
       change: "+8%",
       icon: DollarSign,
       color: "text-green-600",
     },
     {
       title: "GST Collected",
-      value: totalProject.gst || 0,
+      value: ((parseInt(totalProject.partnerCost) + parseInt(totalProject.adminMargin))) * GST_RATE || 0,
       change: "+15%",
       icon: TrendingUp,
       color: "text-purple-600",
     },
-    {
-      title: "Profit After Expenses",
-      value: totalProject.profit || 0,
-      change: "+5%",
-      icon: TrendingUp,
-      color: "text-emerald-600",
-    },
+    // {
+    //   title: "Profit After Expenses",
+    //   value: totalProject.profit || 0,
+    //   change: "+5%",
+    //   icon: TrendingUp,
+    //   color: "text-emerald-600",
+    // },
   ];
 
   const revenueData = projects.map((project) => ({
