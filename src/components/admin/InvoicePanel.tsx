@@ -205,13 +205,13 @@ const InvoicePanel = () => {
   const totalStats = {
     totalInvoices: invoices.length,
     paidAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'PAID')
-      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+      .reduce((sum, inv) => sum + (parseFloat(inv.totalAmount) || 0), 0),
     pendingAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'PENDING')
-      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+      .reduce((sum, inv) => sum + (parseFloat(inv.totalAmount) || 0), 0),
     overdueAmount: invoices.filter(inv => inv.status?.toUpperCase() === 'OVERDUE')
-      .reduce((sum, inv) => sum + (inv.total || 0), 0),
+      .reduce((sum, inv) => sum + (parseFloat(inv.totalAmount) || 0), 0),
     totalGST: invoices.filter(inv => inv.status?.toUpperCase() === 'PAID')
-      .reduce((sum, inv) => sum + (inv.gst || 0), 0),
+      .reduce((sum, inv) => sum + (parseFloat(inv.gstAmount) || 0), 0),
     unpaidInvoices: invoices.filter(inv => inv.status?.toUpperCase() !== 'PAID').length
   };
 
