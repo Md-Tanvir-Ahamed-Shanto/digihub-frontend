@@ -80,7 +80,13 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
         <DialogHeader>
           <DialogTitle>Assign Lead to Partner</DialogTitle>
           <DialogDescription>
-            Select a technical partner to handle this project: {lead?.clientName}
+            Select a technical partner to handle this project: {lead?.projectTitle}
+          </DialogDescription>
+          <DialogDescription>
+            Client: {lead?.client?.companyName}
+          </DialogDescription>
+          <DialogDescription>
+            Budget: {lead?.budgetRange}
           </DialogDescription>
         </DialogHeader>
         
