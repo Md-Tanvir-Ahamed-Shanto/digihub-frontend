@@ -155,7 +155,7 @@ const PartnerDashboard = () => {
       color: "text-blue-600",
     },
     {
-      title: "Earnings This Month",
+      title: "Expected Earnings This Month",
       value: earningsThisMonth,
       icon: DollarSign,
       color: "text-green-600",
@@ -719,8 +719,7 @@ const PartnerDashboard = () => {
       const data = response.data;
       
       // Calculate totals
-      const totalEarned = data.withdrawals?.reduce((sum, payment) => 
-        payment.status === 'Paid' ? sum + parseFloat(payment.amount.replace('$', '')) : sum, 0);
+      const totalEarned = data.totalEarnings || 0;
       
       const pendingAmount = data.withdrawals?.reduce((sum, payment) => 
         payment.status === 'Pending' ? sum + parseFloat(payment.amount.replace('$', '')) : sum, 0);
@@ -728,7 +727,7 @@ const PartnerDashboard = () => {
       setEarningsData({
         totalEarned,
         pendingAmount,
-        availableBalance: totalEarned - pendingAmount,
+        availableBalance: data.availableBalance || 0,
         withdrawals: data.withdrawals
       });
     } catch (error) {
