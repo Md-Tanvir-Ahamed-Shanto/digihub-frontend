@@ -25,52 +25,6 @@ import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 const FinancePanel = () => {
-  const handleGenerateReport = async () => {
-    try {
-      setIsLoading(true);
-      await axiosInstance.post('/gst-reports', {
-        period: `Q${Math.floor((new Date().getMonth() / 3)) + 1} ${new Date().getFullYear()}`,
-        dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
-      });
-      
-      toast({
-        title: 'Success',
-        description: 'GST report generated successfully'
-      });
-
-      await fetchFinancialData();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to generate GST report',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDownloadGstReport = async (reportId) => {
-    try {
-      const response = await axiosInstance.get(`/gst-reports/${reportId}`, {
-        responseType: 'blob'
-      });
-      
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `gst-report-${reportId}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (error) {
-      toast({
-        title: 'Error',
-        description: 'Failed to download GST report',
-        variant: 'destructive'
-      });
-    }
-  };
   const { toast } = useToast();
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
@@ -99,17 +53,17 @@ const FinancePanel = () => {
     try {
       const [expensesRes, gstRes, revenueRes] = await Promise.all([
         axiosInstance.get('/expenses'),
-        axiosInstance.get('/gst-reports'),
-        axiosInstance.get('/revenue')
+        axiosInstance.get('/payment/summary/gst'),
+        axiosInstance.get('/payment/summary/revenue')
       ]);
 
       setExpenses(expensesRes.data);
       setGstReports(gstRes.data);
       setRevenueData(revenueRes.data);
 
-      const totalRevenue = revenueRes.data.reduce((sum, item) => sum + item.amount, 0);
-      const totalExpenses = expensesRes.data.reduce((sum, item) => sum + item.amount, 0);
-      const gstCollected = gstRes.data.reduce((sum, item) => sum + item.gstCollected, 0);
+      const totalRevenue = revenueRes.data.reduce((sum, item) => sum + item.amount, 0) || 0;
+      const totalExpenses = expensesRes.data.reduce((sum, item) => sum + item.amount, 0) || 0;
+      const gstCollected = gstRes.data.reduce((sum, item) => sum + item.gstCollected, 0) || 0;
 
       setFinancialSummary({
         totalRevenue,
@@ -128,19 +82,6 @@ const FinancePanel = () => {
     }
   };
 
-  const expenseBreakdown = expenses.reduce((acc, expense) => {
-    const existingCategory = acc.find(item => item.name === expense.category);
-    if (existingCategory) {
-      existingCategory.value += expense.amount;
-    } else {
-      acc.push({
-        name: expense.category,
-        value: expense.amount,
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}`
-      });
-    }
-    return acc;
-  }, []);
 
   const handleAddExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -179,14 +120,7 @@ const FinancePanel = () => {
 //        setRevenueData(revenueRes.data);
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-gray-900">Finance Management</h2>
-        <Button onClick={handleGenerateReport} disabled={isLoading}>
-          <FileText className="w-4 h-4 mr-2" />
-          Generate Report
-        </Button>
-      </div>
-
+     
       {/* Financial Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
@@ -269,8 +203,7 @@ const FinancePanel = () => {
       <Tabs defaultValue="expenses" className="space-y-4">
         <TabsList>
           <TabsTrigger value="expenses">Expenses</TabsTrigger>
-          <TabsTrigger value="gst">GST Reporting</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+         
         </TabsList>
 
         <TabsContent value="expenses" className="space-y-6">
@@ -386,128 +319,6 @@ const FinancePanel = () => {
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="gst" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>GST Reporting</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Period</TableHead>
-                    <TableHead>GST Collected</TableHead>
-                    <TableHead>GST Paid</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">
-                        Loading GST reports...
-                      </TableCell>
-                    </TableRow>
-                  ) : gstReports.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">
-                        No GST reports found
-                      </TableCell>
-                    </TableRow>
-                  ) : gstReports.map((report, index) => (
-                    <TableRow key={index}>
-                      <TableCell className="font-medium">{report.period}</TableCell>
-                      <TableCell>${report.collected.toLocaleString()}</TableCell>
-                      <TableCell>${report.paid.toLocaleString()}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="bg-green-100 text-green-800">
-                          {report.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{format(new Date(report.dueDate), 'MMM dd, yyyy')}</TableCell>
-                      <TableCell>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => handleDownloadGstReport(report.id)}
-                        >
-                          <FileText className="w-3 h-3 mr-1" />
-                          Download
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="analytics" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Calculator className="w-5 h-5" />
-                  <span>Expense Breakdown</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-[300px]">
-                    Loading expense breakdown...
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={expenseBreakdown}
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {expenseBreakdown.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Revenue vs Expenses</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-[300px]">
-                    Loading revenue comparison...
-                  </div>
-                ) : (
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={revenueData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="month" />
-                      <YAxis />
-                      <Tooltip formatter={(value) => `$${value.toLocaleString()}`} />
-                      <Bar dataKey="revenue" fill="#10b981" name="Revenue" />
-                      <Bar dataKey="expenses" fill="#ef4444" name="Expenses" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
           </div>
         </TabsContent>
       </Tabs>
