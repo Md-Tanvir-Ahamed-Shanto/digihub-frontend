@@ -10,6 +10,8 @@ import axiosInstance from '@/api/axios';
 import { Loader2 } from 'lucide-react';
 
 interface Project {
+  projectTitle: string;
+  partnerProposedCost: string;
   id: number;
   description: string;
   status: string;
@@ -64,6 +66,7 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
   };
 
   if (!project) return null;
+  console.log("orject" , project)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -71,7 +74,13 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
         <DialogHeader>
           <DialogTitle>Submit Offer</DialogTitle>
           <DialogDescription>
-            Submit your cost estimate and timeline for this project
+            Submit your cost estimate and timeline for this project: {project.projectTitle}
+          </DialogDescription>
+          <DialogDescription>
+            Budget Offer: {project.partnerProposedCost}
+          </DialogDescription>
+          <DialogDescription>
+            TimeLine: {project.timeline}
           </DialogDescription>
         </DialogHeader>
         
