@@ -18,13 +18,14 @@ interface AddLeadModalProps {
 const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
+    projectTitle: '',
     clientName: '',
     email: '',
     phone: '',
     company: '',
     projectType: '',
     description: '',
-    budget: '',
+    budgetRange: '',
     timeline: ''
   });
 
@@ -44,7 +45,7 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
 
     setIsSubmitting(true);
     try {
-      const response = await axiosInstance.post('/leads', formData);
+      const response = await axiosInstance.post('/lead/submit', formData);
       
       if (response.status === 200 || response.status === 201) {
         toast({
@@ -54,13 +55,14 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
         
         onOpenChange(false);
         setFormData({
+          projectTitle: '',
           clientName: '',
           email: '',
           phone: '',
           company: '',
           projectType: '',
           description: '',
-          budget: '',
+          budgetRange: '',
           timeline: ''
         });
       }
@@ -88,6 +90,15 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
         
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="clientName">Project name *</Label>
+              <Input
+                id="projectTitle"
+                value={formData.projectTitle}
+                onChange={(e) => setFormData({...formData, projectTitle: e.target.value})}
+                required
+              />
+            </div>
             <div>
               <Label htmlFor="clientName">Client Name *</Label>
               <Input
@@ -145,16 +156,19 @@ const AddLeadModal = ({ open, onOpenChange }: AddLeadModalProps) => {
               </Select>
             </div>
             <div>
-              <Label htmlFor="budget">Budget Range</Label>
-              <Select value={formData.budget} onValueChange={(value) => setFormData({...formData, budget: value})}>
+              <Label htmlFor="budgetRange">budget Range</Label>
+              <Select value={formData.budgetRange} onValueChange={(value) => setFormData({...formData, budgetRange: value})}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select budget" />
+                  <SelectValue placeholder="Select budgetRange" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1000-3000">$1,000 - $3,000</SelectItem>
-                  <SelectItem value="3000-5000">$3,000 - $5,000</SelectItem>
-                  <SelectItem value="5000-10000">$5,000 - $10,000</SelectItem>
-                  <SelectItem value="10000+">$10,000+</SelectItem>
+                  <SelectItem value="1000">$1,000</SelectItem>
+                  <SelectItem value="3000">$3,000</SelectItem>
+                  <SelectItem value="5000">$5,000</SelectItem>
+                  <SelectItem value="10000">$10,000</SelectItem>
+                  <SelectItem value="20000">$20,000</SelectItem>
+                  <SelectItem value="30000">$30,000</SelectItem>
+                  <SelectItem value="50000+">$50,000+</SelectItem>
                 </SelectContent>
               </Select>
             </div>

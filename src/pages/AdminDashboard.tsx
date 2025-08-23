@@ -44,7 +44,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
+import { toast, useToast } from "@/hooks/use-toast";
 import ViewLeadModal from "@/components/admin/ViewLeadModal";
 import AddLeadModal from "@/components/admin/AddLeadModal";
 import AssignLeadModal from "@/components/admin/AssignLeadModal";
@@ -178,6 +178,7 @@ const AdminDashboard = () => {
 
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "client", label: "Client", icon: Users },
     { id: "leads", label: "Leads", icon: Users },
     { id: "projects", label: "Projects", icon: FolderOpen },
     { id: "milestones", label: "Milestones", icon: CheckCircle },
@@ -346,6 +347,125 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
     fetchSupportTickets();
   }, []);
 
+  
+const [clients, setClients] = useState([]);
+const [isLoadingClients, setIsLoadingClients] = useState(false);
+
+const fetchClients = async () => {
+  try {
+    setIsLoadingClients(true);
+    const response = await axiosInstance.get('/client');
+    setClients(response.data);
+  } catch (error) {
+    console.error('Error fetching clients:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to fetch clients. Please try again.',
+      variant: 'destructive',
+    });
+  } finally {
+    setIsLoadingClients(false);
+  }
+};
+
+const handleDeleteClient = async (clientId) => {
+  try {
+    await axiosInstance.delete(`/client/${clientId}`);
+    toast({
+      title: 'Success',
+      description: 'Client deleted successfully',
+    });
+    fetchClients();
+  } catch (error) {
+    console.error('Error deleting client:', error);
+    toast({
+      title: 'Error',
+      description: 'Failed to delete client',
+      variant: 'destructive',
+    });
+  }
+};
+
+useEffect(() => {
+  fetchClients();
+}, []);
+
+
+const renderClients = () => (
+  <div className="space-y-6">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <h2 className="text-2xl font-bold text-gray-900">Clients</h2>
+    </div>
+
+    <Card>
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Client Name</TableHead>
+                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead className="hidden lg:table-cell">Phone</TableHead>
+                <TableHead className="hidden sm:table-cell">Join Date</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {isLoadingClients ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                  </TableCell>
+                </TableRow>
+              ) : clients.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    No clients found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                clients.map((client) => (
+                  <TableRow key={client.id}>
+                    <TableCell className="font-medium">{client.name}</TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      {client.email}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      {client.phone || '-'}
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      {format(new Date(client.createdAt), 'dd MMM yyyy')}
+                    </TableCell>
+                    <TableCell>{ client.isActive ? 'Active' : 'Inactive'}</TableCell>
+                    <TableCell>
+                      <div className="flex space-x-2">
+                        
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this client?')) {
+                              handleDeleteClient(client.id);
+                            }
+                          }}
+                        >
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
+    </Card>
+  </div>
+);
+
   const renderDashboard = () => (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -487,18 +607,18 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
                     </TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {lead.partnerOffer ? (
+                      {lead.offerPrice ? (
                         <span className="text-green-600 font-medium">
-                          {lead.partnerOffer}
+                          ${lead.offerPrice}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
                       )}
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {lead.partnerTimeline ? (
+                      {lead.timeline ? (
                         <span className="text-blue-600">
-                          {lead.partnerTimeline}
+                          {lead.timeline}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
@@ -506,7 +626,7 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-2">
-                        {lead.status !== "ACCEPTED_AND_CONVERTED" && (
+
                           <Button
                             size="sm"
                             variant="outline"
@@ -514,7 +634,7 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
                           >
                             <Eye className="w-3 h-3" />
                           </Button>
-                        )}
+                        
                         {lead.status === "PENDING" && (
                           <Button
                             size="sm"
@@ -793,6 +913,8 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
     switch (activeTab) {
       case "dashboard":
         return renderDashboard();
+      case "client":
+        return renderClients();
       case "leads":
         return renderLeads();
       case "projects":
