@@ -213,7 +213,7 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
       color: "text-blue-600",
     },
     {
-      title: "Total Revenue",
+      title: "Total Expected Revenue",
       value: totalProject.adminMargin || 0,
       change: "+8%",
       icon: DollarSign,
@@ -607,9 +607,9 @@ const renderClients = () => (
                     </TableCell>
                     <TableCell>{getStatusBadge(lead.status)}</TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      {lead.offerPrice ? (
+                      {lead.partnerProposedCost ? (
                         <span className="text-green-600 font-medium">
-                          ${lead.offerPrice}
+                          ${lead.partnerProposedCost}
                         </span>
                       ) : (
                         <span className="text-gray-400">-</span>
@@ -628,7 +628,7 @@ const renderClients = () => (
                       <div className="flex space-x-2">
 
                          {
-                          lead.status === "ACCEPTED_AND_CONVERTED" && (
+                          lead.status !== "ACCEPTED_AND_CONVERTED" && (
                             <Button
                               size="sm"
                               variant="outline"
@@ -649,7 +649,7 @@ const renderClients = () => (
                           </Button>
                         )}
                         {lead.partnerProposedCost &&
-                          lead.status === "PARTNER_OFFER_PROPOSED" && (
+                          (lead.status === "PARTNER_OFFER_PROPOSED" || lead.status === "OFFER_REJECTED_BY_CLIENT") && (
                             <Button
                               size="sm"
                               variant="outline"

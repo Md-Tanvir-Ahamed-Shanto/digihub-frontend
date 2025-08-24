@@ -602,6 +602,7 @@ const ClientDashboard = () => {
             "The milestone has been paid.",
         });
       }
+      fetchMilestones();
       
     } catch (error) {
       console.log("Error", error)
@@ -663,7 +664,16 @@ const ClientDashboard = () => {
       case "projects":
         return (
           <div className="space-y-6">
+            <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-900">My Projects</h2>
+              <Button
+                className="bg-brand-primary hover:bg-brand-primary/90"
+                onClick={() => setNewProjectOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                New Project
+              </Button>
+              </div>
             {projects?.length === 0 && pendingProjects?.length === 0 ? (
               <div className="flex justify-center items-center">
                 <p className="text-gray-600 text-center text-lg">
@@ -968,7 +978,7 @@ const ClientDashboard = () => {
                             {invoice.invoiceNumber}
                           </TableCell>
                           <TableCell>
-                            {invoice.project?.name || "N/A"}
+                            {invoice.project?.title || "N/A"}
                           </TableCell>
                           <TableCell>
                             {invoice.milestone?.title || "N/A"}

@@ -79,7 +79,7 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
           <DialogHeader>
             <DialogTitle className="flex items-center space-x-2">
               <FileText className="w-5 h-5" />
-              <span>{project.title}</span>
+              <span>{project?.title}</span>
             </DialogTitle>
             <DialogDescription>
               Complete project overview and management
@@ -101,8 +101,23 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
                       <DollarSign className="w-4 h-4 text-green-600" />
                       <div>
                         <p className="text-sm text-gray-600">Total Value</p>
-                        <p className="font-bold">{project.offerPrice}</p>
+                        <p className="font-bold">{project?.offerPrice || 'N/A'}</p>
                       </div>
+                     
+                    </div>
+                   
+                  </CardContent>
+                  
+                </Card>
+                <Card>
+                  <CardContent className='p-4'>
+                     <div className="flex items-center space-x-2">
+                      <DollarSign className="w-4 h-4 text-green-600" />
+                      <div>
+                        <p className="text-sm text-gray-600">Partner Cost</p>
+                        <p className="font-bold">{project?.partnerProposedCost || project?.partnerCost || 'N/A'}</p>
+                      </div>
+                     
                     </div>
                   </CardContent>
                 </Card>
@@ -112,7 +127,7 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
                       <Calendar className="w-4 h-4 text-blue-600" />
                       <div>
                         <p className="text-sm text-gray-600">Timeline</p>
-                        <p className="font-bold">{project.timeline}</p>
+                        <p className="font-bold">{project?.timeline}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -124,7 +139,7 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
                       <Clock className="w-4 h-4 text-orange-600" />
                       <div>
                         <p className="text-sm text-gray-600">Status</p>
-                        <Badge className="mt-1">{project.status}</Badge>
+                        <Badge className="mt-1">{project?.status}</Badge>
                       </div>
                     </div>
                   </CardContent>
@@ -140,15 +155,15 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
                   <CardContent className="space-y-3">
                     <div className="flex items-center space-x-2">
                       <p className="text-sm text-gray-600">Project Name</p>
-                      <span>{project.title}</span>
+                      <span>{project?.title}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <p className="text-sm text-gray-600">Client</p>
-                      <span>{project.client.name}</span>
+                      <span>{project?.client?.name}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <p className="text-sm text-gray-600">Partner</p>
-                      <span>{project.partner.name}</span>
+                      <span>{project?.partner?.name}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -159,7 +174,7 @@ const ViewProjectModal = ({ open, onOpenChange, project, fetchProject }: ViewPro
               
 
               <div className="space-y-4">
-                {project.milestones.map((milestone) => (
+                {project?.milestones?.map((milestone) => (
                   <Card key={milestone.id}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">

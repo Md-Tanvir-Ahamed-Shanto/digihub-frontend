@@ -76,6 +76,9 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
           <DialogDescription>
             Submit your cost estimate and timeline for this project: {project.projectTitle}
           </DialogDescription>
+           <DialogDescription>
+            Description: {project.description}
+          </DialogDescription>
           <DialogDescription>
             Budget Offer: {project.partnerProposedCost}
           </DialogDescription>

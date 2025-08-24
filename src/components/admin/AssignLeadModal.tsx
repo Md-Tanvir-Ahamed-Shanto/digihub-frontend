@@ -82,12 +82,19 @@ const AssignLeadModal = ({ open, onOpenChange, lead, fetchLeads }: AssignLeadMod
           <DialogDescription>
             Select a technical partner to handle this project: {lead?.projectTitle}
           </DialogDescription>
+           <DialogDescription>
+            Description: {lead?.description}
+          </DialogDescription>
           <DialogDescription>
             Client: {lead?.client?.companyName}
           </DialogDescription>
           <DialogDescription>
             Budget: {lead?.budgetRange}
           </DialogDescription>
+          <DialogDescription>
+            Timeline: {lead?.timeline}
+          </DialogDescription>
+         
         </DialogHeader>
         
         <div className="space-y-6">

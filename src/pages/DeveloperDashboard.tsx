@@ -386,10 +386,10 @@ const PartnerDashboard = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-2xl font-bold text-gray-900">Partner Dashboard</h2>
-        <Button onClick={() => setViewAssignedProjectsOpen(true)}>
+        {/* <Button onClick={() => setViewAssignedProjectsOpen(true)}>
           <Eye className="w-4 h-4 mr-2" />
           View Assigned Projects
-        </Button>
+        </Button> */}
       </div>
 
       {/* Stats Cards */}

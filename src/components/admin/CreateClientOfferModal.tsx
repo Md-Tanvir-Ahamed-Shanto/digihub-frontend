@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Clock } from "lucide-react";
+import { DollarSign, Clock, Box, Boxes } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "../ui/checkbox";
 import axiosInstance from "@/api/axios";
@@ -73,6 +73,14 @@ const CreateClientOfferModal = ({
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
                 <span className="font-medium">Partner Cost: ${lead?.partnerProposedCost}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Box className="w-4 h-4 text-gray-500" />
+                <span className="font-medium">Project Name: {lead?.projectTitle}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Boxes className="w-4 h-4 text-gray-500" />
+                <span className="font-medium">Project Description: {lead?.description}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-gray-500" />

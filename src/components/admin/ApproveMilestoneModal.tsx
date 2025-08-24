@@ -217,17 +217,17 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
                   <p className="font-medium">${milestone.cost.toLocaleString()}</p>
                 </div>
                 <div>
-                  <span className="text-blue-700">Gross Profit:</span>
+                  <span className="text-blue-700">Admin Profit:</span>
                   <p className="font-medium text-green-600">
                     ${amounts.grossProfit.toLocaleString()}
                   </p>
                 </div>
-                <div>
+                {/* <div>
                   <span className="text-blue-700">Profit Margin:</span>
                   <p className="font-medium text-green-600">
                     {amounts.profitMargin.toFixed(1)}%
                   </p>
-                </div>
+                </div> */}
               </div>
             </div>
           )}
