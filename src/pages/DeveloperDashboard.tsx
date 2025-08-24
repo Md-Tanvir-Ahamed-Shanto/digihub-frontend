@@ -878,7 +878,7 @@ const PartnerDashboard = () => {
                   Total Withdrawn
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${totalWithdrawn.toLocaleString()}
+                  ${totalWithdrawn?.toLocaleString()}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-green-600" />
@@ -893,7 +893,7 @@ const PartnerDashboard = () => {
                   Pending Withdrawals
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${pendingWithdrawalAmount.toLocaleString()}
+                  ${pendingWithdrawalAmount?.toLocaleString()}
                 </p>
               </div>
               <Clock className="w-8 h-8 text-yellow-600" />
@@ -908,7 +908,7 @@ const PartnerDashboard = () => {
                   Available Balance
                 </p>
                 <p className="text-2xl font-bold text-gray-900">
-                  ${(earningsData.availableBalance - pendingWithdrawalAmount).toLocaleString()}
+                  ${(earningsData?.availableBalance - pendingWithdrawalAmount).toLocaleString()}
                 </p>
               </div>
               <Wallet className="w-8 h-8 text-blue-600" />
@@ -925,7 +925,7 @@ const PartnerDashboard = () => {
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            {withdrawals.length === 0 ? (
+            {withdrawals?.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
                 No withdrawal history available
               </div>
@@ -944,14 +944,14 @@ const PartnerDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {withdrawals.map((withdrawal) => (
+                  {withdrawals?.map((withdrawal) => (
                     <TableRow key={withdrawal.id}>
                       <TableCell className="font-semibold">
-                        ${parseFloat(withdrawal.amount).toLocaleString()}
+                        ${parseFloat(withdrawal?.amount).toLocaleString()}
                       </TableCell>
                       <TableCell>
                         <Badge
-                          className={`${withdrawal.status === "COMPLETED" 
+                          className={`${withdrawal?.status === "COMPLETED" 
                             ? "bg-green-100 text-green-800" 
                             : withdrawal.status === "PENDING" 
                             ? "bg-yellow-100 text-yellow-800" 
@@ -964,7 +964,7 @@ const PartnerDashboard = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
-                        {format(new Date(withdrawal.createdAt), "MMM dd, yyyy")}
+                        {format(new Date(withdrawal.requestedAt), "MMM dd, yyyy")}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {withdrawal.updatedAt && withdrawal.status === "COMPLETED"

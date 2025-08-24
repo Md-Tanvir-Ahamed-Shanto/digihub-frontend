@@ -769,7 +769,7 @@ const renderClients = () => (
                     </TableCell>
                   </TableRow>
                 ) : (
-                  partners.map((partner) => (
+                  partners?.map((partner) => (
                     <TableRow key={partner.id}>
                       <TableCell className="font-medium">
                         {partner.name}

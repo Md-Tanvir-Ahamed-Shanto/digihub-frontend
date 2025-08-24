@@ -127,7 +127,7 @@ const ViewPartnerModal = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Partner Details - {partner.name}</DialogTitle>
+          <DialogTitle>Partner Details - {partner?.name}</DialogTitle>
           <DialogDescription>
             View partner information, balance, and manage withdrawal requests
           </DialogDescription>
@@ -144,7 +144,7 @@ const ViewPartnerModal = ({
                       Current Balance
                     </p>
                     <p className="text-xl font-bold text-green-600">
-                      ${partner.availableBalance}
+                      ${partner?.availableBalance}
                     </p>
                   </div>
                 </div>
@@ -251,7 +251,7 @@ const ViewPartnerModal = ({
                           <div>
                             <p className="font-medium">${request.amount}</p>
                             <p className="text-sm text-gray-600">
-                              {format(new Date(request.createdAt), "yyyy-MM-dd")}
+                              {format(new Date(request.requestedAt), "yyyy-MM-dd")}
                             </p>
                           </div>
                           <div>
