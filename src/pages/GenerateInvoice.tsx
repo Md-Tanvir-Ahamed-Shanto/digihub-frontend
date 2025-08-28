@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Plus, Trash2, Calendar, DollarSign, FileText, Eye, Zap } from 'lucide-react';
+import { Download, Plus, Trash2, Calendar, DollarSign, FileText, Eye, Zap, Save, List, Trash } from 'lucide-react';
+import axios from 'axios';
+import axiosInstance from '@/api/axios';
 
 // Separate Invoice Preview Component
 const InvoicePreview = ({ invoiceData, onAutoDownload }) => {
@@ -424,6 +426,11 @@ const GenerateInvoice = () => {
       email: ''
     }
   });
+  
+  const [savedInvoices, setSavedInvoices] = useState([]);
+  const [showSavedInvoices, setShowSavedInvoices] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Effect to calculate totals whenever items or gstEnabled changes
   useEffect(() => {
@@ -436,7 +443,7 @@ const GenerateInvoice = () => {
       setInvoice(prev => ({
         ...prev,
         [section]: {
-          ...prev[section],
+          ...(prev[section] || {}),
           [field]: value
         }
       }));
@@ -505,6 +512,235 @@ const GenerateInvoice = () => {
     const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
     const random = Math.random().toString(36).substr(2, 3).toUpperCase(); // 3 random alphanumeric chars
     setInvoice(prev => ({ ...prev, invoiceNumber: `INV-${timestamp}-${random}` }));
+  };
+  
+  // Fetch all saved invoices
+  const fetchSavedInvoices = async () => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get('/generated-invoices');
+      
+      // Check if response data is valid JSON and not HTML
+      if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+        throw new Error('Received HTML instead of JSON. API endpoint may be incorrect or server is returning an error page.');
+      }
+      
+      // Ensure we have a valid array of invoices
+      let invoices = Array.isArray(response.data) ? response.data : [];
+      
+      // Validate each invoice has required properties
+      invoices = invoices.map(inv => {
+        // Ensure inv is an object
+        if (typeof inv !== 'object' || inv === null) {
+          return {
+            id: Math.random().toString(36).substr(2, 9),
+            invoiceNumber: 'Unknown',
+            client: { name: 'N/A', email: '', address: '', phone: '' },
+            totalAmount: '0.00',
+            status: 'PENDING'
+          };
+        }
+        
+        return {
+          ...inv,
+          client: inv.client && typeof inv.client === 'object' ? inv.client : { name: 'N/A', email: '', address: '', phone: '' },
+          invoiceNumber: inv.invoiceNumber || 'Unknown',
+          totalAmount: inv.totalAmount || '0.00',
+          status: inv.status || 'PENDING'
+        };
+      });
+      
+      setSavedInvoices(invoices);
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching invoices:', error);
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Failed to fetch saved invoices</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+      setIsLoading(false);
+    }
+  };
+  
+  // Save invoice to backend
+  const saveInvoice = async () => {
+    if (!validateForm()) return;
+    
+    try {
+      setIsSaving(true);
+      
+      // Create a clean copy of the invoice data to send
+      const invoiceToSave = {
+        ...invoice,
+        // Ensure all required objects exist
+        client: invoice.client || { name: '', email: '', address: '', phone: '' },
+        project: invoice.project || { name: '', description: '' },
+        milestone: invoice.milestone || { name: '', description: '' },
+        companyInfo: invoice.companyInfo || { name: '', address: '', phone: '', email: '' },
+        items: Array.isArray(invoice.items) && invoice.items.length > 0 
+          ? invoice.items 
+          : [{ description: '', quantity: 1, rate: '0.00', amount: '0.00' }]
+      };
+      
+      const response = await axiosInstance.post('/generated-invoices', invoiceToSave);
+      
+      // Check if response is valid
+      if (response.data && typeof response.data === 'object') {
+        // Add the newly saved invoice to the list
+        setSavedInvoices(prev => [...prev, response.data]);
+      } else {
+        // If response is not as expected, refresh the invoice list
+        await fetchSavedInvoices();
+      }
+      
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Invoice saved successfully!</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+      setIsSaving(false);
+      
+      // Refresh the list of saved invoices if they're being displayed
+      if (showSavedInvoices) {
+        fetchSavedInvoices();
+      }
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Failed to save invoice</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+      setIsSaving(false);
+    }
+  };
+  
+  // Delete invoice from backend
+  const deleteInvoice = async (id) => {
+    if (!id) {
+      console.error('Cannot delete invoice: Invalid ID');
+      return;
+    }
+    
+    if (!confirm('Are you sure you want to delete this invoice?')) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.delete(`/generated-invoices/${id}`);
+      
+      // Check if response is HTML instead of expected data
+      if (response.data && typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+        throw new Error('Received HTML instead of JSON. API endpoint may be incorrect or server is returning an error page.');
+      }
+      
+      // Update local state to remove the deleted invoice
+      setSavedInvoices(prev => prev.filter(invoice => invoice.id !== id));
+      
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Invoice deleted successfully!</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+      
+      // Refresh the list to ensure we have the latest data
+      fetchSavedInvoices();
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Failed to delete invoice</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  // Load invoice data from backend
+  const loadInvoice = async (id) => {
+    try {
+      setIsLoading(true);
+      const response = await axiosInstance.get(`/generated-invoices/${id}`);
+      
+      // Check if response data is valid JSON object and not HTML or string
+      if (typeof response.data === 'string' && response.data.trim().startsWith('<!DOCTYPE html>')) {
+        throw new Error('Received HTML instead of JSON. API endpoint may be incorrect or server is returning an error page.');
+      }
+      
+      // Ensure we have a valid object
+      const loadedInvoice = typeof response.data === 'object' && response.data !== null 
+        ? response.data 
+        : { invoiceNumber: '', status: 'PENDING', dueDate: '' };
+      
+      // Format the date properly
+      if (loadedInvoice.dueDate) {
+        loadedInvoice.dueDate = new Date(loadedInvoice.dueDate).toISOString().split('T')[0];
+      }
+      
+      // Ensure all required objects exist
+      if (!loadedInvoice.client || typeof loadedInvoice.client !== 'object') {
+        loadedInvoice.client = { name: '', email: '', address: '', phone: '' };
+      }
+      if (!loadedInvoice.project || typeof loadedInvoice.project !== 'object') {
+        loadedInvoice.project = { name: '', description: '' };
+      }
+      if (!loadedInvoice.milestone || typeof loadedInvoice.milestone !== 'object') {
+        loadedInvoice.milestone = { name: '', description: '' };
+      }
+      if (!loadedInvoice.companyInfo || typeof loadedInvoice.companyInfo !== 'object') {
+        loadedInvoice.companyInfo = { name: '', address: '', phone: '', email: '' };
+      }
+      if (!loadedInvoice.items || !Array.isArray(loadedInvoice.items) || loadedInvoice.items.length === 0) {
+        loadedInvoice.items = [{ description: '', quantity: 1, rate: '0.00', amount: '0.00' }];
+      }
+      
+      setInvoice(loadedInvoice);
+      setShowSavedInvoices(false);
+      setIsLoading(false);
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Invoice loaded successfully!</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+    } catch (error) {
+      console.error('Error loading invoice:', error);
+      const messageBox = document.createElement('div');
+      messageBox.innerHTML = `
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000;">
+          <p>Failed to load invoice</p>
+          <button onclick="this.parentNode.remove()" style="margin-top: 15px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(messageBox);
+      setIsLoading(false);
+    }
+  };
+  
+  // Toggle saved invoices display
+  const toggleSavedInvoices = () => {
+    if (!showSavedInvoices) {
+      fetchSavedInvoices();
+    }
+    setShowSavedInvoices(!showSavedInvoices);
   };
 
   // Triggers manual download of the invoice
@@ -666,27 +902,27 @@ const GenerateInvoice = () => {
                 <input
                   type="text"
                   placeholder="To Name"
-                  value={invoice.client.name}
+                  value={invoice.client?.name || ''}
                   onChange={(e) => handleInputChange('client', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <input
                   type="email"
                   placeholder="To Email"
-                  value={invoice.client.email}
+                  value={invoice.client?.email || ''}
                   onChange={(e) => handleInputChange('client', 'email', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <input
                   type="text"
                   placeholder="To Phone"
-                  value={invoice.client.phone}
+                  value={invoice.client?.phone || ''}
                   onChange={(e) => handleInputChange('client', 'phone', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
                 />
                 <textarea
                   placeholder="to Address"
-                  value={invoice.client.address}
+                  value={invoice.client?.address || ''}
                   onChange={(e) => handleInputChange('client', 'address', e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 transition duration-200"
@@ -701,13 +937,13 @@ const GenerateInvoice = () => {
                 <input
                   type="text"
                   placeholder="Item Name"
-                  value={invoice.project.name}
+                  value={invoice.project?.name || ''}
                   onChange={(e) => handleInputChange('project', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
                 />
                 <textarea
                   placeholder="Item Description"
-                  value={invoice.project.description}
+                  value={invoice.project?.description || ''}
                   onChange={(e) => handleInputChange('project', 'description', e.target.value)}
                   rows={2}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 transition duration-200"
@@ -732,13 +968,13 @@ const GenerateInvoice = () => {
                 <input
                   type="text"
                   placeholder="From Name"
-                  value={invoice.companyInfo.name}
+                  value={invoice.companyInfo?.name || ''}
                   onChange={(e) => handleInputChange('companyInfo', 'name', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200"
                 />
                 <textarea
                   placeholder="From Address"
-                  value={invoice.companyInfo.address}
+                  value={invoice.companyInfo?.address || ''}
                   onChange={(e) => handleInputChange('companyInfo', 'address', e.target.value)}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200"
@@ -746,14 +982,14 @@ const GenerateInvoice = () => {
                 <input
                   type="text"
                   placeholder="Phone"
-                  value={invoice.companyInfo.phone}
+                  value={invoice.companyInfo?.phone || ''}
                   onChange={(e) => handleInputChange('companyInfo', 'phone', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200"
                 />
                 <input
                   type="email"
                   placeholder="Email"
-                  value={invoice.companyInfo.email}
+                  value={invoice.companyInfo?.email || ''}
                   onChange={(e) => handleInputChange('companyInfo', 'email', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-yellow-500 transition duration-200"
                 />
@@ -838,7 +1074,7 @@ const GenerateInvoice = () => {
         </div>
 
         {/* Action Buttons */}
-        <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+        <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 flex-wrap">
           <button
             onClick={previewInvoice}
             className="flex items-center justify-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
@@ -857,7 +1093,88 @@ const GenerateInvoice = () => {
           >
             <Download className="w-5 h-5 mr-2" /> Auto-Download Invoice
           </button>
+          <button
+            onClick={saveInvoice}
+            disabled={isSaving}
+            className="flex items-center justify-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            <Save className="w-5 h-5 mr-2" /> {isSaving ? 'Saving...' : 'Save Invoice'}
+          </button>
+          <button
+            onClick={toggleSavedInvoices}
+            className="flex items-center justify-center px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2"
+          >
+            <List className="w-5 h-5 mr-2" /> {showSavedInvoices ? 'Hide Saved Invoices' : 'Show Saved Invoices'}
+          </button>
         </div>
+        
+        {/* Saved Invoices Section */}
+        {showSavedInvoices && (
+          <div className="mt-10 bg-gray-50 p-6 rounded-lg shadow-lg border border-gray-200">
+            <h2 className="text-2xl font-bold mb-4 text-gray-800">Saved Invoices</h2>
+            {isLoading ? (
+              <div className="flex justify-center items-center p-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
+              </div>
+            ) : savedInvoices.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full bg-white border border-gray-200 rounded-lg">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Invoice Number</th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Client</th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Amount</th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Status</th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Due Date</th>
+                      <th className="py-3 px-4 text-left text-gray-700 font-semibold">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {savedInvoices.map((inv) => (
+                      <tr key={inv.id} className="border-t border-gray-200 hover:bg-gray-50">
+                        <td className="py-3 px-4 text-gray-800">{inv.invoiceNumber}</td>
+                        <td className="py-3 px-4 text-gray-800">{inv.client && inv.client.name ? inv.client.name : 'N/A'}</td>
+                        <td className="py-3 px-4 text-gray-800">${inv.totalAmount}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            inv.status === 'PAID' ? 'bg-green-100 text-green-800' :
+                            inv.status === 'OVERDUE' ? 'bg-red-100 text-red-800' :
+                            'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {inv.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-gray-800">
+                          {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : 'Not specified'}
+                        </td>
+                        <td className="py-3 px-4 space-x-2">
+                          <button
+                            onClick={() => loadInvoice(inv.id)}
+                            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                            title="Load Invoice"
+                          >
+                            Load
+                          </button>
+                          <button
+                            onClick={() => deleteInvoice(inv.id)}
+                            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                            title="Delete Invoice"
+                          >
+                            <Trash className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-600">
+                No saved invoices found. Create and save an invoice to see it here.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
