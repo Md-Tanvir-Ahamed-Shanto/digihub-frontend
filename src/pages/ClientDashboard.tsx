@@ -311,7 +311,7 @@ const ClientDashboard = () => {
     { id: "offers", label: "Offers", icon: DollarSign },
     { id: "milestones", label: "Milestones", icon: CheckCircle },
     { id: "invoices", label: "Invoices", icon: FileDown },
-    { id: "maintenance", label: "Maintenance", icon: Wrench },
+    // { id: "maintenance", label: "Maintenance", icon: Wrench },
     { id: "support", label: "Support", icon: MessageSquare },
     { id: "settings", label: "Settings", icon: Settings },
   ];
@@ -622,6 +622,8 @@ const ClientDashboard = () => {
     setSupportTicketOpen(true);
   };
 
+    const GST_RATE = parseFloat(import.meta.env.VITE_PUBLIC_GST_RATE || '0.10');
+
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":
@@ -798,7 +800,13 @@ const ClientDashboard = () => {
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
                             <span className="font-medium">
-                              Total: {offer.offerPrice}
+                              Total Project Price: {offer.offerPrice - (offer.offerPrice * GST_RATE)}
+                            </span>
+                            </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4 text-green-600" />
+                            <span className="font-medium">
+                              Total Price With Gst(10%): {offer.offerPrice}
                             </span>
                           </div>
                           <div className="flex items-center gap-1">

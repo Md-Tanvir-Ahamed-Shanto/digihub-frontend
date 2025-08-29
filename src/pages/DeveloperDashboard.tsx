@@ -439,37 +439,6 @@ const PartnerDashboard = () => {
             ))}
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Notifications</CardTitle>
-            <CardDescription>Latest updates and alerts</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {notifications.slice(0, 3).map((notification, index) => (
-              <div key={index} className="flex items-start space-x-3">
-                <div
-                  className={`w-2 h-2 rounded-full mt-2 ${
-                    notification.status === "success"
-                      ? "bg-green-500"
-                      : notification.status === "pending"
-                      ? "bg-yellow-500"
-                      : "bg-blue-500"
-                  }`}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {notification.type}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {notification.message}
-                  </p>
-                  <p className="text-xs text-gray-400">{notification.time}</p>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
