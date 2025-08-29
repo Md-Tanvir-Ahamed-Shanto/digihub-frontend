@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, Clock, Box, Boxes } from "lucide-react";
+import { DollarSign, Clock, Box, Boxes, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "../ui/checkbox";
 import axiosInstance from "@/api/axios";
@@ -23,26 +23,31 @@ interface CreateClientOfferModalProps {
   onOfferCreated: () => void;
 }
 
-
 const CreateClientOfferModal = ({
   open,
   onOpenChange,
   lead,
-  onOfferCreated
+  onOfferCreated,
 }: CreateClientOfferModalProps) => {
   const { toast } = useToast();
   const [budgetForClient, setBudgetForClient] = useState("");
   const [timelineForClient, setTimelineForClient] = useState("");
   const [offerNotes, setOfferNotes] = useState("");
   const [gst, setGst] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const handleCreateOffer = async () => {
-    const response = await axiosInstance.post(`/lead/${lead?.id}/send-offer-to-client`, {
-      adminMargin: Number(budgetForClient),
-      includesGST: gst,
-      timeline: timelineForClient,
-      notes: offerNotes,
-    });
-    if(response.status === 200) {
+    setSubmitting(true);
+    const response = await axiosInstance.post(
+      `/lead/${lead?.id}/send-offer-to-client`,
+      {
+        adminMargin: Number(budgetForClient),
+        includesGST: gst,
+        timeline: timelineForClient,
+        notes: offerNotes,
+      }
+    );
+    if (response.status === 200) {
+      setSubmitting(false);
       onOpenChange(false);
       onOfferCreated();
       toast({
@@ -51,6 +56,7 @@ const CreateClientOfferModal = ({
       });
       onOfferCreated();
     }
+    setSubmitting(false);
   };
 
   return (
@@ -72,27 +78,55 @@ const CreateClientOfferModal = ({
             <CardContent className="space-y-3">
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Partner Cost: ${lead?.partnerProposedCost}</span>
+                <span className="font-medium">
+                  Partner Cost: ${lead?.partnerProposedCost}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Client Offer: ${lead?.budgetRange}</span>
+                <span className="font-medium">
+                  Client Budget: ${lead?.budgetRange}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Partner Notes: {lead?.partnerNotes}</span>
+                <span className="font-medium">
+                  Admin Last Offer: ${lead?.offerPrice || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+                <span className="font-medium">
+                  Client Offer Cost: ${lead?.clientOffer || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium">
+                  Client Notes: {lead?.clientNotes || "N/A"}
+                </span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="font-medium">
+                  Partner Notes: {lead?.partnerNotes}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Box className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Project Name: {lead?.projectTitle}</span>
+                <span className="font-medium">
+                  Project Name: {lead?.projectTitle}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Boxes className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Project Description: {lead?.description}</span>
+                <span className="font-medium">
+                  Project Description: {lead?.description}
+                </span>
               </div>
               <div className="flex items-center space-x-2">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="font-medium">Partner Timeline: {lead?.timeline}</span>
+                <span className="font-medium">
+                  Partner Timeline: {lead?.timeline}
+                </span>
               </div>
             </CardContent>
           </Card>
@@ -120,9 +154,7 @@ const CreateClientOfferModal = ({
             </div>
           </div>
           <div className="flex  gap-2 items-center">
-            <Label htmlFor="timelineForClient">
-              Include your margin + GST
-            </Label>
+            <Label htmlFor="timelineForClient">Include your margin + GST</Label>
             <p className="">
               <Checkbox checked={gst} onClick={(e) => setGst(!gst)} />
             </p>
@@ -144,7 +176,16 @@ const CreateClientOfferModal = ({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateOffer}>Send Offer to Client</Button>
+            {submitting ? (
+              <Button disabled={submitting} className="bg-gray-500">
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Sending Offer...{" "}
+              </Button>
+            ) : (
+              <Button disabled={submitting} onClick={handleCreateOffer}>
+                Send Offer to Client
+              </Button>
+            )}
           </div>
         </div>
       </DialogContent>

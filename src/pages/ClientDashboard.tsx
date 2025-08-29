@@ -41,6 +41,7 @@ import {
   FileDown,
   Plus,
   Wrench,
+  BotOffIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +62,7 @@ import {
   useElements,
   PaymentElement,
 } from "@stripe/react-stripe-js";
+import ResentClientOfferModal from "@/components/dashboard/ResentClientOfferModal";
 
 // --- Stripe Initialization (Load outside component for performance) ---
 // Ensure NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY is correctly set in your .env.local
@@ -174,7 +176,8 @@ const ClientDashboard = () => {
   const [isAcceptingOffer, setIsAcceptingOffer] = useState(false);
   const [isRejectingOffer, setIsRejectingOffer] = useState(false);
   const [processingOfferId, setProcessingOfferId] = useState(null);
-  // const [milestones, setMilestones] = useState([]);
+  const [resentOfferOpen, setResentOfferOpen] = useState(false);
+  const [selectedOffer, setSelectedOffer] = useState(null);
 
   const { logout, user } = useAuth();
   const navigate = useNavigate();
@@ -187,6 +190,11 @@ const ClientDashboard = () => {
       description: "You have been successfully logged out.",
     });
     navigate("/client-login");
+  };
+
+  const viewResendModel = (offer) => {
+    setSelectedOffer(offer);
+    setResentOfferOpen(true);
   };
 
   const fetchOffer = async () => {
@@ -210,14 +218,6 @@ const ClientDashboard = () => {
       console.error("Error fetching projects:", error);
     }
   };
-  // const fetchMilestones = async () => {
-  //   try {
-  //     const response = await axiosInstance.get(`/milestone/projects/${user?.id}`);
-  //     setMilestones(response?.data?.data);
-  //   } catch (error) {
-  //     console.error("Error fetching milestones:", error);
-  //   }
-  // };
 
   const offers = offer?.filter(
     (item) => item.status === "OFFER_SENT_TO_CLIENT"
@@ -283,6 +283,8 @@ const ClientDashboard = () => {
       });
     }
   };
+
+
 
   useEffect(() => {
     fetchProjects();
@@ -806,6 +808,13 @@ const ClientDashboard = () => {
                         </div>
                       </div>
                       <div className="flex gap-2">
+                         <Button
+                          variant="outline"
+                          onClick={() => viewResendModel(offer)}
+                          className="border-blue-300 text-gray-800 hover:bg-blue-500 bg-blue-400"
+                        >
+                         <span className="flex gap-1 item-center justify-center"><BotOffIcon className="w-4 h-4" />Resend Offer</span>
+                        </Button>
                         <Button
                           variant="outline"
                           onClick={() => handleRejectOffer(offer.id)}
@@ -1246,6 +1255,12 @@ const ClientDashboard = () => {
       <NewProjectModal
         isOpen={newProjectOpen}
         onClose={() => setNewProjectOpen(false)}
+      />
+      <ResentClientOfferModal
+        isOpen={resentOfferOpen}
+        onClose={() => setResentOfferOpen(false)}
+        offer={selectedOffer}
+        fetchOffer={fetchOffer}
       />
       <ProjectDetailsModal
         isOpen={projectDetailsOpen}

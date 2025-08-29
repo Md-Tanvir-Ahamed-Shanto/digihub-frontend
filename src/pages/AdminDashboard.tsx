@@ -658,7 +658,7 @@ const renderClients = () => (
                           </Button>
                         )}
                         {lead.partnerProposedCost &&
-                          (lead.status === "PARTNER_OFFER_PROPOSED" || lead.status === "OFFER_REJECTED_BY_CLIENT") && (
+                          (lead.status === "PARTNER_OFFER_PROPOSED" || lead.status === "OFFER_REJECTED_BY_CLIENT" || lead.status === "CLIENT_RESEND_OFFER") && (
                             <>
                              <Button
                             size="sm"

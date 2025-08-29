@@ -99,6 +99,12 @@ const ResentOfferModal = ({ open, onOpenChange, lead, onOfferResent }: ResentOff
             Budget: {lead?.budgetRange}
           </DialogDescription>
           <DialogDescription>
+            Admin Proposed Cost: {lead?.offerPrice || "N/A"}
+          </DialogDescription>
+          <DialogDescription>
+            Client Proposed Cost: {lead?.clientOffer || "N/A"}
+          </DialogDescription>
+          <DialogDescription>
             Partner Proposed Cost: {lead?.partnerProposedCost || "N/A"}
           </DialogDescription>
           <DialogDescription>

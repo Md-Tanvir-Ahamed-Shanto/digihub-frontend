@@ -72,6 +72,16 @@ const ViewLeadModal = ({ open, onOpenChange, lead,fetchLeads }: ViewLeadModalPro
             <p>
               <strong>Budget Range:</strong> {lead?.budgetRange || 'N/A'}
             </p>
+             <p>
+              <strong>Admin Proposed Cost:</strong> {lead?.offerPrice || 'N/A'}
+            </p>
+            <p>
+              <strong>Client Proposed Cost:</strong> {lead?.clientOffer || 'N/A'}
+            </p>
+            <p>
+              <strong>Client Notes:</strong> {lead?.clientNotes || 'N/A'}
+            </p>
+           
             <p>
               <strong>Partner Proposed Cost:</strong> {lead?.partnerProposedCost || 'N/A'}
             </p>
