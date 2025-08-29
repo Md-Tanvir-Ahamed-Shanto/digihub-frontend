@@ -42,6 +42,8 @@ import {
   Mail,
   Cog,
   Loader2,
+  User2Icon,
+  UserCog2,
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast, useToast } from "@/hooks/use-toast";
@@ -72,6 +74,7 @@ import axiosInstance from "@/api/axios";
 import { format } from "date-fns";
 import GenerateInvoice from "./GenerateInvoice";
 import SupportTicketModal from "@/components/dashboard/SupportTicketModal";
+import ResentOfferModal from "@/components/admin/ResentOfferModal";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -79,12 +82,14 @@ const AdminDashboard = () => {
   const [viewLeadOpen, setViewLeadOpen] = useState(false);
   const [addLeadOpen, setAddLeadOpen] = useState(false);
   const [assignLeadOpen, setAssignLeadOpen] = useState(false);
+  const [resentOfferOpen, setResentOfferOpen] = useState(false);
   const [createClientOfferOpen, setCreateClientOfferOpen] = useState(false);
   const [viewProjectOpen, setViewProjectOpen] = useState(false);
   const [newProjectOpen, setNewProjectOpen] = useState(false);
   const [viewPartnerOpen, setViewPartnerOpen] = useState(false);
   const [addPartnerOpen, setAddPartnerOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedResentLead, setSelectedResentLead] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedPartner, setSelectedPartner] = useState(null);
   const [partners, setPartners] = useState([]);
@@ -304,6 +309,10 @@ const GST_RATE = import.meta.env.VITE_PUBLIC_GST_RATE;
   const handleAssignLead = (lead: any) => {
     setSelectedLead(lead);
     setAssignLeadOpen(true);
+  };
+  const handleResentOffer = (lead: any) => {
+    setSelectedResentLead(lead);
+    setResentOfferOpen(true);
   };
 
   const handleCreateClientOffer = (lead: any) => {
@@ -632,7 +641,7 @@ const renderClients = () => (
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleViewProject(lead)}
+                              onClick={() => handleViewLead(lead)}
                             >
                               <Eye className="w-3 h-3" />
                             </Button>
@@ -650,6 +659,15 @@ const renderClients = () => (
                         )}
                         {lead.partnerProposedCost &&
                           (lead.status === "PARTNER_OFFER_PROPOSED" || lead.status === "OFFER_REJECTED_BY_CLIENT") && (
+                            <>
+                             <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleResentOffer(lead)}
+                          >
+                            <UserCog2 className="w-3 h-3" />
+                          </Button>
+                          
                             <Button
                               size="sm"
                               variant="outline"
@@ -657,6 +675,7 @@ const renderClients = () => (
                             >
                               <Send className="w-3 h-3" />
                             </Button>
+                            </>
                           )}
                       </div>
                     </TableCell>
@@ -1051,6 +1070,12 @@ const renderClients = () => (
         onOpenChange={setAssignLeadOpen}
         lead={selectedLead}
         fetchLeads={fetchLeads}
+      />
+      <ResentOfferModal
+        open={resentOfferOpen}
+        onOpenChange={setResentOfferOpen}
+        lead={selectedResentLead}
+        onOfferResent={fetchLeads}
       />
       <CreateClientOfferModal
         open={createClientOfferOpen}

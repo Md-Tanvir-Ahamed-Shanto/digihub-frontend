@@ -1,0 +1,216 @@
+
+import { useEffect, useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Star, Users, Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import axiosInstance from '@/api/axios';
+
+interface ResentOfferModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  lead: any;
+  onOfferResent: () => void;
+}
+
+const ResentOfferModal = ({ open, onOpenChange, lead, onOfferResent }: ResentOfferModalProps) => {
+  const { toast } = useToast();
+  console.log("lead", lead, lead?.assignedPartnerId)
+  const [selectedPartner, setSelectedPartner] = useState("");
+  console.log("selected p",selectedPartner)
+  const [budgetForPartner, setBudgetForPartner] = useState('');
+  const [timelineForPartner, setTimelineForPartner] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [partners, setPartners] = useState([]);
+  useEffect(() => {
+    setSelectedPartner(lead?.assignedPartner?.id || lead?.assignedPartnerId);
+  }, [lead]);
+  const fetchPartners = async () => {
+    try {
+      const response = await axiosInstance.get('/partner');
+      setPartners(response.data);
+      console.log(response.data)
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPartners();
+  }, []);
+
+
+  const handleAssign = async () => {
+    if (!selectedPartner) return;
+    
+    setIsSubmitting(true);
+    const partner = partners.find(p => p.id === selectedPartner);
+    try {
+      await axiosInstance.put(`/lead/${lead.id}/resend-offer`, {
+        partnerId: selectedPartner,
+        partnerProposedCost: budgetForPartner,
+        timeline: timelineForPartner,
+        notes,
+      });
+      toast({
+        title: "Lead Assigned",
+        description: `Lead has been assigned to ${partner?.name} with budget ${budgetForPartner} and timeline ${timelineForPartner}.`,
+      });
+      onOfferResent();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error assigning lead:', error);
+      toast({
+        title: "Error Assigning Lead",
+        description: error.response?.data?.message || "There was an issue assigning the lead. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Assign Lead to Partner</DialogTitle>
+          <DialogDescription>
+            Select a technical partner to handle this project: {lead?.projectTitle}
+          </DialogDescription>
+           <DialogDescription>
+            Description: {lead?.description}
+          </DialogDescription>
+           <DialogDescription>
+            Partner Notes: {lead?.partnerNotes}
+          </DialogDescription>
+          <DialogDescription>
+            Client: {lead?.client?.name || lead?.client?.companyName}
+          </DialogDescription>
+          <DialogDescription>
+            Budget: {lead?.budgetRange}
+          </DialogDescription>
+          <DialogDescription>
+            Partner Proposed Cost: {lead?.partnerProposedCost || "N/A"}
+          </DialogDescription>
+          <DialogDescription>
+            Timeline: {lead?.timeline}
+          </DialogDescription>
+         
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Available Partners */}
+          <div>
+            <Label className="text-base font-medium mb-4 block">Available Partners</Label>
+            <div className="space-y-3">
+              {partners?.map((partner) => (
+                <Card 
+                  key={partner.id} 
+                  className={`cursor-pointer transition-colors ${
+                    selectedPartner === partner.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-gray-50'
+                  }`}
+                  onClick={() => setSelectedPartner(partner.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-3">
+                        <Avatar>
+                          <AvatarFallback>{partner.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <h3 className="font-medium">{partner.name}</h3>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <div className="flex items-center">
+                              <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                              <span className="text-sm ml-1">{partner.rating}</span>
+                            </div>
+                            <div className="flex items-center text-sm text-gray-500">
+                              <Users className="w-4 h-4 mr-1" />
+                              {partner.projects} projects
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {partner?.skillSet?.map((skill) => (
+                              <Badge key={skill} variant="secondary" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                      <Badge variant={partner?.isActive ? 'default' : 'secondary'}>
+                        {partner?.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+
+          {/* Budget and Timeline for Partner */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="budgetForPartner">Budget for Partner</Label>
+              <Input
+                id="budgetForPartner"
+                value={budgetForPartner}
+                onChange={(e) => setBudgetForPartner(e.target.value)}
+                placeholder="e.g., $3,000 - $5,000"
+              />
+            </div>
+            <div>
+              <Label htmlFor="timelineForPartner">Timeline for Partner</Label>
+              <Input
+                id="timelineForPartner"
+                value={timelineForPartner}
+                onChange={(e) => setTimelineForPartner(e.target.value)}
+                placeholder="e.g., 3-4 weeks"
+              />
+            </div>
+          </div>
+
+          {/* Assignment Notes */}
+          <div>
+            <Label htmlFor="notes">Assignment Notes (Optional)</Label>
+            <Textarea
+              id="notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              placeholder="Add any specific instructions or requirements for the partner..."
+              rows={3}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssign} disabled={!selectedPartner || isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Resending Offer...
+                </>
+              ) : (
+                'Resend Offer'
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default ResentOfferModal;

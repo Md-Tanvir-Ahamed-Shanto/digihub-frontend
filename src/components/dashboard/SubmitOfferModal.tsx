@@ -10,6 +10,7 @@ import axiosInstance from '@/api/axios';
 import { Loader2 } from 'lucide-react';
 
 interface Project {
+  notes: string;
   projectTitle: string;
   partnerProposedCost: string;
   id: number;
@@ -78,6 +79,9 @@ const SubmitOfferModal = ({ isOpen, onClose, project,fetchLead }: SubmitOfferMod
           </DialogDescription>
            <DialogDescription>
             Description: {project.description}
+          </DialogDescription>
+           <DialogDescription>
+            Admin Notes: {project.notes}
           </DialogDescription>
           <DialogDescription>
             Budget Offer: {project.partnerProposedCost}

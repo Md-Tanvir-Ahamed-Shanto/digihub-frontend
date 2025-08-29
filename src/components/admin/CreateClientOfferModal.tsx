@@ -75,6 +75,14 @@ const CreateClientOfferModal = ({
                 <span className="font-medium">Partner Cost: ${lead?.partnerProposedCost}</span>
               </div>
               <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+                <span className="font-medium">Client Offer: ${lead?.budgetRange}</span>
+              </div>
+              <div className="flex items-center space-x-2">
+                <DollarSign className="w-4 h-4 text-gray-500" />
+                <span className="font-medium">Partner Notes: {lead?.partnerNotes}</span>
+              </div>
+              <div className="flex items-center space-x-2">
                 <Box className="w-4 h-4 text-gray-500" />
                 <span className="font-medium">Project Name: {lead?.projectTitle}</span>
               </div>

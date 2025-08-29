@@ -56,6 +56,33 @@ const ViewLeadModal = ({ open, onOpenChange, lead,fetchLeads }: ViewLeadModalPro
             <span>Lead Details - {lead.client.name}</span>
           </DialogTitle>
           <DialogDescription>
+            <p>
+              <strong>Client Name:</strong> {lead?.client?.name || lead?.client?.companyName}
+            </p>
+            <p>
+              <strong>Email:</strong> {lead?.client?.email || 'N/A'}
+            </p>
+            <p>
+              <strong>Phone:</strong> {lead?.phone || 'N/A'}
+            </p>
+       
+            <p>
+              <strong>Description:</strong> {lead?.description || 'N/A'}
+            </p>
+            <p>
+              <strong>Budget Range:</strong> {lead?.budgetRange || 'N/A'}
+            </p>
+            <p>
+              <strong>Partner Proposed Cost:</strong> {lead?.partnerProposedCost || 'N/A'}
+            </p>
+            <p>
+              <strong>Status:</strong> {lead?.status || 'N/A'}
+            </p>
+            <p>
+              <strong>Created At:</strong> {format(new Date(lead.createdAt), "dd MMM yyyy")}
+            </p>
+          </DialogDescription>
+          <DialogDescription>
             Complete information about this project lead
           </DialogDescription>
         </DialogHeader>
