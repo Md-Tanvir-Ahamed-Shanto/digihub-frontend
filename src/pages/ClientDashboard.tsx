@@ -800,7 +800,7 @@ const ClientDashboard = () => {
                           <div className="flex items-center gap-1">
                             <DollarSign className="w-4 h-4 text-green-600" />
                             <span className="font-medium">
-                              Total Project Price: {offer.offerPrice - (offer.offerPrice * GST_RATE)}
+                             Total Project Price: {(offer.offerPrice / 1.10).toFixed(2)}
                             </span>
                             </div>
                           <div className="flex items-center gap-1">
