@@ -91,7 +91,7 @@ const InvoicePreview = ({ invoiceData, onAutoDownload }) => {
           </div>
           ${invoiceData.gstEnabled ? `
             <div class="total-row">
-              <span>GST (18%):</span>
+              <span>GST (10%):</span>
               <span>$${invoiceData.gstAmount}</span>
             </div>
           ` : ''}
@@ -245,7 +245,7 @@ const InvoicePreview = ({ invoiceData, onAutoDownload }) => {
             </div>
             {invoiceData.gstEnabled && (
               <div className="flex justify-between mb-2">
-                <span>GST (18%):</span>
+                <span>GST (10%):</span>
                 <span className="font-medium">${invoiceData.gstAmount}</span>
               </div>
             )}
@@ -359,7 +359,7 @@ const generateInvoiceFromData = (data, autoDownload = false) => {
         </div>
         ${data.gstEnabled ? `
           <div class="total-row">
-            <span>GST (18%):</span>
+            <span>GST (10%):</span>
             <span>$${data.gstAmount}</span>
           </div>
         ` : ''}
@@ -489,7 +489,7 @@ const GenerateInvoice = () => {
   // Calculates subtotal, GST, and total amount
   const calculateTotals = () => {
     const subtotal = invoice.items.reduce((sum, item) => sum + (parseFloat(item.amount) || 0), 0);
-    const gstRate = 0.18; // 18% GST
+    const gstRate = 0.10; // 10% GST
     const gstAmount = invoice.gstEnabled ? subtotal * gstRate : 0;
     const totalAmount = subtotal + gstAmount;
     
@@ -861,6 +861,7 @@ const GenerateInvoice = () => {
                       type="date"
                       id="dueDate"
                       value={invoice.dueDate}
+                      required
                       onChange={(e) => handleInputChange(null, 'dueDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
                     />
@@ -889,7 +890,7 @@ const GenerateInvoice = () => {
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                   />
                   <label htmlFor="gstEnabled" className="ml-2 block text-base text-gray-900 cursor-pointer">
-                    Enable GST (18%)
+                    Enable GST (10%)
                   </label>
                 </div>
               </div>
@@ -1060,7 +1061,7 @@ const GenerateInvoice = () => {
                 </div>
                 {invoice.gstEnabled && (
                   <div className="flex justify-between items-center text-lg">
-                    <span className="text-gray-700">GST (18%):</span>
+                    <span className="text-gray-700">GST (10%):</span>
                     <span className="font-semibold text-indigo-700">${invoice.gstAmount}</span>
                   </div>
                 )}
@@ -1075,24 +1076,14 @@ const GenerateInvoice = () => {
 
         {/* Action Buttons */}
         <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 flex-wrap">
-          <button
-            onClick={previewInvoice}
-            className="flex items-center justify-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-          >
-            <Eye className="w-5 h-5 mr-2" /> Preview Invoice
-          </button>
+         
           <button
             onClick={manualDownload}
             className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           >
-            <Download className="w-5 h-5 mr-2" /> Download Invoice
+            <Download className="w-5 h-5 mr-2" /> Print Invoice
           </button>
-          <button
-            onClick={autoDownload}
-            className="flex items-center justify-center px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-lg transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
-          >
-            <Download className="w-5 h-5 mr-2" /> Auto-Download Invoice
-          </button>
+        
           <button
             onClick={saveInvoice}
             disabled={isSaving}

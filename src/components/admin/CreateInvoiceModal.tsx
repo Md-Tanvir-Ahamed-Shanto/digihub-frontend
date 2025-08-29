@@ -136,30 +136,36 @@ const CreateInvoiceModal = ({ open, onOpenChange, onSuccess }: CreateInvoiceModa
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => {
-      const newData = { ...prev, [field]: value };
+  setFormData(prev => {
+    let newValue: string | boolean = value;
+
+    if (field === 'gstEnabled') {
+      newValue = value === 'true'; // Convert 'true' string to boolean true
+    }
+    
+    const newData = { ...prev, [field]: newValue };
+
+    // When project changes, update milestone and amount if available
+    if (field === 'projectId') {
+      const project = projects.find(p => p.id === value);
+      setSelectedProject(project || null);
       
-      // When project changes, update milestone and amount if available
-      if (field === 'projectId') {
-        const project = projects.find(p => p.id === value);
-        setSelectedProject(project || null);
-        
-        // Reset milestone-related fields
-        newData.milestoneId = '';
-        newData.amount = '';
+      // Reset milestone-related fields
+      newData.milestoneId = '';
+      newData.amount = '';
+    }
+    
+    // When milestone changes, update amount
+    if (field === 'milestoneId' && selectedProject) {
+      const milestone = selectedProject.milestones.find(m => m.id === value);
+      if (milestone) {
+        newData.amount = milestone.clientCost?.toString();
       }
-      
-      // When milestone changes, update amount
-      if (field === 'milestoneId' && selectedProject) {
-        const milestone = selectedProject.milestones.find(m => m.id === value);
-        if (milestone) {
-          newData.amount = milestone.clientCost.toString();
-        }
-      }
-      
-      return newData;
-    });
-  };
+    }
+    
+    return newData;
+  });
+};
 
   const amount = parseFloat(formData.amount) || 0;
   const gstAmount = formData.gstEnabled ? amount * 0.1 : 0;

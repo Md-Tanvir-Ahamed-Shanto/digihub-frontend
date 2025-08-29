@@ -208,7 +208,7 @@ const SupportTicketModal = ({ open, onClose, ticket, onReply ,fetchTickets}: Sup
                             </p>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            {user.role.toUpperCase() == response.userType.toUpperCase() ? user.name : response.userType}
+                            {user.role.toUpperCase() == response.userType.toUpperCase() ? user.name : "Answer"}
                           </Badge>
                         </div>
                         <p className="text-gray-900 whitespace-pre-wrap">{response.message}</p>

@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Star, Users, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import axiosInstance from '@/api/axios';
+import { Checkbox } from '../ui/checkbox';
 
 interface ResentOfferModalProps {
   open: boolean;
@@ -30,6 +31,8 @@ const ResentOfferModal = ({ open, onOpenChange, lead, onOfferResent }: ResentOff
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [partners, setPartners] = useState([]);
+  const [gst, setGst] = useState(true);
+
   useEffect(() => {
     setSelectedPartner(lead?.assignedPartner?.id || lead?.assignedPartnerId);
   }, [lead]);
@@ -47,6 +50,9 @@ const ResentOfferModal = ({ open, onOpenChange, lead, onOfferResent }: ResentOff
     fetchPartners();
   }, []);
 
+    const GST_RATE = parseFloat(import.meta.env.VITE_PUBLIC_GST_RATE || '0.10');
+  const totalWithGst = (parseInt(budgetForPartner)  + parseInt(lead?.partnerProposedCost)) * (1 + GST_RATE)
+  const totalWithoutGst = parseInt(budgetForPartner)  + parseInt(lead?.partnerProposedCost)
 
   const handleAssign = async () => {
     if (!selectedPartner) return;
@@ -184,6 +190,23 @@ const ResentOfferModal = ({ open, onOpenChange, lead, onOfferResent }: ResentOff
               />
             </div>
           </div>
+            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="gst-checkbox"
+                    checked={gst} 
+                    onCheckedChange={(checked) => setGst(checked === true)}
+                  />
+                  <Label htmlFor="gst-checkbox" className="text-sm">
+                    Include GST ({(GST_RATE * 100).toFixed(0)}%)
+                  </Label>
+                </div>
+                <div className="ml-auto">
+                  <span className="font-semibold text-lg">
+                    {gst ? `Total with GST: $${totalWithGst.toFixed(2)}` : `Total: $${(totalWithoutGst || 0).toFixed(2)}`}
+                  </span>
+                </div>
+              </div>
 
           {/* Assignment Notes */}
           <div>

@@ -307,8 +307,8 @@ const ClientDashboard = () => {
 
   const navigationItems = [
     { id: "dashboard", label: "Dashboard", icon: FolderOpen },
-    { id: "projects", label: "Projects", icon: FileText },
     { id: "offers", label: "Offers", icon: DollarSign },
+    { id: "projects", label: "Projects", icon: FileText },
     { id: "milestones", label: "Milestones", icon: CheckCircle },
     { id: "invoices", label: "Invoices", icon: FileDown },
     // { id: "maintenance", label: "Maintenance", icon: Wrench },
@@ -1245,14 +1245,6 @@ const ClientDashboard = () => {
             <h1 className="text-2xl lg:text-3xl font-bold text-brand-gray-900">
               Client Dashboard
             </h1>
-          </div>
-          <div className="flex items-center space-x-2 lg:space-x-4">
-            <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-brand-gray-600 cursor-pointer hover:text-brand-primary" />
-            <div className="w-7 h-7 lg:w-8 lg:h-8 bg-brand-primary rounded-full flex items-center justify-center">
-              <span className="text-white text-xs lg:text-sm font-semibold">
-                C
-              </span>
-            </div>
           </div>
         </div>
 

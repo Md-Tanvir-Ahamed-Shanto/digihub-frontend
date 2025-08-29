@@ -477,13 +477,6 @@ const renderClients = () => (
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard Overview</h2>
-        <Button className="w-fit">
-          <Download className="w-4 h-4 mr-2" />
-          Export Report
-        </Button>
-      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1044,13 +1037,6 @@ const renderClients = () => (
             <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">
               DIGIHUB AUST Admin
             </h1>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="w-7 h-7 lg:w-8 lg:h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs lg:text-sm font-semibold">
-                A
-              </span>
-            </div>
           </div>
         </div>
 

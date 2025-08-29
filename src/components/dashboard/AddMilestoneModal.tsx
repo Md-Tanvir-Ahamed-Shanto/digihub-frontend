@@ -92,6 +92,9 @@ const AddMilestoneModal = ({ isOpen, onClose, onSuccess }: AddMilestoneModalProp
     }
   };
 
+  const selectedPorductDetails = activeProjects.find((p)=> p.id == selectedProject)
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -99,6 +102,9 @@ const AddMilestoneModal = ({ isOpen, onClose, onSuccess }: AddMilestoneModalProp
           <DialogTitle>Add Milestone</DialogTitle>
           <DialogDescription>
             Create a new milestone for one of your active projects
+          </DialogDescription>
+          <DialogDescription>
+            Total Budget: {selectedPorductDetails && selectedPorductDetails?.partnerCost}
           </DialogDescription>
         </DialogHeader>
         

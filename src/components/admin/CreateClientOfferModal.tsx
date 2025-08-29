@@ -205,7 +205,7 @@ const CreateClientOfferModal = ({
                 </div>
                 <div className="ml-auto">
                   <span className="font-semibold text-lg">
-                    {gst ? `Total with GST: $${totalWithGst}` : `Total: $${totalWithoutGst || '0.00'}`}
+                    {gst ? `Total with GST: $${totalWithGst.toFixed(2)}` : `Total: $${(totalWithoutGst || 0).toFixed(2)}`}
                   </span>
                 </div>
               </div>

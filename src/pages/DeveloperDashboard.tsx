@@ -1207,14 +1207,6 @@ const PartnerDashboard = () => {
               Partner Dashboard
             </h1>
           </div>
-          <div className="flex items-center space-x-2 lg:space-x-4">
-            <Bell className="w-5 h-5 lg:w-6 lg:h-6 text-gray-600 cursor-pointer hover:text-blue-600" />
-            <div className="w-7 h-7 lg:w-8 lg:h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xs lg:text-sm font-semibold">
-                P
-              </span>
-            </div>
-          </div>
         </div>
 
         {renderContent()}
