@@ -933,7 +933,7 @@ const GenerateInvoice = () => {
 
             {/* Project & Milestone */}
             <div className="bg-purple-50 p-6 rounded-lg shadow-inner border border-purple-200">
-              <h2 className="text-xl font-semibold mb-4 text-purple-800">Items</h2>
+              <h2 className="text-xl font-semibold mb-4 text-purple-800">Items Type</h2>
               <div className="space-y-4">
                 <input
                   type="text"

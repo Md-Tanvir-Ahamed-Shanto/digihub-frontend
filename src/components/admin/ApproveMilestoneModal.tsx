@@ -1,14 +1,18 @@
-
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { Calculator, Clock, DollarSign, FileText, Loader2 } from 'lucide-react';
-import axiosInstance from '@/api/axios';
-import { Switch } from '@/components/ui/switch';
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
+import { Calculator, Clock, DollarSign, FileText, Loader2 } from "lucide-react";
+import axiosInstance from "@/api/axios";
+import { Switch } from "@/components/ui/switch";
 
 interface ApproveMilestoneModalProps {
   open: boolean;
@@ -17,16 +21,21 @@ interface ApproveMilestoneModalProps {
   onSuccess?: () => void;
 }
 
-const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: ApproveMilestoneModalProps) => {
+const ApproveMilestoneModal = ({
+  open,
+  onOpenChange,
+  milestone,
+  onSuccess,
+}: ApproveMilestoneModalProps) => {
   console.log("view milestone", milestone);
   const { toast } = useToast();
-  const [clientCost, setClientCost] = useState('');
-  const [notes, setNotes] = useState('');
-  const [timeline, setTimeline] = useState('');
+  const [clientCost, setClientCost] = useState("");
+  const [notes, setNotes] = useState("");
+  const [timeline, setTimeline] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [includesGST, setIncludesGST] = useState(false);
 
-  const GST_RATE = parseFloat(import.meta.env.VITE_PUBLIC_GST_RATE || '0.10');
+  const GST_RATE = parseFloat(import.meta.env.VITE_PUBLIC_GST_RATE || "0.10");
 
   const calculateAmounts = () => {
     if (!clientCost) return null;
@@ -41,7 +50,7 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
       gstAmount,
       totalAmount,
       grossProfit,
-      profitMargin
+      profitMargin,
     };
   };
 
@@ -50,37 +59,42 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
       toast({
         title: "Error",
         description: "Please set the client cost before approving.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
       setIsSubmitting(true);
-      await axiosInstance.put(`/milestone/admin/milestones/${milestone.id}/approve`, {
-        clientCost: parseFloat(clientCost),
-        estimatedTimeline: timeline || `${milestone.timeline} days`,
-        additionalNotes: notes,
-        includesGST
-      });
+      await axiosInstance.put(
+        `/milestone/admin/milestones/${milestone.id}/approve`,
+        {
+          clientCost: parseFloat(clientCost),
+          estimatedTimeline: timeline || `${milestone.timeline} days`,
+          additionalNotes: notes,
+          includesGST,
+        }
+      );
 
       const amounts = calculateAmounts();
       toast({
         title: "Success",
-        description: `Milestone has been approved with total cost of $${amounts?.totalAmount.toLocaleString()} ${includesGST ? '(including GST)' : ''}.`,
+        description: `Milestone has been approved with total cost of $${amounts?.totalAmount.toLocaleString()} ${
+          includesGST ? "(including GST)" : ""
+        }.`,
       });
-      
+
       onSuccess?.();
       onOpenChange(false);
-      setClientCost('');
-      setNotes('');
-      setTimeline('');
+      setClientCost("");
+      setNotes("");
+      setTimeline("");
       setIncludesGST(false);
     } catch (error) {
       toast({
         title: "Error",
         description: "Failed to approve milestone. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -100,11 +114,13 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
             Set Client Cost & Approve Milestone
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Milestone Details */}
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h3 className="font-semibold text-gray-900 mb-3">Milestone Details</h3>
+            <h3 className="font-semibold text-gray-900 mb-3">
+              Milestone Details
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Project:</span>
@@ -115,20 +131,36 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
                 <p className="font-medium">{milestone.partner.name}</p>
               </div>
               <div>
-                <span className="text-gray-600">Partner Cost:</span>
-                <p className="font-medium text-green-600">${milestone.cost.toLocaleString()}</p>
+                <span className="text-gray-600">Partner Milestone Cost:</span>
+                <p className="font-medium text-green-600">
+                  ${milestone.cost.toLocaleString()}
+                </p>
               </div>
               <div>
                 <span className="text-gray-600">Timeline:</span>
                 <p className="font-medium">{milestone.duration} days</p>
               </div>
-              <div className="md:col-span-2">
-                <span className="text-gray-600">Milestone Title:</span>
-                <p className="font-medium">{milestone.title}</p>
-              </div>
-              <div className="md:col-span-2">
-                <span className="text-gray-600">Description:</span>
-                <p className="text-gray-700">{milestone.description}</p>
+              <div className="grid w-full grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <span className="text-gray-600">Milestone Title:</span>
+                  <p className="font-medium">{milestone.title}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Description:</span>
+                  <p className="text-gray-700">{milestone.description}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Total Project Price</span>
+                  <p className="text-gray-700">{milestone?.project?.offerPrice}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Partner Budget</span>
+                  <p className="text-gray-700">{milestone?.project?.partnerCost}</p>
+                </div>
+                <div>
+                  <span className="text-gray-600">Admin Budget</span>
+                  <p className="text-gray-700">{milestone?.project?.adminMargin}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -139,7 +171,7 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
               <DollarSign className="w-4 h-4" />
               Set Client Cost
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="partnerCost">Partner Cost (Fixed)</Label>
@@ -172,7 +204,9 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
             </div>
 
             <div>
-              <Label htmlFor="timeline">Estimated Timeline (days) (Optional)</Label>
+              <Label htmlFor="timeline">
+                Estimated Timeline (days) (Optional)
+              </Label>
               <Input
                 id="timeline"
                 placeholder={`Default: ${milestone.duration} days`}
@@ -196,25 +230,37 @@ const ApproveMilestoneModal = ({ open, onOpenChange, milestone, onSuccess }: App
           {/* Profit Calculation */}
           {amounts && (
             <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-semibold text-blue-900 mb-2">Cost Breakdown</h4>
+              <h4 className="font-semibold text-blue-900 mb-2">
+                Cost Breakdown
+              </h4>
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-blue-700">Base Cost:</span>
-                  <p className="font-medium">${amounts.costBeforeGST.toLocaleString()}</p>
+                  <p className="font-medium">
+                    ${amounts.costBeforeGST.toLocaleString()}
+                  </p>
                 </div>
                 {includesGST && (
                   <div>
                     <span className="text-blue-700">GST (10%):</span>
-                    <p className="font-medium">${amounts.gstAmount.toLocaleString()}</p>
+                    <p className="font-medium">
+                      ${amounts.gstAmount.toLocaleString()}
+                    </p>
                   </div>
                 )}
                 <div>
-                  <span className="text-blue-700">Total {includesGST ? '(inc. GST)' : ''}:</span>
-                  <p className="font-medium">${amounts.totalAmount.toLocaleString()}</p>
+                  <span className="text-blue-700">
+                    Total {includesGST ? "(inc. GST)" : ""}:
+                  </span>
+                  <p className="font-medium">
+                    ${amounts.totalAmount.toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <span className="text-blue-700">Partner Cost:</span>
-                  <p className="font-medium">${milestone.cost.toLocaleString()}</p>
+                  <p className="font-medium">
+                    ${milestone.cost.toLocaleString()}
+                  </p>
                 </div>
                 <div>
                   <span className="text-blue-700">Admin Profit:</span>
